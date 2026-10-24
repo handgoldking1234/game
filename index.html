@@ -141,8 +141,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .big svg{width:34px;height:34px;transition:transform .3s}
 .big:hover svg{transform:translateX(8px)}
 .big:hover{color:var(--acc2)}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-height:0;overflow:hidden;transition:max-height .5s,padding .5s;position:relative}
-.steps.open{max-height:400px;padding:40px 0 10px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;position:relative;padding:40px 0 10px}
 .st{border:1px solid rgba(255,255,255,.14);padding:22px;border-radius:4px}
 .st>b{font:700 13px var(--en);color:var(--acc2);letter-spacing:.1em}
 .st h4{margin:8px 0 6px;font-size:17px}
@@ -185,7 +184,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
  .works{grid-template-columns:repeat(2,1fr);gap:26px 12px}.w .nm h3{font-size:14px}.w .tag span{font-size:9.5px;padding:4px 5px}
  .cards{grid-template-columns:1fr}.c{padding:24px 24px 28px}.c:hover,.c:focus-visible{box-shadow:inset 0 0 0 10px #111}
  .cta{padding:70px 0 44px}.cta h2{font-size:23px}
- .steps{grid-template-columns:1fr}.steps.open{max-height:900px}
+ .steps{grid-template-columns:1fr}
  .pr{margin-left:0}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
@@ -236,9 +235,9 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
  <div class="in">
   <div class="cta">
    <h2>친구와 함께 방을 만들어<br>같이 플레이해 보세요<span>👥 표시가 있는 3D 게임은 숫자 4자리 방 번호로 최대 4명이 함께 해요</span></h2>
-   <button class="big" id="tg" type="button" aria-expanded="false" aria-controls="steps">Together <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+   <button class="big" id="tg" type="button" aria-controls="steps">Together <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
   </div>
-  <div class="steps" id="steps">
+  <div class="steps open" id="steps">
    <div class="st"><b>STEP 01</b><h4>방 만들기</h4><p>한 친구가 게임 첫 화면에서 👥 방 만들기를 눌러요.</p></div>
    <div class="st"><b>STEP 02</b><h4>방 번호 알려 주기</h4><p>화면에 나온 숫자 4자리를 친구들에게 알려 줘요.</p><div class="code" aria-hidden="true"><i>7</i><i>2</i><i>0</i><i>4</i></div></div>
    <div class="st"><b>STEP 03</b><h4>방 들어가기</h4><p>번호를 넣고 🚪 방 들어가기! 채팅은 정해진 말로 안전하게 해요.</p></div>
@@ -346,7 +345,7 @@ document.addEventListener('click',function(e){var a=e.target.closest&&e.target.c
 function rand(){var g=GAMES[Math.random()*GAMES.length|0];remember(g.id);window.open(href(g.id),'_blank','noopener')}
 $('rand').onclick=rand;$('rand2').onclick=rand;
 $('sBtn').onclick=function(){smoothTo($('games'),function(){$('q').focus({preventScroll:true})})};
-$('tg').onclick=function(){var o=$('steps').classList.toggle('open');this.setAttribute('aria-expanded',o)};
+$('tg').onclick=function(){smoothTo($('steps'))};
 document.addEventListener('keydown',function(e){if(e.key==='/'&&document.activeElement!==$('q')){e.preventDefault();$('sBtn').click()}});
 addEventListener('scroll',function(){$('hd').classList.toggle('solid',scrollY>40);$('totop').classList.toggle('on',scrollY>500)},{passive:true});
 $('totop').onclick=function(){LOCK=null;smoothTo(document.body,function(){if(history.replaceState)history.replaceState(null,'',location.pathname+location.search)})};
@@ -363,7 +362,7 @@ function smoothTo(el,cb){var hd=72,start=scrollY,to=el===document.body?0:Math.ma
  scrollAnim=requestAnimationFrame(step)}
 var LOCK=null;['wheel','touchstart','keydown'].forEach(function(ev){addEventListener(ev,function(){cancelAnimationFrame(scrollAnim);LOCK=null},{passive:true})});
 document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;var id=a.getAttribute('href').slice(1);var el=id==='top'?document.body:document.getElementById(id);if(!el)return;e.preventDefault();LOCK=NAV.indexOf(a)>=0?a:null;
- smoothTo(el,function(){if(history.replaceState)history.replaceState(null,'','#'+id)});if(id==='together'&&!$('steps').classList.contains('open'))setTimeout(function(){$('tg').click()},500)});
+ smoothTo(el,function(){if(history.replaceState)history.replaceState(null,'','#'+id)});});
 // 지금 보고 있는 구역을 메뉴에 표시
 var NAV=[].slice.call(document.querySelectorAll('.gnb a'));
 function spy(){if(LOCK){NAV.forEach(function(a){a.classList.toggle('on',a===LOCK)});return}var y=scrollY+innerHeight*.35,on=null;NAV.forEach(function(a){var el=document.getElementById(a.getAttribute('href').slice(1));if(el&&el.getBoundingClientRect().top+scrollY<=y)on=a});
