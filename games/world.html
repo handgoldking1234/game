@@ -1,0 +1,769 @@
+<title>에너지 월드</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* 레이아웃: 화면 가득 횡스크롤 사냥터, 아래 상태 막대(레벨·HP·MP·경험치·스킬 칸), 오른쪽 위 퀘스트 알림, 휴대폰은 아래 터치 버튼 */
+:root{
+  color-scheme:light;
+  --ink:#1d2939; --muted:#5d6b7c; --paper:#ffffff; --paper2:#f1f5f9; --line:#d6dee8;
+  --hp:#ef4444; --mp:#3e7bfa; --exp:#facc15; --leaf:#22a065; --leaf-soft:#dcf5e8; --alarm-soft:#fde2e2; --sky:#3e7bfa; --sun:#ffc83d;
+  --bar:#1e2a3a; --bar2:#2b3a4f;
+  --f-display:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;background:#0f1522}
+body{margin:0;overflow:hidden;font-family:var(--f-body);color:var(--ink);-webkit-user-select:none;user-select:none;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+#mapName{position:fixed;z-index:5;left:max(12px,env(safe-area-inset-left,0px));top:max(10px,env(safe-area-inset-top,0px));background:rgba(30,42,58,.85);color:#fff;border-radius:10px;padding:5px 12px;font-family:var(--f-display);font-size:16px;pointer-events:none}
+#topBtns{position:fixed;z-index:5;left:max(12px,env(safe-area-inset-left,0px));top:calc(max(10px,env(safe-area-inset-top,0px)) + 38px);display:flex;gap:6px}
+.hb{border:0;background:rgba(255,255,255,.9);border-radius:10px;padding:5px 10px;font-size:12.5px}
+#quest{position:fixed;z-index:5;right:max(12px,env(safe-area-inset-right,0px));top:max(10px,env(safe-area-inset-top,0px));width:min(260px,46vw);background:rgba(255,255,255,.92);border-radius:12px;padding:8px 11px;font-size:13px;line-height:1.45;pointer-events:none}
+#quest:empty{display:none}
+#quest b{font-family:var(--f-display);font-weight:400;font-size:15px;display:block;color:#b45309}
+#quest .ok{color:var(--leaf)}
+
+#bar{position:fixed;z-index:5;left:0;right:0;bottom:0;background:linear-gradient(var(--bar2),var(--bar));color:#fff;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;
+  padding-block:6px max(6px,env(safe-area-inset-bottom,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+#expLine{position:absolute;left:0;right:0;top:-6px;height:6px;background:#0b1220}
+#expLine i{display:block;height:100%;background:var(--exp);transition:width .3s}
+#lvBox{font-family:var(--f-display);font-size:17px;white-space:nowrap}
+#lvBox small{font-family:var(--f-body);font-size:12px;color:#cbd5e1;margin-left:4px}
+.gauge{display:grid;gap:2px;min-width:110px;flex:1;max-width:220px}
+.gauge span{font-size:11px;color:#cbd5e1;display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.gauge .tr{height:9px;border-radius:5px;background:#0b1220;overflow:hidden}
+.gauge .tr i{display:block;height:100%;transition:width .2s}
+#slots{display:flex;gap:5px;margin-left:auto}
+.slot{position:relative;width:46px;height:46px;border-radius:9px;background:#0b1220;border:1px solid #475569;display:grid;place-items:center;overflow:hidden;padding:0}
+.slot canvas{width:34px;height:34px}
+.slot .k{position:absolute;left:3px;top:1px;font-size:10px;color:#fde047;font-family:var(--f-display)}
+.slot .n{position:absolute;right:3px;bottom:1px;font-size:10px;color:#fff}
+.slot .cd{position:absolute;inset:0;background:rgba(0,0,0,.6);transform-origin:bottom;pointer-events:none}
+.slot.lock{opacity:.35}
+.slot.lock::after{content:attr(data-lv);position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#fff;background:rgba(0,0,0,.4)}
+#coins{font-size:13px;white-space:nowrap;color:#fde68a}
+
+#toast{position:fixed;z-index:6;left:50%;transform:translateX(-50%);top:calc(max(10px,env(safe-area-inset-top,0px)) + 46px);display:flex;flex-direction:column;align-items:center;gap:4px;width:min(520px,70vw);pointer-events:none}
+.toast{background:rgba(15,23,42,.9);color:#fff;border-radius:10px;padding:6px 12px;font-size:13.5px;text-align:center;animation:tin .25s}
+.toast.good{background:rgba(21,128,61,.94)}.toast.lv{background:linear-gradient(90deg,#f59e0b,#facc15);color:#3b2a00;font-family:var(--f-display);font-size:18px}
+.toast.bad{background:rgba(185,28,28,.94)}
+@keyframes tin{from{opacity:0;transform:translateY(-6px)}}
+
+#pad{position:fixed;z-index:5;left:0;right:0;display:none;justify-content:space-between;align-items:flex-end;pointer-events:none;
+  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+#pad .grp{display:grid;gap:7px;pointer-events:auto}
+#dpad{grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,52px)}
+#acts{grid-template-columns:repeat(4,54px);grid-template-rows:repeat(2,54px)}
+.pb{border:0;border-radius:14px;background:rgba(255,255,255,.82);font-family:var(--f-display);font-size:15px;line-height:1.05;box-shadow:0 4px 0 rgba(0,0,0,.25);touch-action:none;padding:0}
+.pb.on{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.pb.atk{background:rgba(239,68,68,.9);color:#fff}.pb.jmp{background:rgba(250,204,21,.95)}
+.pb.sk{background:rgba(62,123,250,.9);color:#fff}.pb.sk:disabled{opacity:.4}
+@media (hover:none),(pointer:coarse){#pad{display:flex}}
+@media (max-width:440px){#dpad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,44px)}#acts{grid-template-columns:repeat(4,48px);grid-template-rows:repeat(2,48px);gap:6px}.pb{font-size:13px;border-radius:12px}}
+
+#ov{position:fixed;inset:0;z-index:20;background:rgba(10,15,28,.66);display:flex;align-items:center;justify-content:center;overflow:auto;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.card{background:var(--paper);border-radius:20px;width:min(600px,100%);max-height:100%;overflow:auto;padding:20px;display:grid;gap:12px}
+.card.wide{width:min(900px,100%)}
+.card h1,.card h2,.card h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance}
+.card h1{font-size:clamp(34px,7vw,52px);line-height:1.05}
+.card h2{font-size:24px}.card h3{font-size:17px}
+.card p{margin:0;line-height:1.65}
+.eyebrow{font-size:12.5px;color:var(--muted);letter-spacing:.06em}
+.btn{font-family:var(--f-display);font-size:18px;border:0;border-radius:12px;padding:10px 18px;background:var(--leaf);color:#fff}
+.btn.alt{background:var(--paper2);color:var(--ink)}.btn.blue{background:var(--sky)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.jobs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.job{border:2px solid var(--line);background:#fff;border-radius:16px;padding:10px;display:grid;gap:5px;text-align:left;align-content:start}
+.job canvas{width:100%;height:auto;aspect-ratio:4/3;border-radius:10px}
+.job b{font-family:var(--f-display);font-weight:400;font-size:19px}
+.job small{color:var(--muted);font-size:12.5px;line-height:1.45}
+.job[aria-pressed="true"]{border-color:var(--sky);box-shadow:0 0 0 2px var(--sky) inset;background:#eef4ff}
+.dlg{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:start}
+.dlg canvas{width:72px;height:90px;border-radius:12px;background:var(--paper2)}
+.box{background:var(--paper2);border-radius:14px;padding:12px 14px;display:grid;gap:6px;align-content:start;min-width:0}
+.box ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px;line-height:1.55}
+.box.tip{background:#fff6d6}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.keys{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 18px;font-size:13.5px}
+.keys div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:4px 0}
+.keys kbd{font-family:var(--f-display);color:var(--sky)}
+.choice{text-align:left;background:var(--paper2);border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:15.5px}
+.choice:hover:not(:disabled){border-color:var(--sky)}
+.choice.right{border-color:var(--leaf);background:var(--leaf-soft)}.choice.wrong{border-color:#ef4444;background:var(--alarm-soft)}
+.note{border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.6}
+.note.good{background:var(--leaf-soft)}.note.bad{background:var(--alarm-soft)}.note.info{background:#e6efff}
+.sk{display:grid;grid-template-columns:40px 1fr;gap:8px;align-items:center;font-size:13.5px;line-height:1.45}
+.sk canvas{width:40px;height:40px;border-radius:8px;background:#0b1220}
+@media (max-width:700px){.jobs{grid-template-columns:1fr}.job{grid-template-columns:110px 1fr;align-items:center}.job canvas{grid-row:span 3}.cols,.keys{grid-template-columns:1fr}
+  .gauge{min-width:70px}#slots .slot{width:38px;height:38px}#slots .slot canvas{width:28px;height:28px}#quest{font-size:12px;width:min(200px,50vw)}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+</style>
+
+<canvas id="game" aria-label="게임 화면"></canvas>
+<div id="mapName">햇살 마을</div>
+<div id="topBtns"><button class="hb" id="helpBtn" type="button">게임 방법</button><button class="hb" id="skillBtn" type="button">스킬</button><button class="hb" id="pauseBtn" type="button">일시정지</button></div>
+<div id="quest"></div>
+<div id="toast" aria-live="polite"></div>
+<div id="pad">
+  <div class="grp" id="dpad">
+    <span></span><button class="pb" id="pU" type="button" aria-label="위">▲</button><span></span>
+    <button class="pb" id="pL" type="button" aria-label="왼쪽">◀</button><button class="pb" id="pD" type="button" aria-label="아래">▼</button><button class="pb" id="pR" type="button" aria-label="오른쪽">▶</button>
+  </div>
+  <div class="grp" id="acts">
+    <button class="pb sk" id="pS1" type="button">스킬1</button><button class="pb sk" id="pS2" type="button">스킬2</button><button class="pb sk" id="pS3" type="button">스킬3</button><button class="pb" id="pQ" type="button">물약</button>
+    <button class="pb" id="pT" type="button">대화<br>포탈</button><span></span><button class="pb atk" id="pA" type="button">공격</button><button class="pb jmp" id="pJ" type="button">점프</button>
+  </div>
+</div>
+<div id="bar">
+  <div id="expLine"><i id="expBar"></i></div>
+  <div id="lvBox">Lv.<span id="lv">1</span><small id="job">태양 마법사</small></div>
+  <div class="gauge"><span><b>HP</b><em id="hpT">100/100</em></span><div class="tr"><i id="hpB" style="background:var(--hp)"></i></div></div>
+  <div class="gauge"><span><b>MP</b><em id="mpT">50/50</em></span><div class="tr"><i id="mpB" style="background:var(--mp)"></i></div></div>
+  <div class="gauge"><span><b>EXP</b><em id="expT">0%</em></span><div class="tr"><i id="expB2" style="background:var(--exp)"></i></div></div>
+  <div id="coins">⚡ 0 코인</div>
+  <div id="slots"></div>
+</div>
+<div id="ov"></div>
+
+<script>
+/* ============ 기본 ============ */
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.random()*a.length|0];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const bat=s=>{const c=s.charCodeAt(s.length-1);return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28!==0};
+const VH0=600;   // 화면 논리 높이
+
+/* ============ 직업과 스킬 ============ */
+const JOBS={
+  sun:{n:'태양 마법사',c:'#f59e0b',hair:'#7c2d12',hpM:1,energy:'태양 에너지',
+    fact:'햇빛을 받은 태양 전지가 바로 전기를 만들어요. 연료가 필요 없고 이산화 탄소가 나오지 않아요. 대신 밤이나 흐린 날에는 약해져요.',
+    style:'멀리서 햇빛 마법을 쏘는 원거리 직업',
+    sk:[{n:'햇빛 구슬',lv:1,mp:0,cd:.45,kind:'orb',mult:1,d:'햇빛 구슬을 앞으로 던져요.'},
+        {n:'태양 광선',lv:2,mp:8,cd:2.2,kind:'beam',mult:1.7,d:'앞으로 길게 뻗는 광선. 여러 몬스터를 뚫어요.'},
+        {n:'햇살 폭발',lv:4,mp:15,cd:5,kind:'nova',mult:2.4,d:'주변에 햇빛을 터뜨려 둘레의 몬스터를 공격해요.'},
+        {n:'태양 폭풍',lv:6,mp:28,cd:11,kind:'storm',mult:1.6,d:'하늘에서 햇빛 기둥 여러 개가 내리꽂혀요.'}]},
+  wind:{n:'바람 궁수',c:'#10b981',hair:'#1e3a8a',hpM:1.1,energy:'바람 에너지',
+    fact:'바람이 커다란 날개를 돌리면 발전기가 전기를 만들어요. 바람이 센 언덕이나 바닷가에 풍력 발전기를 세워요.',
+    style:'빠르게 화살을 쏘는 원거리 직업',
+    sk:[{n:'바람 화살',lv:1,mp:0,cd:.33,kind:'arrow',mult:.9,d:'빠른 화살을 쏴요.'},
+        {n:'세 갈래 화살',lv:2,mp:8,cd:1.8,kind:'tri',mult:1.1,d:'화살 세 발을 부채꼴로 쏴요.'},
+        {n:'회오리',lv:4,mp:15,cd:5.5,kind:'tornado',mult:.9,d:'천천히 나아가며 여러 번 때리는 회오리를 만들어요.'},
+        {n:'폭풍 화살비',lv:6,mp:28,cd:11,kind:'rain',mult:1.2,d:'앞쪽 넓은 곳에 화살비를 내려요.'}]},
+  geo:{n:'지열 전사',c:'#ef4444',hair:'#292524',hpM:1.35,energy:'지열 에너지',
+    fact:'땅속 깊은 곳은 아주 뜨거워요. 그 열로 물을 데워 증기를 만들고 발전기를 돌려요. 밤낮, 날씨와 상관없이 일정해요.',
+    style:'튼튼한 몸으로 가까이에서 싸우는 근접 직업',
+    sk:[{n:'지열 베기',lv:1,mp:0,cd:.5,kind:'slash',mult:1.4,d:'앞을 크게 베어요.'},
+        {n:'용암 돌진',lv:2,mp:8,cd:2.6,kind:'dash',mult:1.9,d:'앞으로 빠르게 돌진하며 베어요.'},
+        {n:'땅 울림',lv:4,mp:15,cd:5,kind:'quake',mult:2.6,d:'땅을 내리쳐 양옆의 몬스터를 공격해요.'},
+        {n:'화산 분출',lv:6,mp:28,cd:11,kind:'erupt',mult:2.2,d:'앞으로 용암 기둥이 차례로 솟아올라요.'}]}
+};
+const SKKEY=['Z','X','C','V'];
+
+/* ============ 몬스터 ============ */
+const MOB={
+  smog:{n:'꼬마 스모그',lv:1,hp:32,atk:7,exp:7,coin:[2,4],drop:['sunShard',.5],w:34,h:30,spd:40},
+  slime:{n:'기름 슬라임',lv:3,hp:80,atk:13,exp:15,coin:[4,7],drop:['windShard',.45],w:36,h:28,spd:55},
+  golem:{n:'석탄 골렘',lv:5,hp:170,atk:20,exp:32,coin:[8,12],drop:['coal',.35],w:44,h:52,spd:30},
+  boss:{n:'매연 대왕',lv:8,hp:1600,atk:28,exp:320,coin:[150,150],drop:null,w:130,h:120,spd:45}
+};
+const ITEMS={sunShard:{n:'태양 조각',c:'#facc15'},windShard:{n:'바람 조각',c:'#a5f3fc'},coal:{n:'석탄 덩어리',c:'#374151'}};
+
+/* ============ 지도 ============ */
+const G0=520; // 바닥 높이
+const MAPS={
+  town:{n:'햇살 마을',w:1500,bg:'town',
+    plats:[{x:280,y:420,w:240},{x:820,y:400,w:280}],ladders:[],
+    npcs:[{id:'sign1',x:150,k:'sign'},{id:'doctor',x:520,k:'doctor'},{id:'shop',x:1000,k:'shop'}],
+    portals:[{x:1440,to:'sun',tx:80,label:'햇빛 들판 →'}],mobs:[]},
+  sun:{n:'햇빛 들판',w:2300,bg:'sun',
+    plats:[{x:220,y:410,w:300},{x:650,y:320,w:300},{x:1080,y:410,w:360},{x:1560,y:300,w:320},{x:1900,y:420,w:260},{x:880,y:220,w:220}],
+    ladders:[{x:790,y1:320,y2:G0},{x:1720,y1:300,y2:G0},{x:920,y1:220,y2:320}],
+    npcs:[{id:'sign2',x:120,k:'sign'}],
+    portals:[{x:40,to:'town',tx:1380,label:'← 마을'},{x:2260,to:'wind',tx:80,label:'바람 언덕 →'}],
+    mobs:[['smog',350,0],['smog',600,0],['smog',380,410],['smog',780,320],['smog',1180,410],['smog',1350,0],['smog',1660,300],['smog',1800,0],['smog',2000,420],['smog',2100,0],['smog',960,220]]},
+  wind:{n:'바람 언덕',w:2300,bg:'wind',
+    plats:[{x:200,y:400,w:340},{x:640,y:300,w:320},{x:1060,y:400,w:360},{x:1500,y:310,w:340},{x:1900,y:400,w:280},{x:1180,y:210,w:240}],
+    ladders:[{x:770,y1:300,y2:G0},{x:1650,y1:310,y2:G0},{x:1300,y1:210,y2:400}],
+    npcs:[{id:'sign3',x:130,k:'sign'}],
+    portals:[{x:40,to:'sun',tx:2180,label:'← 햇빛 들판'},{x:2260,to:'factory',tx:80,label:'굴뚝 공장 →'}],
+    mobs:[['slime',380,0],['slime',650,0],['slime',360,400],['slime',800,300],['slime',1200,400],['slime',1400,0],['slime',1650,310],['slime',1950,0],['slime',2050,400],['smog',1280,210],['smog',900,0]]},
+  factory:{n:'굴뚝 공장',w:2000,bg:'factory',
+    plats:[{x:220,y:400,w:300},{x:640,y:310,w:300},{x:1060,y:400,w:300}],
+    ladders:[{x:770,y1:310,y2:G0}],
+    npcs:[{id:'sign4',x:130,k:'sign'}],
+    portals:[{x:40,to:'wind',tx:2180,label:'← 바람 언덕'}],
+    mobs:[['golem',400,0],['golem',700,0],['golem',360,400],['golem',780,310],['golem',1180,400],['golem',1100,0]]}
+};
+const SIGNS={
+  sign1:['햇살 마을 안내판','이 마을은 지붕마다 태양광 패널이 있어요. 햇빛으로 만든 전기는 다시 채워지는 재생에너지예요. 에너지 박사님께 말을 걸어 보세요!'],
+  sign2:['햇빛 들판 안내판','스모그는 공기 속 오염 물질과 매연이 뭉쳐 생겨요. 화석 연료를 태울 때 나오는 매연이 큰 원인이에요.'],
+  sign3:['바람 언덕 안내판','바람이 센 언덕은 풍력 발전기를 세우기 좋은 곳이에요. 그런데 누가 석유를 흘려 기름 슬라임이 생겼어요!'],
+  sign4:['굴뚝 공장 안내판','이곳은 석탄을 태우는 화력 발전소예요. 석탄은 매장량이 정해진 화석 연료이고, 태우면 이산화 탄소가 가장 많이 나와요.']
+};
+
+/* ============ 퀘스트 ============ */
+const QUESTS=[
+  {id:'q1',n:'하늘을 덮은 스모그',map:'햇빛 들판',
+   start:'어서 와! 나는 에너지 박사야. 요즘 <b>햇빛 들판</b>에 스모그가 가득해서 마을 태양광 패널이 햇빛을 잘 못 받고 있어. 스모그 10마리를 정화해 주겠니?',
+   goal:{kill:'smog',n:10}, done:'고마워! 스모그는 화석 연료를 태울 때 나오는 매연 때문에 생겨. 하늘이 맑아야 태양광 발전도 잘 된단다.',reward:{exp:60,coin:40,pot:3}},
+  {id:'q2',n:'태양 조각 모으기',map:'햇빛 들판',
+   start:'스모그를 정화하면 갇혀 있던 <b>태양 조각</b>이 나와. 5개를 모아 오면 태양광 발전기를 고칠 수 있어!',
+   goal:{item:'sunShard',n:5}, done:'좋아! 태양 전지는 햇빛을 받으면 바로 전기를 만들어. 연료도 필요 없고 이산화 탄소도 안 나오지. 이제 <b>바람 언덕</b>도 살펴봐 줄래?',reward:{exp:110,coin:60,pot:2}},
+  {id:'q3',n:'기름 슬라임 소동',map:'바람 언덕',
+   start:'<b>바람 언덕</b>에 누가 석유를 흘려서 기름 슬라임이 생겼어! 풍력 발전기가 멈췄대. 기름 슬라임 8마리를 정화하고 <b>바람 조각</b> 5개를 모아 와 줘.',
+   goal:{kill:'slime',n:8,item:'windShard',in:5}, done:'대단해! 석유는 아주 오래전 바다 생물이 묻혀 만들어진 화석 연료야. 언젠가 바닥나지. 바람은 다시 채워지니까 풍력 발전기를 다시 돌릴 수 있어!',reward:{exp:220,coin:90,pot:3}},
+  {id:'q4',n:'석탄 골렘의 정체',map:'굴뚝 공장',
+   start:'마지막으로 <b>굴뚝 공장</b>이야. 석탄을 마구 태우는 바람에 석탄 골렘이 생겨났어. 석탄 골렘 6마리를 정화해 줘!',
+   goal:{kill:'golem',n:6}, done:'석탄은 오래전 식물이 땅속에 묻혀 만들어진 화석 연료야. 태우면 이산화 탄소가 가장 많이 나와. 그런데… 공장 안쪽에서 <b>매연 대왕</b>이 깨어났대!',reward:{exp:300,coin:120,pot:4}},
+  {id:'q5',n:'매연 대왕을 멈춰라',map:'굴뚝 공장',
+   start:'매연 대왕이 화력 발전소를 마구 돌리고 있어! <b>굴뚝 공장</b> 안쪽으로 가서 매연 대왕을 물리치고, 발전소 스위치를 꺼 줘!',
+   goal:{boss:1}, done:'',reward:{exp:0,coin:0,pot:0}}
+];
+const QUIZ=[
+  {q:'석탄, 석유, 천연가스처럼 아주 오래전 생물이 땅속에 묻혀 만들어진 연료는?',a:['화석 연료','재생에너지','바이오에너지'],c:0,e:'오래전 생물이 땅속에서 오랜 시간 열과 압력을 받아 만들어져서 화석 연료라고 해요.'},
+  {q:'화석 연료를 태울 때 많이 나와 지구 온난화를 일으키는 기체는?',a:['산소','이산화 탄소','질소'],c:1,e:'이산화 탄소 같은 온실가스가 많아지면 지구의 열이 빠져나가지 못해 기온이 올라가요.'},
+  {q:'태양광 발전이 전기를 만드는 방법은?',a:['햇빛을 받은 태양 전지가 전기를 만든다','바람으로 날개를 돌린다','물을 떨어뜨린다'],c:0,e:'태양 전지는 햇빛을 받으면 바로 전기를 만들어요.'},
+  {q:'다음 중 재생에너지가 아닌 것은?',a:['햇빛','바람','석유'],c:2,e:'석유는 화석 연료예요. 햇빛, 바람, 물, 지열처럼 다시 채워지는 에너지가 재생에너지예요.'},
+  {q:'화석 연료를 계속 쓰면 언젠가 바닥나는 까닭은?',a:['매장량이 정해져 있어서','너무 무거워서','물에 녹아서'],c:0,e:'화석 연료는 만들어지는 데 아주 오래 걸려서 쓰는 만큼 다시 채워지지 않아요.'},
+  {q:'‘탄소 중립’의 뜻으로 알맞은 것은?',a:['내보낸 이산화 탄소만큼 줄이거나 흡수해 실제 배출량을 0으로 만드는 것','석탄만 골라 쓰는 것','탄소를 전혀 모르는 상태'],c:0,e:'배출은 줄이고 나무 심기 등으로 흡수는 늘려서 더하고 빼면 0이 되게 하는 것이 탄소 중립이에요.'},
+  {q:'땅속 깊은 곳의 뜨거운 열을 이용하는 에너지는?',a:['풍력 에너지','바이오 에너지','지열 에너지'],c:2,e:'지구 내부의 뜨거운 열로 난방을 하거나 전기를 만드는 것이 지열 에너지예요.'},
+  {q:'전기를 아끼는 생활 습관으로 알맞은 것은?',a:['빈 방에 불 켜 두기','쓰지 않는 플러그 뽑기','냉장고 문 자주 열기'],c:1,e:'꽂아 두기만 해도 새는 대기 전력이 있어요. 쓰지 않을 때는 뽑아 두면 좋아요.'}
+];
+
+/* ============ 상태 ============ */
+let S,P,M,mobs=[],fx=[],drops=[],dmgs=[],parts=[],cam={x:0},jobPick='sun';
+function newGame(job){
+  S={job,lv:1,exp:0,coin:0,pot:5,inv:{sunShard:0,windShard:0,coal:0},q:0,qState:'none',kills:{},paused:false,started:true,ended:false,quizOK:0,quizTry:0,bossDead:false,switchOff:false,qpool:shuffle(QUIZ.slice())};
+  const J=JOBS[job];
+  P={x:200,y:G0-48,w:24,h:48,vx:0,vy:0,on:true,face:1,climb:null,inv:0,walk:0,act:0,actK:0,cd:[0,0,0,0],dash:0};
+  stats(); P.hp=P.maxhp; P.mp=P.maxmp;
+  loadMap('town',200);
+  buildSlots(); renderBar(); renderQuest(); resize();
+}
+function stats(){const J=JOBS[S.job];P.maxhp=Math.round((100+(S.lv-1)*28)*J.hpM);P.maxmp=50+(S.lv-1)*10;P.atk=10+(S.lv-1)*5}
+const needExp=lv=>Math.round(25*lv*lv+15*lv);
+function loadMap(id,x){
+  M=MAPS[id];M.id=id;mobs=[];fx=[];drops=[];dmgs=[];parts=[];
+  for(const [k,mx,py] of M.mobs)mobs.push(mkMob(k,mx,py));
+  if(id==='factory'&&S.q===4&&S.qState==='active'&&!S.bossDead)mobs.push(mkMob('boss',1650,0));
+  P.x=x;P.y=G0-P.h;P.vx=P.vy=0;P.climb=null;P.inv=1;
+  $('mapName').textContent=M.n;
+  cam.x=clamp(P.x-viewW()/2,0,Math.max(0,M.w-viewW()));
+}
+function mkMob(k,x,py){const d=MOB[k];const plat=py?M.plats.find(p=>p.y===py&&x>=p.x&&x<=p.x+p.w):null;
+  const lo=plat?plat.x:60,hi=plat?plat.x+plat.w:M.w-60;const y=(plat?plat.y:G0)-d.h;
+  return {k,x,y,sx:x,sy:y,lo,hi,w:d.w,h:d.h,hp:d.hp,max:d.hp,dir:Math.random()<.5?-1:1,t:rnd(0,5),hitT:0,aggro:0,dead:0,resp:0,vy:0,atkT:0,fl:0}}
+
+/* ============ 입력 ============ */
+const key={},tp={l:0,r:0,u:0,d:0};
+addEventListener('keydown',e=>{
+  if(!$('ov').hidden){ if(e.key==='Escape'&&$('ovClose'))$('ovClose').click(); if(e.key==='Enter'&&$('goBtn')){e.preventDefault();$('goBtn').click()} return }
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();
+  if(!key[e.key]){
+    const k=e.key.toUpperCase();
+    if(e.key===' '||e.key==='Alt')jump();
+    const si=SKKEY.indexOf(k); if(si>=0)useSkill(si);
+    if(k==='Q')usePot();
+    if(e.key==='ArrowUp')interact();
+    if(k==='P')togglePause();
+  }
+  key[e.key]=true});
+addEventListener('keyup',e=>key[e.key]=false);
+addEventListener('blur',()=>{for(const k in key)key[k]=false;for(const k in tp)tp[k]=0;atkHeld=0});
+let atkHeld=0;
+function hold(id,on,off){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);b.classList.add('on');on()});
+  const end=()=>{b.classList.remove('on');off&&off()};b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end)}
+hold('pL',()=>tp.l=1,()=>tp.l=0);hold('pR',()=>tp.r=1,()=>tp.r=0);
+hold('pU',()=>{tp.u=1;interact()},()=>tp.u=0);hold('pD',()=>tp.d=1,()=>tp.d=0);
+hold('pJ',()=>jump());hold('pA',()=>{atkHeld=1;useSkill(0)},()=>atkHeld=0);
+hold('pS1',()=>useSkill(1));hold('pS2',()=>useSkill(2));hold('pS3',()=>useSkill(3));hold('pQ',()=>usePot());hold('pT',()=>interact());
+
+/* ============ 플레이어 ============ */
+const GRAV=1650,JUMP=690,SPD=190;
+const L=()=>key.ArrowLeft||tp.l, Rk=()=>key.ArrowRight||tp.r, U=()=>key.ArrowUp||tp.u, D=()=>key.ArrowDown||tp.d;
+function jump(){if(!S||!S.started||S.paused||!$('ov').hidden)return;
+  if(P.climb){P.climb=null;P.vy=-JUMP*.75;P.vx=(Rk()?1:L()?-1:0)*SPD;return}
+  if(!P.on)return;
+  if(D()&&P.platY!==G0){P.drop=.25;P.on=false;P.y+=4;return}
+  P.vy=-JUMP;P.on=false}
+function ladderAt(){return M.ladders.find(l=>Math.abs(P.x+P.w/2-l.x)<16&&P.y+P.h>=l.y1-4&&P.y<=l.y2)}
+function updPlayer(dt){
+  if(P.inv>0)P.inv-=dt; if(P.act>0)P.act-=dt; for(let i=0;i<4;i++)if(P.cd[i]>0)P.cd[i]-=dt;
+  P.mp=Math.min(P.maxmp,P.mp+(3+S.lv*.4)*dt);
+  if(atkHeld||key.z||key.Z)useSkill(0);
+  if(P.dash>0){P.dash-=dt;P.x+=P.face*620*dt;P.x=clamp(P.x,0,M.w-P.w);return}
+  // 사다리
+  const lad=ladderAt();
+  if(!P.climb&&lad&&(U()&&P.y+P.h>lad.y1+6||D()&&P.on&&P.y+P.h<=lad.y1+6)){P.climb=lad;P.x=lad.x-P.w/2;P.vx=0;P.vy=0}
+  if(P.climb){const l=P.climb,dy=(D()?1:0)-(U()?1:0);P.y+=dy*130*dt;P.walk+=dy?dt:0;
+    if(P.y+P.h<l.y1-2){P.y=l.y1-P.h;P.climb=null;P.on=true;P.platY=l.y1;P.vy=0}
+    else if(P.y+P.h>=l.y2){P.y=l.y2-P.h;P.climb=null;P.on=true;P.platY=l.y2}
+    return}
+  const ax=(Rk()?1:0)-(L()?1:0);
+  if(P.act>0&&P.on&&JOBS[S.job].sk[0].kind==='slash')P.vx*=.8;
+  else if(ax){P.vx=ax*SPD;P.face=ax;P.walk+=dt}else P.vx*=Math.pow(.001,dt);
+  P.vy=Math.min(P.vy+GRAV*dt,900);
+  if(P.drop>0)P.drop-=dt;
+  const pb=P.y+P.h; P.x=clamp(P.x+P.vx*dt,0,M.w-P.w); P.y+=P.vy*dt; P.on=false;
+  if(P.vy>=0){
+    for(const s of surfaces()){ if(P.drop>0&&s.y!==G0)continue;
+      if(P.x+P.w>s.x+4&&P.x<s.x+s.w-4&&pb<=s.y+2&&P.y+P.h>=s.y){P.y=s.y-P.h;P.vy=0;P.on=true;P.platY=s.y;break}}
+  }
+}
+function surfaces(){return [...M.plats,{x:0,y:G0,w:M.w}]}
+function interact(){
+  if(!S||!S.started||S.paused||!$('ov').hidden)return;
+  const cx=P.x+P.w/2;
+  const po=M.portals.find(p=>Math.abs(p.x-cx)<40&&P.y+P.h>G0-10);
+  if(po){toast(`${MAPS[po.to].n}(으)로 이동해요.`);loadMap(po.to,po.tx);renderQuest();return}
+  const n=M.npcs.find(n=>Math.abs(n.x-cx)<60&&P.y+P.h>G0-10);
+  if(n){talk(n);return}
+  if(M.id==='factory'&&S.bossDead&&!S.switchOff&&Math.abs(1800-cx)<70){S.switchOff=true;finale();}
+}
+
+/* ============ 스킬 ============ */
+function useSkill(i){
+  if(!S||!S.started||S.paused||!$('ov').hidden||P.climb)return;
+  const sk=JOBS[S.job].sk[i];
+  if(S.lv<sk.lv){if(i>0)toast(`${sk.n}은(는) Lv.${sk.lv}부터 쓸 수 있어요.`);return}
+  if(P.cd[i]>0)return;
+  if(P.mp<sk.mp){toast('MP가 부족해요. 잠깐 기다리면 다시 차요.');return}
+  P.mp-=sk.mp;P.cd[i]=sk.cd;P.act=.25;P.actK=i;
+  const f=P.face,cx=P.x+P.w/2,cy=P.y+P.h/2,d=P.atk*sk.mult,J=S.job;
+  const add=o=>fx.push(Object.assign({hits:new Set(),life:.3,dmg:d,job:J,kind:sk.kind,t:0},o));
+  switch(sk.kind){
+    case 'orb':add({x:cx+f*14-10,y:cy-14,w:20,h:20,vx:f*460,life:.9});break;
+    case 'arrow':add({x:cx+f*14-12,y:cy-6,w:24,h:8,vx:f*700,life:.75,f});break;
+    case 'slash':add({x:f>0?cx:cx-96,y:P.y-6,w:96,h:P.h+10,life:.18,f,max:3});break;
+    case 'beam':add({x:f>0?cx:cx-420,y:cy-16,w:420,h:30,life:.3,f,pierce:1});break;
+    case 'tri':for(const a of [-.18,0,.18])add({x:cx-12,y:cy-6,w:24,h:8,vx:f*680*Math.cos(a),vy:680*Math.sin(a),life:.7,f});break;
+    case 'dash':P.dash=.28;P.inv=Math.max(P.inv,.4);add({x:0,y:P.y,w:70,h:P.h,life:.3,follow:1,f,pierce:1});break;
+    case 'nova':add({x:cx-150,y:cy-110,w:300,h:200,life:.35,pierce:1,max:8});break;
+    case 'tornado':add({x:cx+f*20-26,y:P.y+P.h-80,w:52,h:80,vx:f*150,life:2.6,pierce:1,multi:.28});break;
+    case 'quake':add({x:cx-170,y:P.y+P.h-60,w:340,h:70,life:.35,pierce:1,max:8});break;
+    case 'storm':for(let k=0;k<6;k++)setTimeout(()=>{if(!S.paused)add({x:cx+f*(60+k*90)-30,y:P.y-200,w:60,h:P.h+200,life:.3,pierce:1,delay:0})},k*110);break;
+    case 'rain':for(let k=0;k<8;k++)setTimeout(()=>{if(!S.paused)add({x:cx+f*(rnd(40,560))-24,y:P.y-160,w:48,h:P.h+160,life:.25,pierce:1})},k*90);break;
+    case 'erupt':for(let k=0;k<6;k++)setTimeout(()=>{if(!S.paused)add({x:cx+f*(70+k*85)-32,y:G0-160,w:64,h:160,life:.35,pierce:1,ground:1})},k*120);break;
+  }
+}
+function usePot(){if(!S||!S.started||S.paused)return;if(S.pot<=0){toast('물약이 없어요. 마을 충전소 상인에게 살 수 있어요.');return}if(P.hp>=P.maxhp)return;
+  S.pot--;P.hp=Math.min(P.maxhp,P.hp+Math.round(P.maxhp*.5));popDmg(P.x+12,P.y-10,'+'+Math.round(P.maxhp*.5),'#22c55e');renderBar()}
+
+/* ============ 진행 ============ */
+function update(dt){
+  updPlayer(dt);
+  // 스킬 판정
+  for(const f of fx){f.t+=dt;f.life-=dt;
+    if(f.follow){f.x=P.x+P.w/2+(f.f>0?0:-70);f.y=P.y}
+    if(f.vx)f.x+=f.vx*dt; if(f.vy)f.y+=f.vy*dt;
+    if(f.multi){f.mt=(f.mt||0)+dt;if(f.mt>=f.multi){f.mt=0;f.hits.clear()}}
+    for(const m of mobs){ if(m.dead||f.hits.has(m))continue; if(f.max&&f.hits.size>=f.max)break;
+      if(f.x<m.x+m.w&&f.x+f.w>m.x&&f.y<m.y+m.h&&f.y+f.h>m.y){f.hits.add(m);hitMob(m,f);if(!f.pierce&&!f.max&&!f.multi){f.life=0;break}}}
+  }
+  fx=fx.filter(f=>f.life>0&&f.x>-200&&f.x<M.w+200);
+  // 몬스터
+  for(const m of mobs){
+    if(m.dead){m.resp-=dt;if(m.resp<=0&&m.k!=='boss'){Object.assign(m,mkMob(m.k,m.sx,0),{x:m.sx,y:m.sy,sy:m.sy,lo:m.lo,hi:m.hi});m.dead=0}continue}
+    m.t+=dt; if(m.hitT>0)m.hitT-=dt; if(m.fl>0)m.fl-=dt; if(m.aggro>0)m.aggro-=dt;
+    const d=MOB[m.k], px=P.x+P.w/2, mx=m.x+m.w/2, same=Math.abs((P.y+P.h)-(m.y+m.h))<50||m.k==='boss';
+    let dir=m.dir;
+    if(m.aggro>0&&same){dir=Math.sign(px-mx)||1}
+    else if(Math.random()<dt*.4)m.dir*=-1;
+    if(m.hitT<=0){
+      let sp=d.spd*(m.aggro>0?1.6:1);
+      if(m.k==='slime'){m.vy+=GRAV*dt;m.y+=m.vy*dt;if(m.y>=m.sy){m.y=m.sy;m.vy=m.t%1.4<.05?-320:0;if(m.vy===0&&Math.random()<dt*1.5)m.vy=-300}}
+      if(m.k==='boss'){m.atkT-=dt;if(m.atkT<=0){m.atkT=rnd(2.5,3.5);bossAttack(m)}if(Math.abs(px-mx)<120)sp=0}
+      m.x+=dir*sp*dt; m.dir=dir;
+      if(m.x<m.lo){m.x=m.lo;m.dir=1}if(m.x+m.w>m.hi){m.x=m.hi-m.w;m.dir=-1}
+    }
+    // 닿으면 피해
+    if(P.inv<=0&&!P.climb&&P.x<m.x+m.w-6&&P.x+P.w>m.x+6&&P.y<m.y+m.h-4&&P.y+P.h>m.y+6)hurt(d.atk,Math.sign(px-mx)||1);
+  }
+  // 보스 탄
+  for(const f of bfx){f.x+=f.vx*dt;f.y+=f.vy*dt;f.life-=dt;if(P.inv<=0&&f.life>0&&Math.abs(f.x-(P.x+P.w/2))<f.r+10&&Math.abs(f.y-(P.y+P.h/2))<f.r+20){f.life=0;hurt(18,Math.sign(f.vx)||1)}}
+  bfx=bfx.filter(f=>f.life>0);
+  // 떨어진 물건
+  for(const it of drops){it.vy=Math.min(it.vy+GRAV*dt,700);it.y+=it.vy*dt;it.t+=dt;
+    const floor=surfaces().filter(s=>it.x>=s.x&&it.x<=s.x+s.w&&s.y>=it.y0-2).sort((a,b)=>a.y-b.y)[0];
+    if(floor&&it.y>=floor.y-14){it.y=floor.y-14;it.vy=0}
+    if(it.t>.4&&Math.abs(it.x-(P.x+P.w/2))<30&&Math.abs(it.y-(P.y+P.h/2))<40){it.got=1;getDrop(it)}}
+  drops=drops.filter(i=>!i.got&&i.t<60);
+  dmgs=dmgs.filter(d=>(d.l-=dt)>0).map(d=>(d.y-=40*dt,d));
+  parts=parts.filter(p=>(p.l-=dt)>0).map(p=>(p.x+=p.vx*dt,p.y+=p.vy*dt,p.vy+=300*dt,p));
+  if(P.y>G0+200){P.y=G0-P.h}
+  cam.x+=(clamp(P.x-viewW()/2+P.w/2,0,Math.max(0,M.w-viewW()))-cam.x)*Math.min(1,dt*8);
+  hudT-=dt;if(hudT<=0){hudT=.15;renderBar();renderSlots()}
+}
+let bfx=[],hudT=0;
+function bossAttack(m){
+  const mx=m.x+m.w/2,my=m.y+m.h/2,px=P.x+P.w/2,dir=Math.sign(px-mx)||1;
+  if(Math.random()<.55){for(let k=-1;k<=1;k++)bfx.push({x:mx+dir*50,y:my+k*14,vx:dir*rnd(200,260),vy:k*30,r:16,life:3})}
+  else{for(let k=0;k<2;k++){const s=mkMob('smog',clamp(mx+rnd(-200,200),80,M.w-80),0);s.aggro=10;s.minion=1;mobs.push(s)}toast('매연 대왕이 스모그를 불러냈어요!','bad')}
+}
+function hitMob(m,f){
+  const crit=Math.random()<.12, dmg=Math.max(1,Math.round(f.dmg*rnd(.85,1.15)*(crit?1.6:1)));
+  m.hp-=dmg;m.fl=.1;m.aggro=8;
+  if(m.k!=='boss'){m.hitT=.18;m.x+=(f.f||Math.sign(m.x-P.x)||1)*10;m.x=clamp(m.x,m.lo,m.hi-m.w)}
+  popDmg(m.x+m.w/2,m.y-6,dmg,crit?'#f97316':'#fde047',crit);
+  for(let i=0;i<5;i++)parts.push({x:m.x+m.w/2,y:m.y+m.h/2,vx:rnd(-120,120),vy:rnd(-160,-40),l:.4,c:JOBS[S.job].c,r:3});
+  if(m.hp<=0)killMob(m);
+}
+function killMob(m){
+  m.dead=1;m.resp=7;const d=MOB[m.k];
+  for(let i=0;i<12;i++)parts.push({x:m.x+m.w/2,y:m.y+m.h/2,vx:rnd(-160,160),vy:rnd(-220,-40),l:.6,c:'#a7f3d0',r:rnd(2,5)});
+  popDmg(m.x+m.w/2,m.y-26,'정화!','#34d399');
+  if(m.minion){mobs=mobs.filter(x=>x!==m)}
+  gainExp(m.minion?2:d.exp);
+  const n=m.minion?0:1+(Math.random()<.4?1:0); for(let i=0;i<n;i++)drops.push({k:'coin',v:Math.round(rnd(d.coin[0],d.coin[1])),x:m.x+m.w/2+rnd(-20,20),y:m.y+m.h/2,y0:m.y+m.h,vy:-260,t:0});
+  if(d.drop&&!m.minion&&Math.random()<d.drop[1])drops.push({k:d.drop[0],x:m.x+m.w/2,y:m.y+m.h/2,y0:m.y+m.h,vy:-300,t:0});
+  S.kills[m.k]=(S.kills[m.k]||0)+1;
+  if(m.k==='boss'){S.bossDead=true;S.kills.boss=1;toast('매연 대왕을 물리쳤어요! 오른쪽 끝 발전소 스위치로 가서 ▲(대화)를 눌러 꺼요!','good')}
+  renderQuest();
+}
+function getDrop(it){
+  if(it.k==='coin'){S.coin+=it.v;popDmg(P.x+12,P.y-12,'+'+it.v+' 코인','#fde68a')}
+  else{S.inv[it.k]++;toast(`${ITEMS[it.k].n} 획득 (${S.inv[it.k]}개)`);
+    if(it.k==='coal'&&!S.seenCoal){S.seenCoal=1;toast('석탄은 매장량이 정해진 화석 연료예요. 박사님께 가져가면 알려 줘요.')}}
+  renderBar();renderQuest();
+}
+function gainExp(v){
+  S.exp+=v;
+  while(S.lv<10&&S.exp>=needExp(S.lv)){S.exp-=needExp(S.lv);S.lv++;stats();P.hp=P.maxhp;P.mp=P.maxmp;
+    toast(`레벨 업! Lv.${S.lv}`,'lv');for(let i=0;i<30;i++)parts.push({x:P.x+P.w/2,y:P.y+P.h,vx:rnd(-80,80),vy:rnd(-360,-120),l:1,c:pick(['#facc15','#fde68a','#fff']),r:rnd(2,4)});
+    const sk=JOBS[S.job].sk.find(s=>s.lv===S.lv);if(sk)setTimeout(()=>toast(`새 스킬: ${sk.n} (${SKKEY[JOBS[S.job].sk.indexOf(sk)]} 키)`,'good'),600);
+    buildSlots()}
+  renderBar();
+}
+function hurt(dmg,dir){
+  if(P.inv>0)return; const v=Math.max(1,Math.round(dmg*rnd(.9,1.1)));
+  P.hp-=v;P.inv=1.2;P.vx=dir*240;P.vy=-280;P.on=false;P.climb=null;popDmg(P.x+12,P.y-8,v,'#ef4444');
+  if(P.hp<=0){P.hp=0;renderBar();return died()}
+  renderBar();
+}
+function died(){
+  S.paused=true;openOv(`<div class="card"><h2>배터리가 다 닳았어요</h2><p>마을 충전소에서 다시 충전하고 출발해요. 물약(Q)을 미리 써 두면 더 오래 버틸 수 있어요.</p><div class="row"><button class="btn" id="goBtn" type="button">마을에서 다시 시작</button></div></div>`);
+  $('goBtn').onclick=()=>{closeOv();P.hp=Math.round(P.maxhp*.6);P.mp=P.maxmp;loadMap('town',600);S.paused=false;renderBar()};
+}
+function popDmg(x,y,v,c,big){dmgs.push({x,y,v:String(v),c,l:.9,big})}
+
+/* ============ NPC와 퀘스트 ============ */
+function qProg(q){const g=q.goal,o=[];
+  if(g.kill)o.push([MOB[g.kill].n+' 정화',Math.min(g.n,(S.kills[g.kill]||0)-(S.qBase||0)),g.n]);
+  if(g.item)o.push([ITEMS[g.item].n+' 모으기',Math.min(g.in||g.n,S.inv[g.item]),g.in||g.n]);
+  if(g.boss)o.push(['매연 대왕 물리치기',S.bossDead?1:0,1],['발전소 스위치 끄기',S.switchOff?1:0,1]);
+  return o}
+function qDone(q){return qProg(q).every(([,a,b])=>a>=b)}
+function renderQuest(){
+  const el=$('quest');
+  if(S.q>=QUESTS.length){el.innerHTML='<b>모든 퀘스트 완료!</b>';return}
+  const q=QUESTS[S.q];
+  if(S.qState!=='active'){el.innerHTML=`<b>새 퀘스트</b>햇살 마을의 <u>에너지 박사</u>에게 말을 걸어요 (▲)`;return}
+  const done=qDone(q);
+  el.innerHTML=`<b>${q.n}</b>${qProg(q).map(([n,a,b])=>`<div class="${a>=b?'ok':''}">${a>=b?'✔':'○'} ${n} ${a}/${b}</div>`).join('')}<div style="color:var(--muted);font-size:12px">${done&&!q.goal.boss?'→ 에너지 박사에게 돌아가요':'장소: '+q.map}</div>`;
+}
+function npcCanvas(k){return `<canvas id="npcPic" width="144" height="180"></canvas>`}
+function paintNpc(k){const c=$('npcPic');if(!c)return;const x=c.getContext('2d');x.scale(2,2);x.translate(36,78);x.scale(1.3,1.3);drawNpc(x,k,0)}
+function talk(n){
+  if(n.k==='sign'){const [t,s]=SIGNS[n.id];openOv(`<div class="card"><div class="dlg">${npcCanvas('sign')}<div style="display:grid;gap:8px"><h3>${t}</h3><p>${s}</p></div></div><div class="row"><button class="btn alt" id="ovClose" type="button">닫기</button></div></div>`);paintNpc('sign');$('ovClose').onclick=closeOv;return}
+  if(n.k==='shop'){shop();return}
+  // 박사
+  const q=QUESTS[S.q];
+  if(!q){openOv(`<div class="card"><div class="dlg">${npcCanvas()}<div><h3>에너지 박사</h3><p>덕분에 마을이 깨끗한 에너지로 반짝여! 정말 고마워.</p></div></div><div class="row"><button class="btn alt" id="ovClose" type="button">닫기</button></div></div>`);paintNpc('doctor');$('ovClose').onclick=closeOv;return}
+  if(S.qState!=='active'){
+    openOv(`<div class="card"><div class="dlg">${npcCanvas()}<div style="display:grid;gap:8px"><div class="eyebrow">퀘스트 ${S.q+1}/${QUESTS.length}</div><h3>${q.n}</h3><p>${q.start}</p></div></div><div class="row"><button class="btn" id="goBtn" type="button">수락하기</button><button class="btn alt" id="ovClose" type="button">나중에</button></div></div>`);
+    paintNpc('doctor');$('ovClose').onclick=closeOv;
+    $('goBtn').onclick=()=>{S.qState='active';S.qBase=q.goal.kill?(S.kills[q.goal.kill]||0):0;closeOv();renderQuest();toast(`퀘스트 시작: ${q.n}`,'good')};return}
+  if(q.goal.boss){openOv(`<div class="card"><div class="dlg">${npcCanvas()}<div><h3>에너지 박사</h3><p>매연 대왕은 <b>굴뚝 공장</b> 안쪽에 있어! 물약을 넉넉히 챙겨 가렴.</p></div></div><div class="row"><button class="btn alt" id="ovClose" type="button">닫기</button></div></div>`);paintNpc('doctor');$('ovClose').onclick=closeOv;return}
+  if(!qDone(q)){openOv(`<div class="card"><div class="dlg">${npcCanvas()}<div><h3>에너지 박사</h3><p>아직 조금 남았어. ${qProg(q).filter(([,a,b])=>a<b).map(([n,a,b])=>`${n} ${a}/${b}`).join(', ')}</p></div></div><div class="row"><button class="btn alt" id="ovClose" type="button">닫기</button></div></div>`);paintNpc('doctor');$('ovClose').onclick=closeOv;return}
+  // 완료
+  if(q.goal.item)S.inv[q.goal.item]-=q.goal.in||q.goal.n;
+  openOv(`<div class="card"><div class="dlg">${npcCanvas()}<div style="display:grid;gap:8px"><div class="eyebrow">퀘스트 완료</div><h3>${q.n}</h3><p>${q.done}</p></div></div>
+    <div class="note info">보상: 경험치 ${q.reward.exp} · 코인 ${q.reward.coin} · 물약 ${q.reward.pot}개<br>퀴즈를 맞히면 <b>경험치 50% 더!</b></div><div class="row"><button class="btn blue" id="goBtn" type="button">보너스 퀴즈 풀기</button></div></div>`);
+  paintNpc('doctor');
+  $('goBtn').onclick=()=>quiz(ok=>{const r=q.reward;S.coin+=r.coin;S.pot+=r.pot;gainExp(Math.round(r.exp*(ok?1.5:1)));S.q++;S.qState='none';
+    renderQuest();renderBar();closeOv();if(S.q<QUESTS.length)toast('에너지 박사에게 다시 말을 걸면 다음 퀘스트가 있어요.')});
+}
+function quiz(done){
+  const q=S.qpool.shift()||shuffle(QUIZ.slice())[0];S.qpool.push(q);S.quizTry++;
+  openOv(`<div class="card"><div class="eyebrow">보너스 퀴즈</div><h2>${q.q}</h2><div style="display:grid;gap:8px">${q.a.map((a,i)=>`<button class="choice" data-i="${i}" type="button">${a}</button>`).join('')}</div><div id="qr"></div></div>`);
+  ov.querySelector('.choice').focus();
+  ov.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{const ok=+b.dataset.i===q.c;if(ok)S.quizOK++;
+    ov.querySelectorAll('.choice').forEach(x=>{x.disabled=true;if(+x.dataset.i===q.c)x.classList.add('right')});if(!ok)b.classList.add('wrong');
+    $('qr').innerHTML=`<div class="note ${ok?'good':'bad'}"><b>${ok?'정답! 경험치 50% 더':'아쉬워요'}</b><br>${q.e}</div><div class="row" style="margin-top:10px"><button class="btn" id="goBtn" type="button">보상 받기</button></div>`;
+    $('goBtn').focus();$('goBtn').onclick=()=>done(ok)});
+}
+function shop(){
+  const draw=()=>{openOv(`<div class="card"><div class="dlg">${npcCanvas()}<div style="display:grid;gap:8px"><h3>충전소 상인</h3><p>어서 와! 햇빛과 바람으로 충전한 물약이야. 하나에 15코인!</p><p class="eyebrow">가진 코인 ${S.coin} · 물약 ${S.pot}개</p></div></div>
+    <div class="row"><button class="btn" id="b1" type="button" ${S.coin<15?'disabled':''}>물약 1개 (15)</button><button class="btn" id="b5" type="button" ${S.coin<70?'disabled':''}>물약 5개 (70)</button><button class="btn alt" id="ovClose" type="button">닫기</button></div></div>`);
+    paintNpc('shop');$('ovClose').onclick=closeOv;
+    $('b1').onclick=()=>{S.coin-=15;S.pot++;renderBar();draw()};$('b5').onclick=()=>{S.coin-=70;S.pot+=5;renderBar();draw()}};
+  draw();
+}
+function finale(){
+  S.ended=true;S.paused=true;
+  openOv(`<div class="card"><div class="eyebrow">마지막 퀘스트 완료</div><h1 style="color:var(--leaf)">화력 발전소를 껐어요!</h1>
+    <p>매연이 걷히고 마을 하늘이 다시 파래졌어요. 에너지 박사님이 공장을 <b>재생에너지 발전소</b>로 바꾸기로 했대요.</p>
+    <div class="row" style="gap:16px"><div class="note info">Lv.${S.lv} ${JOBS[S.job].n}</div><div class="note info">퀴즈 ${S.quizOK}/${S.quizTry}</div><div class="note info">정화한 몬스터 ${Object.values(S.kills).reduce((a,b)=>a+b,0)}</div></div>
+    <div class="box"><h3>오늘 배운 것</h3><ul>
+      <li>석탄·석유는 오래전 생물이 묻혀 만들어진 <b>화석 연료</b>예요. 매장량이 정해져 있고, 태우면 <b>이산화 탄소</b>와 매연이 나와요.</li>
+      <li>햇빛·바람·물·지열·바이오 같은 <b>재생에너지</b>는 다시 채워지고 온실가스가 거의 없어요.</li>
+      <li>화석 연료 대신 재생에너지를 쓰고, 전기를 아끼면 <b>탄소 중립</b>에 가까워져요.</li></ul></div>
+    <div class="row"><button class="btn" id="goBtn" type="button">처음부터 다시</button><button class="btn alt" id="ovClose" type="button">계속 사냥하기</button></div></div>`);
+  $('goBtn').onclick=()=>showStart();$('ovClose').onclick=()=>{closeOv();S.ended=false;S.paused=false};
+}
+
+/* ============ 그리기 ============ */
+const cv=$('game'),ctx=cv.getContext('2d');
+let VW=0,VH=0,dpr=1,sc=1,band=0;
+const touchUI=matchMedia('(hover:none),(pointer:coarse)').matches;
+function resize(){dpr=Math.min(2,devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=VW*dpr;cv.height=VH*dpr;
+  const bar=$('bar').offsetHeight||60; band=touchUI?(VH>VW?150:132):0;
+  sc=(VH-bar-band)/VH0; const minW=touchUI&&VH>VW?400:520; if(VW/sc<minW)sc=VW/minW;
+  $('pad').style.bottom=(bar+8)+'px'}
+const viewW=()=>VW/sc;
+function rr(x,X,Y,w,h,r,f,s,lw){x.beginPath();x.roundRect(X,Y,w,h,r);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=lw||2;x.stroke()}}
+function circ(x,X,Y,r,f,s,lw){x.beginPath();x.arc(X,Y,r,0,Math.PI*2);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=lw||2;x.stroke()}}
+function shade(hex,k){const n=parseInt(hex.slice(1),16);return `rgb(${clamp((n>>16)*k|0,0,255)},${clamp((n>>8&255)*k|0,0,255)},${clamp((n&255)*k|0,0,255)})`}
+
+/* 주인공: 2등신 아이, 직업마다 모자와 무기가 달라요 */
+function drawHero(x,job,t,o={}){
+  const J=JOBS[job],walk=o.walk||0,run=o.run,act=o.act||0,climb=o.climb;
+  const bob=run?Math.abs(Math.sin(walk*12))*2:0,leg=run?Math.sin(walk*12)*5:0;
+  x.save();x.translate(0,-bob);
+  // 다리
+  rr(x,-8+leg*.5,-14,7,14,3,'#334155');rr(x,1-leg*.5,-14,7,14,3,'#334155');
+  // 몸
+  rr(x,-11,-32,22,20,6,J.c,shade(J.c,.6),1.5);
+  x.fillStyle='rgba(255,255,255,.75)';x.beginPath();x.moveTo(1,-28);x.lineTo(-3,-21);x.lineTo(0,-21);x.lineTo(-2,-15);x.lineTo(3,-23);x.lineTo(0,-23);x.closePath();x.fill();
+  // 머리
+  circ(x,0,-46,15,'#ffe0c7','#d9a988',1.5);
+  x.fillStyle=J.hair;x.beginPath();x.arc(0,-49,15.5,Math.PI*1.05,Math.PI*1.95);x.fill();x.fillRect(-15,-51,6,10);
+  if(!climb){circ(x,5,-45,2.2,'#1e293b');circ(x,-3,-45,2.2,'#1e293b');x.fillStyle='#f87171';x.globalAlpha=.4;circ(x,9,-40,3,'#f87171');x.globalAlpha=1}
+  // 모자
+  if(job==='sun'){x.fillStyle='#b45309';x.beginPath();x.moveTo(-17,-55);x.lineTo(17,-55);x.lineTo(4,-82);x.closePath();x.fill();circ(x,4,-82,4,'#facc15');rr(x,-19,-58,38,6,3,'#92400e')}
+  if(job==='wind'){x.fillStyle='#047857';x.beginPath();x.ellipse(0,-58,16,7,0,Math.PI,0);x.fill();rr(x,-16,-59,32,5,2,'#065f46');
+    x.save();x.translate(-13,-62);x.rotate(t*8);for(let k=0;k<4;k++){x.rotate(Math.PI/2);x.fillStyle=['#38bdf8','#facc15','#f87171','#4ade80'][k];x.beginPath();x.moveTo(0,0);x.lineTo(7,-2);x.lineTo(5,3);x.closePath();x.fill()}x.restore()}
+  if(job==='geo'){x.fillStyle='#78716c';x.beginPath();x.arc(0,-52,16,Math.PI,0);x.fill();rr(x,-17,-54,34,5,2,'#57534e');x.fillStyle='#f97316';x.beginPath();x.moveTo(0,-70);x.bezierCurveTo(6,-63,4,-58,0,-58);x.bezierCurveTo(-4,-58,-6,-63,0,-70);x.fill()}
+  // 무기
+  const sw=act>0?(1-act/.25):0;
+  x.save();x.translate(10,-24);
+  if(job==='sun'){x.rotate(-.4+sw*1.2);x.strokeStyle='#92400e';x.lineWidth=3;x.beginPath();x.moveTo(0,10);x.lineTo(0,-24);x.stroke();circ(x,0,-27,6,'#fde047','#f59e0b',2)}
+  if(job==='wind'){x.strokeStyle='#065f46';x.lineWidth=2.5;x.beginPath();x.arc(4,-4,16,-1.2,1.2);x.stroke();x.strokeStyle='#e2e8f0';x.lineWidth=1;x.beginPath();x.moveTo(4+16*Math.cos(-1.2),-4+16*Math.sin(-1.2));x.lineTo(4-sw*8+4,-4);x.lineTo(4+16*Math.cos(1.2),-4+16*Math.sin(1.2));x.stroke()}
+  if(job==='geo'){x.rotate(-1.1+sw*2.2);rr(x,-2,-30,5,30,2,'#e2e8f0','#64748b',1.5);x.fillStyle='#f97316';x.fillRect(-2,-30,5,8);rr(x,-6,-2,13,4,2,'#57534e')}
+  x.restore();
+  x.restore();
+}
+function drawNpc(x,k,t){
+  if(k==='sign'){x.fillStyle='#7c4a1e';x.fillRect(-3,-40,6,40);rr(x,-28,-62,56,30,4,'#b7791f','#7c4a1e',2);x.fillStyle='#fff';x.font='14px Jua';x.textAlign='center';x.fillText('안내',0,-42);return}
+  rr(x,-8,-14,7,14,3,'#334155');rr(x,1,-14,7,14,3,'#334155');
+  if(k==='doctor'){rr(x,-13,-34,26,24,6,'#f8fafc','#94a3b8',1.5);x.fillStyle='#3e7bfa';x.fillRect(-3,-34,6,10);
+    circ(x,0,-48,15,'#ffe0c7','#d9a988',1.5);x.fillStyle='#e5e7eb';x.beginPath();x.arc(0,-51,15.5,Math.PI*1.05,Math.PI*1.95);x.fill();circ(x,-12,-48,5,'#e5e7eb');circ(x,12,-48,5,'#e5e7eb');
+    circ(x,-5,-47,4,null,'#1e293b',1.5);circ(x,5,-47,4,null,'#1e293b',1.5);x.beginPath();x.moveTo(-1,-47);x.lineTo(1,-47);x.stroke();
+    x.strokeStyle='#64748b';x.lineWidth=1.5;x.beginPath();x.arc(0,-41,4,.2,Math.PI-.2);x.stroke()}
+  if(k==='shop'){rr(x,-13,-34,26,24,6,'#22a065','#14532d',1.5);rr(x,-9,-30,18,14,3,'#fef3c7');
+    rr(x,10,-36,10,20,3,'#3e7bfa','#1e3a8a',1.5);x.fillStyle='#fde047';x.fillRect(13,-30,4,8);
+    circ(x,0,-48,15,'#ffe0c7','#d9a988',1.5);x.fillStyle='#7c2d12';x.beginPath();x.arc(0,-51,15.5,Math.PI*1.05,Math.PI*1.95);x.fill();circ(x,0,-64,7,'#7c2d12');
+    circ(x,-5,-46,2,'#1e293b');circ(x,5,-46,2,'#1e293b');x.strokeStyle='#9a3412';x.lineWidth=1.5;x.beginPath();x.arc(0,-41,4,.2,Math.PI-.2);x.stroke()}
+}
+function drawMob(x,m,t){
+  const d=MOB[m.k],X=m.x+m.w/2,Y=m.y+m.h,f=m.dir;
+  x.save();if(m.fl>0)x.filter='brightness(2)';
+  if(m.k==='smog'||m.k==='boss'){const r=m.k==='boss'?62:15,cy=Y-r-6+Math.sin(t*4+m.sx)*3,c1=m.k==='boss'?'#4b4157':'#7b7088',c2=m.k==='boss'?'#3a3244':'#655a73';
+    for(const [a,b,s] of [[-.5,.15,.62],[.5,.15,.6],[0,-.3,.7],[-.25,.4,.55],[.3,.4,.55]])circ(x,X+a*r,cy+b*r,s*r,c2);
+    for(const [a,b,s] of [[-.45,0,.5],[.45,0,.5],[0,-.3,.58]])circ(x,X+a*r,cy+b*r,s*r,c1);
+    circ(x,X-.3*r,cy,.2*r,'#fff');circ(x,X+.3*r,cy,.2*r,'#fff');circ(x,X-.3*r+f*2,cy+.04*r,.09*r,m.k==='boss'?'#ef4444':'#2a2230');circ(x,X+.3*r+f*2,cy+.04*r,.09*r,m.k==='boss'?'#ef4444':'#2a2230');
+    x.strokeStyle='#2a2230';x.lineWidth=Math.max(1.6,r*.06);x.beginPath();x.moveTo(X-.5*r,cy-.3*r);x.lineTo(X-.15*r,cy-.16*r);x.moveTo(X+.5*r,cy-.3*r);x.lineTo(X+.15*r,cy-.16*r);x.stroke();
+    if(m.k==='boss'){x.fillStyle='#facc15';x.beginPath();x.moveTo(X-30,cy-r*.7);x.lineTo(X-30,cy-r*1.05);x.lineTo(X-15,cy-r*.85);x.lineTo(X,cy-r*1.15);x.lineTo(X+15,cy-r*.85);x.lineTo(X+30,cy-r*1.05);x.lineTo(X+30,cy-r*.7);x.closePath();x.fill();
+      rr(x,X+28,cy-r*1.3,16,30,2,'#44403c');for(let k=0;k<3;k++){const p=(t*30+k*15)%45;circ(x,X+36,cy-r*1.35-p,8+p/5,`rgba(70,64,80,${.6-p/90})`)}}}
+  if(m.k==='slime'){const sq=m.vy<0?1.1:.95;x.translate(X,Y);x.scale(1/sq,sq);x.fillStyle='#111827';x.beginPath();x.moveTo(-18,0);x.bezierCurveTo(-20,-22,20,-22,18,0);x.closePath();x.fill();
+    x.strokeStyle='rgba(167,139,250,.6)';x.lineWidth=2;x.stroke();x.fillStyle='rgba(255,255,255,.25)';x.beginPath();x.ellipse(-7,-15,5,3,-.4,0,7);x.fill();
+    circ(x,-5+f*2,-9,3.5,'#fff');circ(x,6+f*2,-9,3.5,'#fff');circ(x,-5+f*3,-8,1.6,'#111');circ(x,6+f*3,-8,1.6,'#111')}
+  if(m.k==='golem'){x.translate(X,Y);const st=Math.sin(t*5+m.sx)*2;x.fillStyle='#292524';
+    rr(x,-16,-18,12,18+st,3,'#1c1917');rr(x,4,-18,12,18-st,3,'#1c1917');
+    x.beginPath();x.moveTo(-22,-18);x.lineTo(-18,-46);x.lineTo(0,-52);x.lineTo(18,-44);x.lineTo(22,-18);x.closePath();x.fillStyle='#374151';x.fill();x.strokeStyle='#111827';x.lineWidth=2;x.stroke();
+    x.fillStyle='#9ca3af';x.fillRect(-8,-40,3,3);x.fillRect(9,-30,3,3);x.fillStyle='#f97316';x.fillRect(-12,-26,8,3);x.fillRect(4,-44,6,3);
+    circ(x,-6+f*2,-38,3,'#fbbf24');circ(x,6+f*2,-38,3,'#fbbf24')}
+  x.restore();
+  if(m.hp<m.max&&m.k!=='boss'){rr(x,m.x+m.w/2-20,m.y-12,40,5,2,'rgba(0,0,0,.5)');rr(x,m.x+m.w/2-20,m.y-12,40*m.hp/m.max,5,2,'#ef4444')}
+  x.font='12px Gowun Dodum, sans-serif';x.textAlign='center';x.fillStyle='rgba(0,0,0,.55)';const tag=`Lv.${d.lv} ${d.n}`;x.fillRect(X-x.measureText(tag).width/2-4,Y+3,x.measureText(tag).width+8,16);x.fillStyle='#fff';x.fillText(tag,X,Y+15);
+}
+function drawBg(x,t){
+  const vw=viewW(),bg=M.bg,sky={town:['#7cc4f5','#dff3ff'],sun:['#83cdf7','#fff7d6'],wind:['#8fb8e8','#e1efff'],factory:['#5b3a42','#c2836a']}[bg];
+  const g=x.createLinearGradient(0,0,0,VH0);g.addColorStop(0,sky[0]);g.addColorStop(1,sky[1]);x.fillStyle=g;x.fillRect(0,0,vw,VH0);
+  const far=cam.x*.15,mid=cam.x*.4;
+  if(bg!=='factory'){circ(x,vw*.82,90,36,'rgba(255,245,180,.8)');circ(x,vw*.82,90,26,'#ffd84d')}
+  x.fillStyle=bg==='factory'?'#4a2f35':bg==='wind'?'#a9c8e8':'#b8e0a8';
+  for(let i=-1;i<8;i++){const X=i*320-(far%320);x.beginPath();x.ellipse(X+160,G0-20,230,140,0,Math.PI,0);x.fill()}
+  for(let i=-1;i<10;i++){const X=i*260-(mid%260)+30;
+    if(bg==='town'){x.fillStyle='#f1e4d0';x.fillRect(X+20,G0-110,90,90);x.fillStyle='#c2410c';x.beginPath();x.moveTo(X+10,G0-110);x.lineTo(X+65,G0-150);x.lineTo(X+120,G0-110);x.fill();
+      x.save();x.translate(X+70,G0-138);x.transform(1,.35,0,1,0,0);rr(x,0,0,34,16,2,'#24508f','#9cc8f2',1);x.restore();rr(x,X+52,G0-62,22,42,3,'#7c4a1e');rr(x,X+28,G0-90,18,16,2,'#bae6fd')}
+    if(bg==='sun'){for(let k=0;k<4;k++){const sx=X+k*28;x.strokeStyle='#4d7c0f';x.lineWidth=2;x.beginPath();x.moveTo(sx,G0);x.lineTo(sx,G0-50);x.stroke();for(let p=0;p<8;p++){const a=p*Math.PI/4;circ(x,sx+Math.cos(a)*7,G0-56+Math.sin(a)*7,4,'#facc15')}circ(x,sx,G0-56,5,'#7c2d12')}
+      x.save();x.translate(X+150,G0-70);x.transform(1,0,-.3,1,0,0);rr(x,0,0,60,26,2,'#2f5f9f','#9cc8f2',1);x.restore()}
+    if(bg==='wind'){x.strokeStyle='#f8fafc';x.lineWidth=4;x.beginPath();x.moveTo(X+80,G0-30);x.lineTo(X+80,G0-170);x.stroke();x.save();x.translate(X+80,G0-172);x.rotate(t*1.8+i);for(let k=0;k<3;k++){x.rotate(Math.PI*2/3);rr(x,-2,-46,4,46,2,'#fff','#94a3b8',1)}x.restore();circ(x,X+80,G0-172,4,'#64748b')}
+    if(bg==='factory'){x.fillStyle='#3b2a2e';x.fillRect(X+20,G0-150,110,130);x.fillRect(X+40,G0-230,22,90);x.fillRect(X+90,G0-210,22,70);
+      for(let k=0;k<3;k++){const p=(t*20+k*25+i*13)%75;circ(x,X+51,G0-238-p,12+p/5,`rgba(70,60,75,${.55-p/150})`)}x.fillStyle='#f97316';x.fillRect(X+35,G0-90,14,10);x.fillRect(X+75,G0-90,14,10)}}
+}
+function drawPlat(x,p,t){
+  const fac=M.bg==='factory';
+  rr(x,p.x,p.y,p.w,18,6,fac?'#57534e':'#a16207',fac?'#292524':'#713f12',2);
+  x.fillStyle=fac?'#78716c':'#65a30d';x.fillRect(p.x+2,p.y,p.w-4,6);
+}
+function draw(t){
+  const x=ctx;x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle={town:'#7cc4f5',sun:'#83cdf7',wind:'#8fb8e8',factory:'#5b3a42'}[M&&M.bg]||'#0f1522';x.fillRect(0,0,VW,VH);
+  if(!M)return;
+  const bar=$('bar').offsetHeight||60, oy=VH-bar-band-VH0*sc;
+  x.setTransform(sc*dpr,0,0,sc*dpr,0,Math.max(0,oy)*dpr);
+  drawBg(x,t);
+  x.translate(-Math.round(cam.x),0);
+  // 바닥
+  const fac=M.bg==='factory';
+  x.fillStyle=fac?'#44403c':'#8b5a2b';x.fillRect(0,G0,M.w,VH0-G0+200);x.fillStyle=fac?'#78716c':'#65a30d';x.fillRect(0,G0,M.w,12);
+  for(let i=0;i<M.w;i+=40){x.fillStyle=fac?'rgba(0,0,0,.12)':'rgba(0,0,0,.1)';x.fillRect(i+8,G0+24,14,6)}
+  for(const p of M.plats)drawPlat(x,p,t);
+  for(const l of M.ladders){x.strokeStyle='#92400e';x.lineWidth=4;x.beginPath();x.moveTo(l.x-10,l.y1-6);x.lineTo(l.x-10,l.y2);x.moveTo(l.x+10,l.y1-6);x.lineTo(l.x+10,l.y2);x.stroke();
+    x.lineWidth=3;for(let y=l.y1;y<l.y2;y+=18){x.beginPath();x.moveTo(l.x-10,y);x.lineTo(l.x+10,y);x.stroke()}}
+  for(const po of M.portals){const a=t*3;for(let k=0;k<3;k++){x.strokeStyle=`rgba(74,222,128,${.8-k*.2})`;x.lineWidth=3;x.beginPath();x.ellipse(po.x,G0-40,18+k*5,34+k*6,0,a+k,a+k+4.5);x.stroke()}
+    circ(x,po.x,G0-40,10,'rgba(187,247,208,.6)');x.font='13px Jua';x.textAlign='center';x.fillStyle='rgba(0,0,0,.55)';const w=x.measureText(po.label).width;x.fillRect(po.x-w/2-5,G0-96,w+10,18);x.fillStyle='#fff';x.fillText(po.label,po.x,G0-82)}
+  if(M.id==='factory'&&S.bossDead){const X=1800;rr(x,X-30,G0-110,60,110,6,S.switchOff?'#22a065':'#ef4444','#1c1917',3);x.fillStyle='#fff';x.font='13px Jua';x.textAlign='center';x.fillText(S.switchOff?'꺼짐':'발전소',X,G0-80);x.fillText(S.switchOff?'':'스위치',X,G0-64);
+    if(!S.switchOff){const a=.5+.5*Math.sin(t*5);x.fillStyle=`rgba(250,204,21,${a})`;x.font='22px Jua';x.fillText('▲',X,G0-122)}}
+  for(const n of M.npcs){x.save();x.translate(n.x,G0);drawNpc(x,n.k,t);x.restore();
+    const nm=n.k==='sign'?'':n.k==='doctor'?'에너지 박사':'충전소 상인';
+    if(nm){x.font='13px Jua';x.textAlign='center';x.fillStyle='rgba(0,0,0,.55)';const w=x.measureText(nm).width;x.fillRect(n.x-w/2-5,G0+4,w+10,18);x.fillStyle='#fde68a';x.fillText(nm,n.x,G0+18)}
+    if(n.k==='doctor'&&S.q<QUESTS.length&&(S.qState!=='active'||(qDone(QUESTS[S.q])&&!QUESTS[S.q].goal.boss))){const b=Math.sin(t*4)*3;circ(x,n.x,G0-90+b,12,S.qState==='active'?'#22c55e':'#facc15','#fff',2);x.fillStyle='#fff';x.font='16px Jua';x.fillText(S.qState==='active'?'✓':'!',n.x,G0-84+b)}
+    if(Math.abs(n.x-(P.x+P.w/2))<60&&P.y+P.h>G0-10){x.fillStyle='rgba(15,23,42,.8)';rr(x,n.x-34,G0-120,68,20,8,'rgba(15,23,42,.8)');x.fillStyle='#fff';x.font='12px Jua';x.fillText('▲ 대화',n.x,G0-106)}}
+  for(const it of drops){const b=Math.sin(it.t*5)*2;
+    if(it.k==='coin'){circ(x,it.x,it.y+b,8,'#facc15','#b45309',2);x.fillStyle='#b45309';x.beginPath();x.moveTo(it.x+1,it.y-5+b);x.lineTo(it.x-3,it.y+1+b);x.lineTo(it.x,it.y+1+b);x.lineTo(it.x-1,it.y+5+b);x.lineTo(it.x+3,it.y-1+b);x.lineTo(it.x,it.y-1+b);x.closePath();x.fill()}
+    else if(it.k==='coal'){x.fillStyle='#1f2937';x.beginPath();x.moveTo(it.x-8,it.y+6+b);x.lineTo(it.x-6,it.y-6+b);x.lineTo(it.x+4,it.y-8+b);x.lineTo(it.x+9,it.y+b);x.lineTo(it.x+6,it.y+7+b);x.closePath();x.fill()}
+    else{x.save();x.translate(it.x,it.y+b);x.rotate(Math.PI/4);rr(x,-6,-6,12,12,2,ITEMS[it.k].c,'#fff',2);x.restore()}}
+  for(const m of mobs)if(!m.dead)drawMob(x,m,t);
+  // 보스 탄
+  for(const f of bfx){circ(x,f.x,f.y,f.r,'rgba(70,64,80,.85)');circ(x,f.x-4,f.y-4,f.r*.5,'rgba(120,110,130,.8)')}
+  // 스킬 효과
+  for(const f of fx)drawFx(x,f,t);
+  // 주인공
+  if(!(P.inv>0&&Math.floor(t*14)%2&&P.dash<=0)){x.save();x.translate(P.x+P.w/2,P.y+P.h);x.scale(P.face,1);drawHero(x,S.job,t,{walk:P.walk,run:Math.abs(P.vx)>20&&P.on||P.climb,act:P.act,climb:P.climb});x.restore()}
+  x.font='13px Jua';x.textAlign='center';x.fillStyle='rgba(0,0,0,.55)';const nm=`나 · ${JOBS[S.job].n}`;const nw=x.measureText(nm).width;x.fillRect(P.x+P.w/2-nw/2-5,P.y+P.h+3,nw+10,17);x.fillStyle='#fff';x.fillText(nm,P.x+P.w/2,P.y+P.h+16);
+  for(const p of parts){x.globalAlpha=clamp(p.l*2,0,1);circ(x,p.x,p.y,p.r,p.c)}x.globalAlpha=1;
+  for(const d of dmgs){x.globalAlpha=clamp(d.l*2,0,1);x.font=(d.big?'26px':'20px')+' Jua';x.lineWidth=4;x.strokeStyle='rgba(0,0,0,.6)';x.strokeText(d.v,d.x,d.y);x.fillStyle=d.c;x.fillText(d.v,d.x,d.y)}x.globalAlpha=1;
+  // 보스 체력
+  const boss=mobs.find(m=>m.k==='boss'&&!m.dead);
+  x.setTransform(dpr,0,0,dpr,0,0);
+  if(boss){const w=Math.min(VW-40,520),X=(VW-w)/2,Y=Math.max(70,Math.max(0,oy)+60);rr(x,X,Y,w,14,7,'rgba(0,0,0,.6)');rr(x,X,Y,w*boss.hp/boss.max,14,7,'#ef4444');
+    x.font='14px Jua';x.textAlign='center';x.fillStyle='#fff';x.fillText(`Lv.8 매연 대왕  ${Math.ceil(boss.hp)}/${boss.max}`,VW/2,Y-4)}
+}
+function drawFx(x,f,t){
+  const a=clamp(f.life*4,0,1),c=JOBS[f.job].c;x.save();x.globalAlpha=Math.min(1,a+.2);
+  switch(f.kind){
+    case 'orb':circ(x,f.x+10,f.y+10,10,'#fde047','#f59e0b',2);circ(x,f.x+10,f.y+10,5,'#fff');break;
+    case 'arrow':case 'tri':x.translate(f.x+12,f.y+4);x.rotate(Math.atan2(f.vy||0,f.vx));x.strokeStyle='#e2e8f0';x.lineWidth=2;x.beginPath();x.moveTo(-12,0);x.lineTo(12,0);x.stroke();x.fillStyle='#10b981';x.beginPath();x.moveTo(12,0);x.lineTo(6,-4);x.lineTo(6,4);x.fill();x.strokeStyle='rgba(167,243,208,.6)';x.beginPath();x.moveTo(-12,-3);x.lineTo(-30,-3);x.moveTo(-12,3);x.lineTo(-26,3);x.stroke();break;
+    case 'slash':x.strokeStyle=`rgba(249,115,22,${a})`;x.lineWidth=8;x.beginPath();const cx=f.f>0?f.x:f.x+f.w;x.arc(cx,f.y+f.h/2,70,f.f>0?-1:Math.PI-1+.0,f.f>0?1:Math.PI+1);x.stroke();x.strokeStyle=`rgba(253,224,71,${a})`;x.lineWidth=3;x.stroke();break;
+    case 'beam':{const g=x.createLinearGradient(0,f.y,0,f.y+f.h);g.addColorStop(0,'rgba(253,224,71,0)');g.addColorStop(.5,'rgba(255,251,200,.95)');g.addColorStop(1,'rgba(253,224,71,0)');x.fillStyle=g;x.fillRect(f.x,f.y,f.w,f.h);break}
+    case 'nova':for(let k=0;k<3;k++){circ(x,f.x+f.w/2,f.y+f.h/2,(1-a)*150*(1-k*.2)+20,null,`rgba(250,204,21,${a*(1-k*.25)})`,6-k*1.5)}break;
+    case 'tornado':for(let k=0;k<6;k++){const r=8+k*5,y=f.y+f.h-k*13;x.strokeStyle=`rgba(209,250,229,${.85-k*.08})`;x.lineWidth=3;x.beginPath();x.ellipse(f.x+f.w/2+Math.sin(f.t*10+k)*4,y,r,4,0,f.t*12+k,f.t*12+k+4.6);x.stroke()}break;
+    case 'dash':x.fillStyle=`rgba(249,115,22,${a*.5})`;x.fillRect(f.x-40*f.f,f.y+10,80,f.h-20);break;
+    case 'quake':x.fillStyle=`rgba(249,115,22,${a*.6})`;for(let k=0;k<10;k++){const X=f.x+k*34;x.beginPath();x.moveTo(X,f.y+f.h);x.lineTo(X+17,f.y+f.h-30-Math.sin(k)*20);x.lineTo(X+34,f.y+f.h);x.fill()}break;
+    case 'storm':{const g=x.createLinearGradient(0,f.y,0,f.y+f.h);g.addColorStop(0,'rgba(253,224,71,0)');g.addColorStop(1,'rgba(255,251,200,.95)');x.fillStyle=g;x.fillRect(f.x+10,f.y,f.w-20,f.h);circ(x,f.x+f.w/2,f.y+f.h,22,'rgba(253,224,71,.6)');break}
+    case 'rain':x.strokeStyle='rgba(209,250,229,.9)';x.lineWidth=2;for(let k=0;k<4;k++){const X=f.x+k*12,Y=f.y+((f.t*900+k*40)%f.h);x.beginPath();x.moveTo(X,Y-24);x.lineTo(X,Y);x.stroke()}break;
+    case 'erupt':{const h=f.h*(1-Math.abs(.5-(.35-f.life)/.35)*1.4);const g=x.createLinearGradient(0,G0-h,0,G0);g.addColorStop(0,'#fde047');g.addColorStop(1,'#ef4444');x.fillStyle=g;rr(x,f.x+12,G0-Math.max(10,h),f.w-24,Math.max(10,h),12,g);break}
+  }
+  x.restore();
+}
+
+/* ============ UI ============ */
+const ov=$('ov');
+function openOv(h){ov.innerHTML=h;ov.hidden=false;S&&(S.paused=true);const b=ov.querySelector('.btn,.choice');if(b)b.focus()}
+function closeOv(){ov.hidden=true;ov.innerHTML='';if(S&&!S.ended)S.paused=!!S.userPause}
+function toast(m,c){const t=document.createElement('div');t.className='toast '+(c||'');t.textContent=m;$('toast').appendChild(t);while($('toast').children.length>3)$('toast').firstChild.remove();setTimeout(()=>t.remove(),3800)}
+function renderBar(){
+  if(!S)return;
+  $('lv').textContent=S.lv;$('job').textContent=JOBS[S.job].n;
+  $('hpT').textContent=`${Math.ceil(P.hp)}/${P.maxhp}`;$('hpB').style.width=P.hp/P.maxhp*100+'%';
+  $('mpT').textContent=`${Math.floor(P.mp)}/${P.maxmp}`;$('mpB').style.width=P.mp/P.maxmp*100+'%';
+  const e=S.lv>=10?100:S.exp/needExp(S.lv)*100;$('expT').textContent=S.lv>=10?'MAX':e.toFixed(1)+'%';$('expB2').style.width=e+'%';$('expBar').style.width=e+'%';
+  $('coins').textContent=`⚡ ${S.coin} 코인 · 물약 ${S.pot}`;
+}
+function skIcon(c,job,i){const x=c.getContext('2d');x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,c.width,c.height);x.scale(c.width/40,c.height/40);const J=JOBS[job],col=J.c;
+  x.fillStyle='#0b1220';x.fillRect(0,0,40,40);
+  if(i===4){rr(x,14,8,12,24,4,'#ef4444','#fff',2);x.fillStyle='#fff';x.fillRect(17,4,6,5);return}
+  const k=J.sk[i].kind;
+  if(k==='orb'){circ(x,20,20,9,'#fde047','#f59e0b',2)}
+  if(k==='beam'){x.fillStyle='#fde047';x.fillRect(4,16,32,8);circ(x,8,20,7,'#fff')}
+  if(k==='nova'){for(let r=6;r<18;r+=5)circ(x,20,20,r,null,'#facc15',2)}
+  if(k==='storm'){for(let j=0;j<3;j++){x.fillStyle='#fde047';x.fillRect(8+j*10,4,5,28)}}
+  if(k==='arrow'){x.strokeStyle='#e2e8f0';x.lineWidth=2;x.beginPath();x.moveTo(6,30);x.lineTo(32,8);x.stroke();x.fillStyle=col;x.beginPath();x.moveTo(34,6);x.lineTo(26,9);x.lineTo(31,14);x.fill()}
+  if(k==='tri'){x.strokeStyle='#e2e8f0';x.lineWidth=2;for(const a of [-.5,0,.5]){x.beginPath();x.moveTo(8,20);x.lineTo(8+26*Math.cos(a),20+26*Math.sin(a));x.stroke()}}
+  if(k==='tornado'){for(let j=0;j<5;j++){x.strokeStyle='#a7f3d0';x.lineWidth=2;x.beginPath();x.ellipse(20,32-j*6,4+j*3,2.5,0,0,7);x.stroke()}}
+  if(k==='rain'){x.strokeStyle='#a7f3d0';x.lineWidth=2;for(let j=0;j<5;j++){x.beginPath();x.moveTo(6+j*7,6+j%2*6);x.lineTo(6+j*7,22+j%2*6);x.stroke()}}
+  if(k==='slash'){x.strokeStyle='#f97316';x.lineWidth=4;x.beginPath();x.arc(14,20,16,-1,1);x.stroke()}
+  if(k==='dash'){x.fillStyle='#f97316';x.beginPath();x.moveTo(6,12);x.lineTo(34,20);x.lineTo(6,28);x.closePath();x.fill()}
+  if(k==='quake'){x.fillStyle='#f97316';for(let j=0;j<4;j++){x.beginPath();x.moveTo(4+j*8,34);x.lineTo(8+j*8,18-j%2*6);x.lineTo(12+j*8,34);x.fill()}}
+  if(k==='erupt'){for(let j=0;j<3;j++){x.fillStyle=j===1?'#fde047':'#ef4444';rr(x,7+j*10,10+j%2*6,7,26,3,x.fillStyle)}}
+}
+function buildSlots(){
+  const J=JOBS[S.job],el=$('slots');el.innerHTML='';
+  J.sk.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.className='slot'+(S.lv<s.lv?' lock':'');b.dataset.lv='Lv.'+s.lv;b.title=`${s.n} (${SKKEY[i]}) · MP ${s.mp} · ${s.d}`;
+    b.innerHTML=`<canvas width="68" height="68"></canvas><span class="k">${SKKEY[i]}</span><span class="cd"></span>`;skIcon(b.firstChild,S.job,i);b.onclick=()=>useSkill(i);el.appendChild(b)});
+  const b=document.createElement('button');b.type='button';b.className='slot';b.title='HP 물약 (Q)';b.innerHTML=`<canvas width="68" height="68"></canvas><span class="k">Q</span><span class="n" id="potN">${S.pot}</span>`;skIcon(b.firstChild,S.job,4);b.onclick=usePot;el.appendChild(b);
+  ['pS1','pS2','pS3'].forEach((id,i)=>{$(id).textContent=J.sk[i+1].n.length>4?J.sk[i+1].n.slice(0,4):J.sk[i+1].n});
+  renderSlots();
+}
+function renderSlots(){const J=JOBS[S.job],sl=$('slots').children;
+  J.sk.forEach((s,i)=>{const c=sl[i]&&sl[i].querySelector('.cd');if(c)c.style.transform=`scaleY(${P.cd[i]>0?P.cd[i]/s.cd:0})`;if(sl[i])sl[i].classList.toggle('lock',S.lv<s.lv)});
+  if($('potN'))$('potN').textContent=S.pot;
+  ['pS1','pS2','pS3'].forEach((id,i)=>$(id).disabled=S.lv<J.sk[i+1].lv)}
+function togglePause(){if(!S||!S.started||!ov.hidden)return;S.userPause=!S.userPause;S.paused=S.userPause;$('pauseBtn').textContent=S.paused?'계속하기':'일시정지'}
+$('pauseBtn').onclick=togglePause;
+$('helpBtn').onclick=()=>{if(!ov.hidden&&S&&S.started)return;showHelp(!!(S&&S.started))};
+$('skillBtn').onclick=()=>{if(!S||!ov.hidden)return;skillWin()};
+function skillWin(){const J=JOBS[S.job];
+  openOv(`<div class="card"><div class="eyebrow">${J.n} · ${J.energy}</div><h2>스킬</h2><p style="font-size:14px">${J.fact}</p>
+    <div style="display:grid;gap:8px">${J.sk.map((s,i)=>`<div class="sk"><canvas data-sk="${i}" width="80" height="80"></canvas><span><b>${s.n}</b> [${SKKEY[i]}] · Lv.${s.lv}부터 · MP ${s.mp}<br>${s.d}${S.lv<s.lv?' <i style="color:#ef4444">(아직 잠김)</i>':''}</span></div>`).join('')}</div>
+    <div class="row"><button class="btn alt" id="ovClose" type="button">닫기</button></div></div>`);
+  ov.querySelectorAll('canvas[data-sk]').forEach(c=>skIcon(c,S.job,+c.dataset.sk));$('ovClose').onclick=closeOv}
+const HELP=`<div class="cols">
+  <div class="box"><h3>목표</h3><ul><li>햇살 마을의 <b>에너지 박사</b>에게 퀘스트를 받아요 (머리 위 <b>!</b>).</li><li>사냥터에서 오염 몬스터를 정화하고, 레벨을 올려 새 스킬을 배워요.</li><li>마지막 퀘스트에서 <b>매연 대왕</b>을 물리치고 화력 발전소를 꺼요.</li></ul></div>
+  <div class="box"><h3>지도</h3><ul><li><b>햇살 마을</b>: 에너지 박사, 충전소 상인(물약)</li><li><b>햇빛 들판</b>: 꼬마 스모그 Lv.1</li><li><b>바람 언덕</b>: 기름 슬라임 Lv.3</li><li><b>굴뚝 공장</b>: 석탄 골렘 Lv.5, 매연 대왕</li><li>초록 소용돌이 <b>포탈</b>에서 ▲를 누르면 다음 지도로 가요.</li></ul></div></div>
+  <div class="box"><h3>조작법</h3><div class="keys"><div><span>이동</span><kbd>← →</kbd></div><div><span>점프</span><kbd>Space</kbd></div><div><span>사다리 오르내리기</span><kbd>↑ ↓</kbd></div><div><span>발판 아래로 내려가기</span><kbd>↓ + Space</kbd></div>
+    <div><span>대화 · 포탈</span><kbd>↑</kbd></div><div><span>기본 공격 (누르고 있기)</span><kbd>Z</kbd></div><div><span>스킬 1 · 2 · 3</span><kbd>X · C · V</kbd></div><div><span>HP 물약</span><kbd>Q</kbd></div></div>
+    <p style="font-size:13px;color:var(--muted)">휴대폰은 왼쪽 방향 버튼, 오른쪽 공격·점프·스킬 버튼을 써요.</p></div>
+  <div class="cols"><div class="box"><h3>성장</h3><ul><li>몬스터를 정화하면 경험치와 <b>에너지 코인</b>을 얻어요.</li><li>스킬 1은 Lv.2, 스킬 2는 Lv.4, 스킬 3은 Lv.6에 열려요.</li><li>퀘스트를 끝내면 <b>보너스 퀴즈</b>가 나와요. 맞히면 경험치 50% 더!</li></ul></div>
+  <div class="box tip"><h3>꿀팁</h3><ul><li>각 지도의 <b>안내판</b>에서 ▲를 누르면 에너지 이야기를 읽을 수 있어요.</li><li>HP가 낮으면 Q로 물약! 마을 상인에게 코인으로 살 수 있어요.</li><li>MP는 가만히 있어도 조금씩 차요.</li></ul></div></div>`;
+function showHelp(inGame){openOv(`<div class="card wide"><div class="eyebrow">게임 방법</div><h2>에너지 월드</h2>${HELP}<div class="row"><button class="btn" id="ovClose" type="button">${inGame?'게임으로 돌아가기':'처음 화면으로'}</button></div></div>`);
+  $('ovClose').onclick=()=>{if(inGame)closeOv();else showStart()}}
+function showStart(){
+  openOv(`<div class="card wide"><div class="eyebrow">5학년 2학기 · 자원과 에너지</div><h1>에너지 월드</h1>
+    <p>화석 연료를 마구 태운 탓에 마을 곳곳에 <b>오염 몬스터</b>가 나타났어요! 재생에너지의 힘을 가진 모험가가 되어 몬스터를 정화하고, <b>매연 대왕</b>이 돌리는 화력 발전소를 멈춰 주세요.</p>
+    <h3>직업 고르기</h3>
+    <div class="jobs">${Object.entries(JOBS).map(([k,j])=>`<button class="job" type="button" data-job="${k}" aria-pressed="${jobPick===k}"><canvas width="240" height="180"></canvas><b>${j.n}</b><small>${j.style}<br><b style="font-size:13px;font-family:var(--f-body)">${j.energy}</b>: ${j.fact.split('.')[0]}.</small></button>`).join('')}</div>
+    <div class="row"><button class="btn" id="goBtn" type="button">모험 시작</button><button class="btn alt" id="howBtn" type="button">게임 방법 자세히 보기</button></div></div>`);
+  ov.querySelectorAll('[data-job]').forEach(b=>{const c=b.querySelector('canvas'),x=c.getContext('2d'),k=b.dataset.job;
+    const g=x.createLinearGradient(0,0,0,180);g.addColorStop(0,'#bfe3ff');g.addColorStop(1,'#eaf6ff');x.fillStyle=g;x.fillRect(0,0,240,180);x.fillStyle='#65a30d';x.fillRect(0,150,240,30);
+    x.save();x.translate(120,150);x.scale(1.7,1.7);drawHero(x,k,.4,{act:.12});x.restore();
+    b.onclick=()=>{jobPick=k;ov.querySelectorAll('[data-job]').forEach(z=>z.setAttribute('aria-pressed',z===b))}});
+  $('goBtn').onclick=()=>{newGame(jobPick);closeOv();S.paused=false;toast(`${JOBS[jobPick].n}(으)로 모험을 시작해요! 에너지 박사(!)에게 가서 ▲를 눌러 말을 걸어요.`,'good')};
+  $('howBtn').onclick=()=>showHelp(false);
+}
+
+/* ============ 루프 ============ */
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.033,(now-last)/1000);last=now;
+  if(S&&S.started&&!S.paused)update(dt);
+  draw(now/1000);requestAnimationFrame(frame);
+}
+addEventListener('resize',resize);
+S={started:false,paused:true,job:'sun',q:0,qState:'none',kills:{},inv:{},lv:1,bossDead:false};
+P={x:200,y:G0-48,w:24,h:48,vx:0,vy:0,face:1,walk:0,act:0,cd:[0,0,0,0],inv:0,maxhp:1,hp:1,maxmp:1,mp:1};
+M=MAPS.town;M.id='town';
+resize();showStart();requestAnimationFrame(frame);
+</script>
