@@ -25,7 +25,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .hd{height:100%;max-width:1440px;margin:0 auto;padding:0 40px;display:flex;align-items:center;color:#fff}
 .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:-.03em}
 .mark{width:28px;height:28px;border-radius:6px;background:var(--acc);display:grid;place-items:center;font:700 15px var(--en);color:#fff}
-.logo em{font-style:normal;color:var(--acc2)}
+.logo em{font-style:normal;color:var(--acc2)}.logo .lt{white-space:nowrap}
 .gnb{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:42px}
 .gnb a{font:600 12.5px var(--en);letter-spacing:.06em;opacity:.85;position:relative;padding:6px 0}
 .gnb a:hover,.gnb a.on{opacity:1}.gnb a.on:after{transform:none}.gnb a:after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--acc);transform:scaleX(0);transition:transform .25s}.gnb a:hover:after{transform:none}
@@ -196,7 +196,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 <div class="prog" id="prog"></div>
 <header id="hd">
  <div class="hd">
-  <a class="logo" href="#top"><span class="mark">M</span>민왕<em>게임</em>월드</a>
+  <a class="logo" href="#top"><span class="mark">M</span><span class="lt">민왕<em>게임</em>월드</span></a>
   <nav class="gnb" aria-label="주 메뉴"><a href="#games">GAMES</a><a href="#learn">LEARN</a><a href="#about">ABOUT</a></nav>
   <div class="util">
    <button class="icon" id="sBtn" type="button" aria-label="게임 찾기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
