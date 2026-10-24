@@ -17,7 +17,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',-ap
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit}
 img{display:block;max-width:100%}
-.in{max-width:1080px;margin:0 auto;padding:0 20px}
+.in{max-width:1440px;margin:0 auto;padding:0 40px}
 
 /* ===== 헤더 ===== */
 header{position:fixed;inset:0 0 auto;z-index:50;height:72px;transition:background .3s,box-shadow .3s}
@@ -43,7 +43,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .slide .bg{position:absolute;inset:0;background-size:cover;background-position:center;transform:scale(1.08);transition:transform 7s linear}
 .slide.on .bg{transform:scale(1)}
 .slide:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.82) 0%,rgba(0,0,0,.55) 38%,rgba(0,0,0,.08) 75%),linear-gradient(0deg,rgba(0,0,0,.55),transparent 35%)}
-.cap{position:absolute;z-index:2;left:max(40px,calc((100vw - 1080px)/2 + 20px));top:50%;transform:translateY(-46%);max-width:560px}
+.cap{position:absolute;z-index:2;left:max(40px,calc((100vw - 1440px)/2 + 40px));top:50%;transform:translateY(-46%);max-width:560px}
 .cap .kick{display:flex;align-items:center;gap:8px;font:600 14px var(--en);letter-spacing:.02em;opacity:0;transform:translateY(14px);transition:.7s .2s}
 .cap .kick i{font-style:normal;width:26px;height:26px;border:1.5px solid var(--acc2);border-radius:50%;display:grid;place-items:center;font-size:13px}
 .cap h2{margin:14px 0 14px;font-size:clamp(36px,5.2vw,58px);line-height:1.12;font-weight:800;letter-spacing:-.04em;opacity:0;transform:translateY(18px);transition:.7s .35s}
@@ -53,7 +53,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .cap .more:hover{background:#fff;color:#111}
 .cap .more svg{width:14px;height:14px}
 .slide.on .cap>*{opacity:1;transform:none}
-.ctrl{position:absolute;z-index:3;left:40px;right:40px;bottom:34px;display:flex;align-items:center;gap:10px}
+.ctrl{position:absolute;z-index:3;left:max(40px,calc((100vw - 1440px)/2 + 40px));right:max(40px,calc((100vw - 1440px)/2 + 40px));bottom:34px;display:flex;align-items:center;gap:10px}
 .ctrl button{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;cursor:pointer;display:grid;place-items:center}
 .ctrl button:hover{background:rgba(255,255,255,.3)}
 .ctrl svg{width:14px;height:14px}
@@ -88,7 +88,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .recent[hidden]{display:none}
 .recent a{border:1px solid var(--line);border-radius:999px;padding:3px 11px;color:var(--ink);font-weight:600}
 .recent a:hover{border-color:var(--acc);color:var(--acc)}
-.works{display:grid;grid-template-columns:repeat(3,1fr);gap:30px 18px}
+.works{display:grid;grid-template-columns:repeat(3,1fr);gap:34px 24px}
 .w{display:block}
 .w .ph{position:relative;aspect-ratio:16/9;overflow:hidden;background:#111}
 .w .ph img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
@@ -117,7 +117,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 
 /* ===== 배우기 ===== */
 .learn{background:var(--gray)}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 .c{background:#fff;padding:30px 30px 34px;box-shadow:0 1px 2px rgba(0,0,0,.04);cursor:pointer;text-align:center;border:0;transition:box-shadow .35s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column;position:relative;z-index:0}.c:hover{z-index:1}
 .c:hover,.c:focus-visible{box-shadow:inset 0 0 0 14px #111,0 20px 44px rgba(0,0,0,.14);outline:none}.c:hover h3{color:#000}
 .c .ph{aspect-ratio:16/10;overflow:hidden;background:#ddd;margin-bottom:20px;position:relative}
@@ -162,15 +162,16 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 
 /* ===== 스크롤 애니메이션: 자연스러운 페이드인 업 ===== */
 .rv{opacity:0;transform:translate3d(0,40px,0);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);will-change:opacity,transform}
-.rv.in{opacity:1;transform:none}
+.rv.is-in{opacity:1;transform:none}
 .rv.done{transition:box-shadow .35s cubic-bezier(.22,.61,.36,1);will-change:auto}
 
 .lead.rv{transition-delay:.12s}.tool.rv{transition-delay:.2s}.rv.done{transition-delay:0s!important}
 .hero .cap,.hero .bg-par{will-change:transform}
 .prog{position:fixed;left:0;top:0;height:3px;width:100%;background:var(--acc);transform-origin:0 50%;transform:scaleX(0);z-index:60;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1!important;transform:none!important}}
-@media (max-width:980px){.gnb{display:none}.works{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:980px){.in{padding:0 24px}.gnb{display:none}.works{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:640px){
+ .in{padding:0 20px}
  .hd{padding:0 16px}.util .ghost{display:none}
  .hero{height:86vh;min-height:520px}.cap{left:20px;right:20px}.cap p{font-size:15px}
  .ctrl{left:16px;right:16px;bottom:22px}.bar{margin:0 8px}
@@ -371,7 +372,7 @@ addEventListener('scroll',spy,{passive:true});
 
 /* 스크롤하면 하나씩 나타나기 */
 // 화면에 들어오면 한 번 부드럽게 떠올라요
-var IO=('IntersectionObserver' in window)&&!reduce?new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;IO.unobserve(el);el.classList.add('in');
+var IO=('IntersectionObserver' in window)&&!reduce?new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;IO.unobserve(el);el.classList.add('is-in');
   setTimeout(function(){el.classList.add('done')},1000+(parseFloat(el.style.transitionDelay)||0)*1000)})},{rootMargin:'0px 0px -8% 0px',threshold:.1}):null;
 function reveal(sel,stagger,cols){if(!IO)return;[].forEach.call(document.querySelectorAll(sel),function(el,i){if(el.dataset.rvd)return;el.dataset.rvd=1;el.classList.add('rv');if(stagger)el.style.transitionDelay=((i%(cols||3))*stagger)+'s';IO.observe(el)})}
 function revealAll(){reveal('.sec .tit');reveal('.sec .lead');reveal('.tool');reveal('.w:not(.hide)',.1,3);reveal('.plus');reveal('.c:not(.hide)',.1,3);reveal('.mlink');reveal('.cta h2');reveal('.big',.12,1);reveal('.info>*',.1,4)}
