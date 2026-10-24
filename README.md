@@ -16,3 +16,8 @@ GitHub Pages로 공개하려면: 저장소 Settings → Pages → Branch `main` 
 ## 게임 추가
 `index.html`의 `GAMES` 목록에 한 줄 추가하고 `games/`에 게임 파일, `thumbs/`에 썸네일을 넣어요.
 (썸네일을 파일 안에 넣는 빌드 스크립트를 쓰지 않는 경우 `IMG` 대신 `thumbs/` 경로를 써도 돼요.)
+
+## Vercel 배포
+1. vercel.com → **Add New… → Project** → GitHub의 `handgoldking1234/game` **Import**
+2. Framework Preset: **Other** (빌드 없음, 그대로 두고) → **Deploy**
+3. 완료되면 `https://<프로젝트이름>.vercel.app` 주소로 열려요. 이후 `main`에 푸시할 때마다 자동으로 다시 배포돼요.
