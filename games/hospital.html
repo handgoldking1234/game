@@ -839,7 +839,7 @@ addEventListener('keydown',e=>{if(ov.hidden)return;const m=/^(Digit|Numpad)([1-4
 
 /* ============ 안내 카드 ============ */
 function entCard(day,rain,after){const ev=[];if(day>=2)ev.push('🔥 <b>불</b> — 복도의 빨간 🧯 소화기로 꺼요');if(day>=3)ev.push('🟢 <b>슬라임</b> — 걸음이 느려져요. 🧽 대걸레로 닦아요');if(day>=3)ev.push('👁️ <b>복도의 그림자</b> — 쳐다보면 정신력이 줄어요');if(day>=4)ev.push('🕯️ <b>수상한 촛불 의식</b> — 40초 안에 촛불을 모두 꺼요');if(day%5===0)ev.push('🚑 <b>구급차</b> — 오늘 밤 환자가 한꺼번에 와요! 흉내쟁이도 섞여 있어요');if(rain)ev.push('⛈️ <b>비 오는 밤</b> — 번개로 정전될 수 있어요. 난방 전기도 더 들어요');
-  openCard(`<div class="hd"><h2>🌙 ${day}일째 밤 근무</h2><span class="small">💰 ${W().money} · 💔 ${W().deaths}/3</span></div>
+  openCard(`<div class="hd"><h2>🌙 ${day}일째 밤 근무</h2><span class="small">💰 ${(W()||{}).money??0} · 💔 ${(W()||{}).deaths??0}/3</span></div>
    <div class="ent"><div class="pic">👤</div><div><b>그림자 흉내쟁이</b><br>아픈 동물인 척 찾아오는 그림자예요. 병원에 들어오면 얼마 뒤 정체를 드러내고 돌아다니며 환자와 직원을 놀라게 해요.<br>🔍 <b>단서</b>: 👁️ 눈이 빨갛게 빛남 · 🌑 그림자가 없음 · 🦵 다리 개수가 이상함 · 👂 울음소리가 이상함 · 🎨 털 색이 이상함 · 😁 입이 귀까지 웃음 · 🔄 고개가 거꾸로 · 👯 이미 입원한 환자와 이름·모습이 똑같음 · 📝 보호자 메모가 이상함<br>🔆 <b>빛 막대</b>를 비추면 연기처럼 사라져요!</div></div>
    ${ev.length?`<div class="note"><b>오늘 밤 일어날 수 있는 일</b><br>${ev.join('<br>')}</div>`:'<div class="note">첫날이에요! 접수 창구(E)에서 동물을 살펴보고, 진짜 환자만 들여보내요.</div>'}
    <div class="note">⚡ 병원은 전기로 움직여요. 쓰지 않는 방은 💡 불을 끄면 전기를 아끼고, 근무가 끝나면 절약 보너스를 받아요! 정전되면 발전실에서 고치거나 ⚡ 정전 퀴즈를 풀어요.</div>

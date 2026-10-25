@@ -92,6 +92,7 @@ body.pre #stam,body.pre #hint,body.pre #warn{display:none}
 #tK{right:max(214px,calc(env(safe-area-inset-right) + 192px));bottom:max(200px,calc(env(safe-area-inset-bottom) + 190px))}
 #tH{right:max(150px,calc(env(safe-area-inset-right) + 128px));bottom:max(300px,calc(env(safe-area-inset-bottom) + 290px));width:54px;height:54px;font-size:20px}
 .tb.on{background:rgba(250,204,21,.55)}
+#stam.tired{color:#fca5a5;animation:stb .5s infinite}@keyframes stb{50%{opacity:.5}}
 
 #jsfx{position:fixed;inset:0;pointer-events:none;z-index:7;opacity:0}
 #jsfx.on{animation:jsf .6s ease-out forwards;background:radial-gradient(ellipse at center,transparent 35%,var(--jc) 120%)}
@@ -104,13 +105,13 @@ body.tp #boxv{display:none!important}
 @keyframes jsh{0%{transform:translate(0,0)}25%{transform:translate(-7px,5px)}50%{transform:translate(6px,-6px)}75%{transform:translate(-5px,-4px)}100%{transform:translate(0,0)}}
 </style></head><body class="pre">
 <canvas id="gl"></canvas><div id="tags"></div><div id="vig"></div><div id="boxv"></div>
-<div id="hud"></div><div id="stam">🏃 체력<i><b style="width:100%"></b></i></div><div id="hint"></div><div id="warn"></div>
+<div id="hud"></div><div id="stam">🏃 달리기 (Shift)<i><b style="width:100%"></b></i></div><div id="hint"></div><div id="warn"></div>
 <div id="bar"></div><div id="prompt"></div><div id="cross"></div>
 <div id="toast"></div><div id="banner"></div><div id="vig"></div><div id="fade"></div><div id="jsfx"></div>
 <div id="chatLog"></div>
 <div id="chatBar" hidden><div class="qk"><button class="qb" type="button">도와줘! 🆘</button><button class="qb" type="button">찌릿이다! ⚡</button><button class="qb" type="button">숨어! 📦</button><button class="qb" type="button">여기 아이템 있어! ✨</button><button class="qb" type="button">화끈이 밥 줄게 🔥</button><button class="qb" type="button">좋아! 👍</button></div>
 <form id="chatF"><input id="chatIn" maxlength="60" placeholder="메시지 (Enter 보내기 · Esc 닫기)" autocomplete="off"><button type="submit">보내기</button></form></div>
-<div id="touch" hidden><div id="look"></div><div class="joy" id="joy"><i id="knob"></i></div><button class="tb" id="tE" type="button">E<br>줍기</button><button class="tb" id="tB" type="button">📦</button><button class="tb" id="tV" type="button" aria-label="시점 바꾸기">👁️</button><button class="tb" id="tR" type="button">🏃</button><button class="tb" id="tK" type="button">🙇</button><button class="tb" id="tH" type="button">💡</button><button class="tb" id="tF" type="button">🔦</button><button class="tb" id="tC" type="button">💬</button></div>
+<div id="touch" hidden><div id="look"></div><div class="joy" id="joy"><i id="knob"></i></div><button class="tb" id="tE" type="button">E<br>줍기</button><button class="tb" id="tB" type="button">📦</button><button class="tb" id="tV" type="button" aria-label="시점 바꾸기">👁️</button><button class="tb" id="tR" type="button" style="font-size:13px;line-height:1.1">🏃<br>달리기</button><button class="tb" id="tK" type="button">🙇</button><button class="tb" id="tH" type="button">💡</button><button class="tb" id="tF" type="button">🔦</button><button class="tb" id="tC" type="button">💬</button></div>
 <div id="ov" hidden></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -552,13 +553,15 @@ function toggleCrouch(){if(!GAME.on||ME.fainted>0)return;ME.cr=!ME.cr;if(ME.cr&&
 
 /* ============ 움직이기 ============ */
 function moveMe(dt){const busy=!ov.hidden||ME.fainted>0;let f=0,s=0;if(!busy){if(keys.KeyW||keys.ArrowUp)f+=1;if(keys.KeyS||keys.ArrowDown)f-=1;if(keys.KeyA||keys.ArrowLeft)s-=1;if(keys.KeyD||keys.ArrowRight)s+=1;if(JOY.id!=null){f-=JOY.y;s+=JOY.x}}
-  const L=Math.hypot(f,s);if(L>1){f/=L;s/=L}const wantRun=(keys.ShiftLeft||keys.ShiftRight||touchRun)&&L>.1&&!ME.box&&!ME.cr;
-  if(wantRun&&ME.stam>0){ME.run=true;ME.stam=Math.max(0,ME.stam-dt*22)}else{ME.run=false;ME.stam=Math.min(100,ME.stam+dt*(L>.1?10:16))}
-  const sp=ME.box?1.7:ME.cr?2:ME.run?5.8:3.6;const ox=ME.x,oz=ME.z;
+  const L=Math.hypot(f,s);if(L>1){f/=L;s/=L}const wantRun=(keys.ShiftLeft||keys.ShiftRight||touchRun)&&L>.1&&!ME.box&&!ME.cr&&!busy;
+  if(ME.tired&&ME.stam>=30)ME.tired=false;
+  if(wantRun&&ME.stam>0&&!ME.tired){if(!ME.run&&!ME.ranOnce){ME.ranOnce=1;try{toast('🏃 달리는 중! 음식의 화학 에너지 → 운동 에너지 (체력이 줄어요)','good')}catch(e){}}ME.run=true;ME.stam=Math.max(0,ME.stam-dt*15);if(ME.stam<=0){ME.tired=true;try{toast('😮‍💨 헉헉… 숨이 차요! 체력 30까지 쉬어요','warn')}catch(e){}}}else{ME.run=false;ME.stam=Math.min(100,ME.stam+dt*(L>.1?12:20))}
+  {const tf=ME.run?80:70;if(Math.abs(camera.fov-tf)>.2){camera.fov+=(tf-camera.fov)*Math.min(1,dt*8);camera.updateProjectionMatrix()}}
+  const sp=ME.box?1.7:ME.cr?2:ME.run?6.2:3.6;const ox=ME.x,oz=ME.z;
   const sy=Math.sin(ME.yaw),cy=Math.cos(ME.yaw);ME.x+=(-sy*f+cy*s)*sp*dt;ME.z+=(-cy*f-sy*s)*sp*dt;collide(ME,.35);
   const v=Math.hypot(ME.x-ox,ME.z-oz)/Math.max(dt,1e-3);ME.mv=v>.4;ME.bob+=ME.mv?dt*sp*2.4:0;
   const eye=ME.box?.75:ME.cr?1.05:1.6;camera.position.set(ME.x,eye+Math.sin(ME.bob)*.035,ME.z);camera.rotation.set(ME.pitch,ME.yaw,0);
-  $('stam').querySelector('b').style.width=ME.stam+'%'}
+  $('stam').querySelector('b').style.width=ME.stam+'%';$('stam').querySelector('b').style.background=ME.tired?'#ef4444':ME.run?'#22c55e':'';$('stam').classList.toggle('tired',!!ME.tired)}
 
 /* ============ 상호작용 ============ */
 function candidates(){const w=W();const C=[];if(!w||w.phase!=='play')return C;const c=myCarry(),n=w.night;const add=(x,z,r,txt,fn)=>C.push({x,z,r,txt,fn});
@@ -975,7 +978,7 @@ document.querySelectorAll('#chatBar .qb').forEach(b=>b.onclick=()=>{chatSend(b.t
 /* ============ 시작 ============ */
 const GAME={on:false};
 function nick(){const v=($('nick')&&$('nick').value||'').trim().slice(0,10);if(v){NET.nick=v;store.set('nick',v)}if(!NET.nick)NET.nick='탐험대'+(Math.random()*90+10|0)}
-function startPlay(){GAME.on=true;document.body.classList.remove('pre');closeCard();ME.x=SP.x;ME.z=SP.z;ME.yaw=0;ME.stam=100;renderBar()}
+function startPlay(){GAME.on=true;document.body.classList.remove('pre');closeCard();ME.x=SP.x;ME.z=SP.z;ME.yaw=0;ME.stam=100;ME.tired=false;renderBar();if(touchUI){const t=$('stam').firstChild;if(t&&t.nodeType===3)t.textContent='🏃 달리기 '}setTimeout(()=>{try{toast(touchUI?'🏃 오른쪽 아래 「달리기」 버튼을 누르면 달려요 (한 번 더 누르면 걷기)':'🏃 Shift를 누르고 있으면 달려요! 괴물보다 빨라요','good')}catch(e){}},2500)}
 function beginHost(n){ROLE.r=NET.on?'host':'solo';newRun(n);S.pl.me=newPl(NET.nick);for(const id in NET.pl)S.pl[id]=newPl(NET.pl[id].n);startPlay();LOG.facts=[];LOG.quiz=[];
   if(NET.on)for(const id in NET.pl)netTo(id,{t:'init',id,n});startNight(n)}
 function startNextNight(){if(ROLE.r==='guest'||!S)return;LOG.facts=[];LOG.quiz=[];startNight(Math.min(4,S.night+1))}
