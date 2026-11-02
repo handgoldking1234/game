@@ -1173,6 +1173,6 @@ S=newState(1,'normal');S.dad.st='tv';S.dad.x=SPOT.sofa.x+1.1;S.dad.z=SPOT.sofa.z
 requestAnimationFrame(frame);lobby();
 
 </script>
-<script>/*MWGT*/(function(){if(!window.MWG)return;MWG.connect('dad');MWG.host(function(){return NET.on&&NET.host&&NET.code?{code:NET.code,name:(NET.nick||'친구')+'의 방',n:1+Object.keys(NET.pl||{}).length,max:8,open:true,info:'엄격한 에너지 아빠'}:{}});
+<script>/*MWGT*/(function(){if(!window.MWG)return;MWG.connect('dad');MWG.host(function(){return NET.on&&NET.host&&NET.code?{code:NET.code,name:(NET.nick||'친구')+'의 방',n:1+Object.keys(NET.pl||{}).length,max:4,open:true,info:'엄격한 에너지 아빠'}:{}});
 setInterval(function(){var el=document.getElementById('mwgBar');if(!el||el._mwg)return;el._mwg=1;MWG.bar(el,{join:function(c){var i=document.getElementById('code');if(i)i.value=c;var b=document.getElementById('join');if(b)b.click()},create:function(){var b=document.getElementById('host');if(b)b.click()}})},400);})()</script>
 </body></html>
