@@ -1,0 +1,11 @@
+name: Supabase 깨워 두기
+# 무료 Supabase 프로젝트는 7일 동안 아무 요청이 없으면 잠들어요. 3일마다 한 번 살짝 불러서 깨워 둬요.
+on:
+  schedule:
+    - cron: '17 3 */3 * *'
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -s -o /dev/null -w "%{http_code}\n" "https://flrdiplgoeyuvffwxvhq.supabase.co/auth/v1/health" -H "apikey: sb_publishable_2ksFf_0qhrfq513RhbyEdA_dmGoJNb5"
