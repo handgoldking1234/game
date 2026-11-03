@@ -2770,9 +2770,9 @@ function fireBow(ch){const Dw=D(),tip=safeTip(),d=aimPoint(Dw.range).sub(tip).no
 function shoot(src,o,d,dmg,range,color,fall=0,noTracer=false){
   const w=wallHitN(o,d,range);let best=w.t,hit=null,head=false;
   for(const e of ents){if(!e.alive||e.team===src.team)continue;
-    const hp=new V3(e.pos.x,e.pos.y+1.76,e.pos.z),bp=new V3(e.pos.x,e.pos.y+1.05,e.pos.z);
-    const th=raySphere(o,d,hp,.27);if(th>=0&&th<best){best=th;hit=e;head=true}
-    const tb=raySphere(o,d,bp,.55);if(tb>=0&&tb<best){best=tb;hit=e;head=false}}
+    const hs=e.hs||1,hp=new V3(e.pos.x,e.pos.y+1.76*hs,e.pos.z),bp=new V3(e.pos.x,e.pos.y+1.05*hs,e.pos.z);
+    const th=raySphere(o,d,hp,.27*hs);if(th>=0&&th<best){best=th;hit=e;head=true}
+    const tb=raySphere(o,d,bp,.55*hs);if(tb>=0&&tb<best){best=tb;hit=e;head=false}}
   const end=o.clone().add(d.clone().multiplyScalar(best));
   if(!noTracer)tracer(src===P?gunTip():muzzleOf(src),end,color,src===P);else if(src!==P)muzzleOf(src);
   if(hit){damage(hit,dmg*(head?1.6:1)*(1-fall*Math.min(1,best/range)),src,head);spark(end,head?0xffe08a:0xffb347,head?6:3)}
@@ -2855,8 +2855,8 @@ function updProjs(dt){
       continue}
     let best=L,hit=null,head=false,n=null;
     for(const e of ents){if(!e.alive||e.team===p.src.team)continue;
-      const th=raySphere(prev,dir,new V3(e.pos.x,e.pos.y+1.76,e.pos.z),.3);if(th>=0&&th<best){best=th;hit=e;head=true}
-      const tb=raySphere(prev,dir,new V3(e.pos.x,e.pos.y+1.05,e.pos.z),.6);if(tb>=0&&tb<best){best=tb;hit=e;head=false}}
+      const hs=e.hs||1,th=raySphere(prev,dir,new V3(e.pos.x,e.pos.y+1.76*hs,e.pos.z),.3*hs);if(th>=0&&th<best){best=th;hit=e;head=true}
+      const tb=raySphere(prev,dir,new V3(e.pos.x,e.pos.y+1.05*hs,e.pos.z),.6*hs);if(tb>=0&&tb<best){best=tb;hit=e;head=false}}
     const w=wallHitN(prev,dir,best);if(w.t<best){best=w.t;hit=null;n=w.n}
     p.m.position.copy(prev).addScaledVector(dir,best);if(L>1e-4)p.m.quaternion.setFromUnitVectors(new V3(0,0,-1),dir);if(p.kind==='axe'||p.kind==='knife')p.m.rotateX(-p.life*(p.kind==='axe'?18:24));
     p.tr-=dt;if(p.tr<=0){p.tr=.03;const q=p.m.position.clone();
@@ -2949,7 +2949,7 @@ function beamFx(a,b,color,w=.03,life=.18){const d=b.clone().sub(a),L=d.length();
   m.scale.set(w,L,w);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new V3(0,1,0),d.normalize());addFx(m,life,'beamfx',{})}
 function shootBeam(o,d,dmg,color){let from=o.clone(),dir=d.clone(),start=gunTip();const hitSet=new Set();
   for(let k=0;k<=2;k++){const w=wallHitN(from,dir,140),end=from.clone().add(dir.clone().multiplyScalar(w.t));
-    for(const e of ents){if(!e.alive||e.team===P.team||hitSet.has(e))continue;const t1=raySphere(from,dir,new V3(e.pos.x,e.pos.y+1.76,e.pos.z),.3),t2=raySphere(from,dir,new V3(e.pos.x,e.pos.y+1.05,e.pos.z),.6),t=t1>=0?t1:t2;
+    for(const e of ents){if(!e.alive||e.team===P.team||hitSet.has(e))continue;const hs=e.hs||1,t1=raySphere(from,dir,new V3(e.pos.x,e.pos.y+1.76*hs,e.pos.z),.3*hs),t2=raySphere(from,dir,new V3(e.pos.x,e.pos.y+1.05*hs,e.pos.z),.6*hs),t=t1>=0?t1:t2;
       if(t>=0&&t<w.t){hitSet.add(e);damage(e,dmg*(t1>=0?1.6:1),P,t1>=0);spark(from.clone().add(dir.clone().multiplyScalar(t)),color,5)}}
     beamFx(k?from:start,end,color,.035);beamFx(k?from:start,end,0xffffff,.012);if(!w.n||w.t>=139)break;impact(end,w.n,true);spark(end,color,4);
     dir.sub(w.n.clone().multiplyScalar(2*dir.dot(w.n))).normalize();from=end.clone().addScaledVector(w.n,.02)}}
@@ -4060,4 +4060,288 @@ function sawTick(dt){if(!AC)return;sawPrep();if(!window.SAWB)return;let eq=false
   if(!eq){sawG.gain.setTargetAtTime(0,t,.05);const n=sawNode;sawNode=null;setTimeout(()=>{try{n.stop()}catch(e){}},400);return}
   sawG.gain.setTargetAtTime(fire?.85:.16,t,fire?.04:.12);sawNode.playbackRate.setTargetAtTime(fire?1.06:.72,t,fire?.05:.2)}
 </script>
+<script>/*ZT*/
+/* ===== 🧟 좀비 타워 (에너지 라이벌즈 PvE) =====
+   오염 좀비가 가득한 탑을 한 층씩 올라가요. 층마다 웨이브를 모두 쓰러뜨리면 퀴즈 문이 열리고,
+   꼭대기에서 거대 매연 좀비를 쓰러뜨린 뒤 태양광 헬기로 탈출해요. */
+(function(){
+const FLOORS=10;
+const ZT={floor:1,wave:0,waves:0,queue:[],spawnT:0,state:'off',door:null,exit:null,kills:0,heli:null,boss:null,pick:null,best:+(localStorage.getItem('zt_best')||0),revives:0,t0:0,pinata:null,vents:[],extra:[]};
+window.ZT=ZT;ZT.go=f=>loadFloor(f);ZT.mk=(t,x,z)=>mkZombie(t,x,z);
+const ZTYPE={
+ walk:{n:'매연 좀비',c:0x6b8f3a,hp:110,spd:3.1,dmg:11,cd:1.1,sc:1},
+ helm:{n:'안전모 좀비',c:0xca8a04,hp:200,spd:2.9,dmg:12,cd:1.1,sc:1,helm:1},
+ boom:{n:'가스 폭발 좀비',c:0xea580c,hp:80,spd:4.4,dmg:0,cd:9,sc:1,boom:1},
+ brute:{n:'기름통 좀비',c:0x292524,hp:560,spd:2.3,dmg:28,cd:1.6,sc:1.35},
+ flag:{n:'깃발 좀비',c:0xdc2626,hp:130,spd:3,dmg:10,cd:1.1,sc:1,flag:1},
+ ghost:{n:'매연 유령',c:0x94a3b8,hp:65,spd:6.4,dmg:8,cd:.8,sc:.95,ghost:1},
+ skel:{n:'해골 궁수',c:0xe7e5e4,hp:95,spd:3,dmg:0,cd:2.2,sc:1,ranged:{dmg:13,rate:2.2,spread:.04,range:40}},
+ hunt:{n:'사냥꾼 좀비',c:0x7c3aed,hp:150,spd:5.3,dmg:15,cd:.9,sc:1,leap:1},
+ reaper:{n:'저승 매연',c:0x111827,hp:700,spd:3.7,dmg:36,cd:1.3,sc:1.25},
+ boss:{n:'거대 매연 좀비',c:0x3f6212,hp:4200,spd:2,dmg:30,cd:2,sc:2.7,boss:1}};
+// 층마다 웨이브: [종류, 마리]
+function wavesFor(f){const W=[];const add=(...g)=>W.push(g);
+  switch(f){
+  case 1:add(['walk',5]);add(['walk',7]);break;
+  case 2:add(['walk',6],['helm',2]);add(['helm',4],['walk',4]);break;
+  case 3:add(['boom',5]);add(['walk',6],['boom',3],['helm',2]);break;
+  case 4:add(['walk',6],['brute',1]);add(['helm',4],['boom',3],['brute',1]);break;
+  case 5:add(['flag',2],['walk',8]);add(['brute',2],['helm',4],['flag',1]);add(['boom',4],['walk',6]);break;
+  case 6:add(['ghost',8]);add(['ghost',5],['walk',6],['brute',1]);break;
+  case 7:add(['skel',4],['walk',5]);add(['skel',4],['hunt',3],['helm',3]);break;
+  case 8:add(['pinata',1]);break; // 에너지 박: 쏘면 모든 종류가 쏟아져요
+  case 9:add(['reaper',2],['walk',4]);add(['hunt',5],['skel',3],['brute',1]);add(['ghost',6],['boom',4]);break;
+  case 10:add(['brute',2],['hunt',4],['flag',2]);add(['reaper',2],['skel',4],['helm',4]);add(['ghost',6],['boom',4],['walk',6]);break}
+  return W}
+const ROOM={bx:19,bz:13};
+/* ---------- 맵 ---------- */
+Object.assign(THEMES,{ztower:{top:0x0b0714,bot:0x2c2338,fog:[18,62],sd:[-.4,.7,.4],sunC:0xc8b6ff,sunI:.9,hs:0xa5b4fc,hg:0x1c1a16,hi:.85,exp:1.25,gnd:'#2a2724',clouds:0},
+  ztroof:{top:0x1e1b4b,bot:0xf0997b,fog:[40,150],sd:[.75,.2,-.4],sunC:0xffa982,sunI:1.7,hs:0xc4b5fd,hg:0x2a2a3a,hi:.65,exp:1.2,gnd:'#2a2a35',clouds:1}});
+MAPS.ztower={n:'좀비 타워',d:'오염 좀비가 가득한 탑',theme:'ztower',bx:ROOM.bx,bz:ROOM.bz,A:[-16,0],B:[14,0],zone:[0,0],zr:4,hidden:true,th:'linear-gradient(180deg,#1e1b2e,#3f3a52)'};
+MAPS.ztroof={n:'좀비 타워 옥상',d:'꼭대기 헬기장',theme:'ztroof',bx:22,bz:16,A:[-18,0],B:[10,0],zone:[0,0],zr:4,hidden:true,th:'linear-gradient(180deg,#1e1b4b,#f0997b)'};
+if(typeof ENV_OF!=='undefined'){ENV_OF.ztower=['햇빛'];ENV_OF.ztroof=['햇빛']}
+function lampAt(x,y,z,c){mesh(new THREE.BoxGeometry(.5,.2,.5),GLOW(c||0xfef3c7,2.4),x,y,z,false)}
+BUILD_MAP.ztower=function(){const f=ZT.floor,bx=ROOM.bx,bz=ROOM.bz,H=6;
+  ground(bx*2+2,bz*2+2,f%2?'concrete':'tile',[bx/2,bz/2]);
+  box(0,-bz,bx*2,1,H,'wall');box(0,bz,bx*2,1,H,'wall');box(-bx,0,1,bz*2,H,'wall');
+  // 동쪽 벽: 가운데 문(열리면 계단)
+  box(bx,-(bz+3)/2,1,bz-3,H,'wall');box(bx,(bz+3)/2,1,bz-3,H,'wall');
+  ZT.door=box(bx-.2,0,.8,6,H,'dark');ZT.doorCol=BOXES[BOXES.length-1];ZT.doorTrim=MG.children[MG.children.length-1];
+  ZT.exitP=new V3(bx+1.6,0,0);box(bx+3.5,0,1,6,H,'wall');box(bx+1.8,-3.3,4,1,H,'wall');box(bx+1.8,3.3,4,1,H,'wall');
+  ground(4,6,'metal',[2,3],.02).position.set(bx+1.8,.02,0);
+  ZT.exitGlow=mesh(new THREE.CylinderGeometry(1.4,1.4,.1,24),GLOW(0x4ade80,1.6),bx+1.8,.08,0,false);ZT.exitGlow.visible=false;
+  ceiling(bx*2+2,bz*2+2,H,'concrete');
+  for(let x=-bx+4;x<bx;x+=8)for(const z of [-bz/2,bz/2])lampAt(x,H-.15,z,f>=6?0xfca5a5:0xfef3c7);
+  // 층마다 다른 방
+  const k=f%4;
+  if(k===1){for(const [x,z] of [[-6,-5],[-6,5],[4,-5],[4,5]])box(x,z,1.6,1.6,H,'rock')}
+  else if(k===2){for(let i=0;i<5;i++)crate(-8+i*4,i%2?-4:4,1.2,0,.3);box(-2,0,6,1,1.2,'concrete');box(8,-7,1,6,1.6,'metal');box(8,7,1,6,1.6,'metal')}
+  else if(k===3){box(-3,0,8,8,1.1,'tile');for(let i=0;i<3;i++)box(-7.6-i*.8+.0,0,.8,3,.37*(i+1),'tile');for(const z of [-9,9])box(6,z,6,1,1.4,'concrete')}
+  else{for(const [x,z] of [[-8,-6],[0,6],[7,-4]]){box(x,z,3,1,1.3,'metal');barrel(x+2.2,z,0x166534,0xfacc15)}box(-1,-6,1,4,2,'dark')}
+  // 오염 웅덩이(장식)
+  const pz=k===2?0:-8;mesh(new THREE.CylinderGeometry(2,2,.04,20),MAT(0x3f6212,{roughness:.2,emissive:lin(0x1a2e05),emissiveIntensity:.8}),-10,.03,pz,false);
+  // 좀비가 나오는 환기구
+  ZT.vents=[[-bx+2,-bz+1.5],[-4,-bz+1.5],[6,-bz+1.5],[-bx+2,bz-1.5],[-4,bz-1.5],[6,bz-1.5],[bx-3,-bz+3],[bx-3,bz-3]];
+  for(const [x,z] of ZT.vents){mesh(new THREE.BoxGeometry(1.6,.1,1.6),MAT(0x111827,{metalness:.6,roughness:.4}),x,.06,z,false);mesh(new THREE.BoxGeometry(1.2,.12,.12),MAT(0x6b7280,{metalness:.8}),x,.12,z,false)}
+  // 층 표지
+  const cv=document.createElement('canvas');cv.width=256;cv.height=128;const c=cv.getContext('2d');c.fillStyle='#111827';c.fillRect(0,0,256,128);c.fillStyle='#fde047';c.font='900 64px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(f+'F',128,68);
+  const sg=mesh(new THREE.PlaneGeometry(2.4,1.2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv)}),-bx+.56,3.6,0,false);sg.rotation.y=Math.PI/2;
 
+};
+BUILD_MAP.ztroof=function(){const bx=22,bz=16;
+  ground(bx*2,bz*2,'concrete',[11,8]);
+  for(const s of [-1,1]){box(0,s*bz,bx*2,.6,1.1,'concrete');box(s*bx,0,.6,bz*2,1.1,'concrete')}
+  mesh(new THREE.CylinderGeometry(6,6,.06,32),MAT(0x334155,{roughness:.6}),12,.04,0,false);
+  const cv=document.createElement('canvas');cv.width=cv.height=128;const c=cv.getContext('2d');c.fillStyle='#fde047';c.font='900 100px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('H',64,70);
+  const h=mesh(new THREE.PlaneGeometry(6,6),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true}),12,.08,0,false);h.rotation.x=-Math.PI/2;
+  for(const [x,z] of [[-8,-8],[-8,8],[2,-10],[2,10]]){box(x,z,2.4,2.4,1.6,'metal');solarArray(x,1.6,z,2.4,2.4)}
+  for(const [x,z] of [[-14,-5],[-14,5],[-2,0]])crate(x,z,1.2,0,.4);
+  hills(0x3f3a52,30,140,180);cloudLayer(6);
+  ZT.vents=[[-18,-12],[-18,12],[0,-13],[0,13],[18,-12],[18,12]];
+  healthPack(-16,0);
+};
+
+/* 좀비 모델 (블록형) — animModel이 쓰는 legs·torso·arms·mats·bar 구조를 맞춰요 */
+function makeZombie(t,T){const g=new THREE.Group();g.rotation.order='YXZ';const mats=[];
+  const SM=(c,o)=>{const m=new THREE.MeshStandardMaterial(Object.assign({color:lin(c),roughness:.8,metalness:0},o||{}));mats.push(m);return m};
+  const ghost=!!T.ghost,bone=t==='skel';
+  const skinC=bone?0xe7e5e4:t==='reaper'?0x1f2937:t==='brute'?0x4d7c0f:t==='boss'?0x3f6212:ghost?0xcbd5e1:0x7fb069;
+  const skin=SM(skinC,ghost?{transparent:true,opacity:.5,depthWrite:false}:{}),shirt=SM(T.c,ghost?{transparent:true,opacity:.45,depthWrite:false}:{roughness:.9}),pants=SM(bone?0xd6d3d1:t==='reaper'?0x111827:0x334155,ghost?{transparent:true,opacity:.35,depthWrite:false}:{});
+  const eyeM=new THREE.MeshBasicMaterial({color:t==='reaper'||t==='boss'?0xff3b3b:bone?0x60a5fa:0xfde047});
+  const B=(w,h,d,m,x,y,z,p)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;(p||g).add(o);return o};
+  const legs=[];
+  for(const s of [-1,1]){const hip=new THREE.Group();hip.position.set(.13*s,.92,0);g.add(hip);B(.21,.47,.23,pants,0,-.22,0,hip);
+    const knee=new THREE.Group();knee.position.y=-.45;hip.add(knee);B(.2,.42,.22,pants,0,-.2,0,knee);B(.22,.1,.3,SM(0x1c1917),0,-.42,.04,knee);legs.push({hip,knee});if(ghost){hip.visible=false}}
+  const torso=new THREE.Group();torso.position.y=.92;g.add(torso);
+  B(.52,.62,.3,shirt,0,.32,0,torso);B(.53,.12,.31,pants,0,.03,0,torso);
+  // 찢어진 옷 자국
+  B(.12,.16,.02,skin,.12,.22,.16,torso);B(.1,.1,.02,skin,-.14,.42,.16,torso);
+  const head=new THREE.Group();head.position.y=.82;torso.add(head);
+  B(.44,.44,.42,skin,0,0,0,head);B(.1,.07,.03,eyeM,-.1,.04,.215,head);B(.1,.07,.03,eyeM,.1,.04,.215,head);B(.2,.06,.03,SM(0x3f1d1d),0,-.12,.215,head);
+  if(t==='helm'){B(.5,.12,.5,SM(0xfacc15,{roughness:.4}),0,.25,0,head);B(.56,.03,.56,SM(0xeab308),0,.19,.03,head)}
+  if(t==='reaper'||t==='hunt'){B(.52,.5,.5,SM(t==='reaper'?0x0b0b10:0x5b21b6),0,.05,-.04,head).scale.set(1,1,1)}
+  if(t==='walk'||t==='flag'||t==='boom'){B(.46,.08,.44,SM(0x3b2a20),0,.24,0,head)}
+  // 팔 (앞으로 뻗은 좀비 자세): animModel이 arms.rotation.x를 바꿔도 안쪽 pivot이 자세를 지켜요
+  const arms=new THREE.Group();arms.position.y=.56;torso.add(arms);const pv=new THREE.Group();pv.rotation.x=-1.35;arms.add(pv);
+  for(const s of [-1,1]){B(.16,.56,.18,shirt,.35*s,-.24,0,pv);B(.15,.16,.17,skin,.35*s,-.58,0,pv)}
+  const muzzle=new THREE.Group();muzzle.position.set(.35,-.66,0);pv.add(muzzle);
+  if(t==='boom'){B(.3,.46,.22,SM(0x84cc16,{emissive:lin(0x3f6212),emissiveIntensity:.8}),0,.32,-.27,torso);B(.08,.12,.08,SM(0x9ca3af),0,.6,-.27,torso)}
+  if(t==='brute'||t==='boss'){const br=new THREE.Mesh(new THREE.CylinderGeometry(.26,.26,.55,12),SM(0x111827,{metalness:.5,roughness:.4}));br.position.set(0,.34,-.3);torso.add(br);B(.54,.08,.02,SM(0xfacc15),0,.34,-.04,torso).position.z=-.04}
+  if(t==='flag'){const pole=B(.04,1.2,.04,SM(0x78350f),.18,.6,-.2,torso);B(.42,.28,.02,new THREE.MeshStandardMaterial({color:lin(0xdc2626),side:THREE.DoubleSide}),.4,1.06,-.2,torso)}
+  if(t==='reaper'){B(.05,1.7,.05,SM(0x4b5563),.45,-.2,.1,pv);B(.6,.06,.04,SM(0xd1d5db,{metalness:.8}),.65,-1.02,.1,pv)}
+  if(t==='skel'){B(.04,.7,.04,SM(0x92400e),-.35,-.75,.08,pv)}
+  if(ghost){torso.position.y=1.15;B(.5,.5,.3,skin,0,-.25,0,torso)}
+  const mfl=new THREE.Sprite(new THREE.SpriteMaterial({map:TX.flash,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));mfl.scale.set(.5,.5,1);mfl.visible=false;muzzle.add(mfl);
+  const cv=document.createElement('canvas');cv.width=128;cv.height=32;const tex=new THREE.CanvasTexture(cv);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,transparent:true}));sp.scale.set(1.3,.32,1);sp.position.y=2.25;sp.renderOrder=10;g.add(sp);
+  Object.assign(g.userData,{bar:{cv,tex},legs,torso,arms,gun:muzzle,muzzle,mats,head,mfl});
+  scene.add(g);return g}
+/* ---------- 좀비 모양 ---------- */
+const MATC={};
+function zombify(m,t,T){m.traverse(o=>{if(!o.isMesh||!o.material||o.material.isShaderMaterial||o.isSprite)return;const k=t+'|'+o.material.uuid;let nm=MATC[k];
+  if(!nm){nm=o.material.clone();if(nm.color){const base=new THREE.Color(T.c);nm.color.lerp(base,.55)}if(T.ghost){nm.transparent=true;nm.opacity=.45;nm.depthWrite=false}MATC[k]=nm}o.material=nm})}
+function mkZombie(t,x,z){const T=ZTYPE[t];const def={n:T.n,c:T.c,hp:T.hp,spd:T.spd,acc:t==='brute'||t==='boss'||t==='reaper'?'smog':'coal',gun:T.ranged||{dmg:0,rate:9,spread:.05,range:2}};
+  const solo=1;const e=mkEnt('B','bot',def,T.n,false,0);e.zt=t;e.T=T;e.hs=T.sc;e.hp=e.max=Math.round(T.hp*(T.boss?1:1+(ZT.floor-1)*.06)*solo);e.pos.set(x,topAt(x,z),z);e.atk=rnd(.3,1);e.think=0;e.zone=0;
+  scene.remove(e.mesh);e.mesh=makeZombie(t,T);e.mesh.scale.setScalar(T.sc);e.mesh.position.copy(e.pos);e.mesh.visible=true;drawBar(e);ents.push(e);smoke(new V3(x,.4,z),.6,2.2,1.2,0x3f6212,.5,new V3(0,1.4,0));return e}
+/* ---------- 좀비 움직임 ---------- */
+const origUpdBot=updBot;
+updBot=function(e,dt){if(!e.zt)return origUpdBot(e,dt);if(e.zt==='pinata')return;
+  if(!e.alive){if(e.dying>0){e.dying-=dt;const k=clamp((1.6-e.dying)/.5,0,1),m=e.mesh;m.rotation.x=-k*k*1.45;e.spd=0;animModel(e,dt);if(e.dying<=0){m.visible=false;scene.remove(m);ents=ents.filter(x=>x!==e)}}return}
+  if(ZT.state==='pause'||G.phase!=='fight'){e.spd=0;animModel(e,dt);return}
+  if(e.chill>0)e.chill-=dt;if(e.buff>0)e.buff-=dt;if(e.root>0)e.root-=dt;if(e.frozen>0){e.frozen-=dt;e.spd=0;animModel(e,dt);return}
+  if(e.blind>0)e.blind-=dt;
+  const T=e.T,t=P.alive?P:null;e.atk-=dt;e.think-=dt;
+  if(e.tired>0){e.tired-=dt;e.spd=0;e.mesh.rotation.x=-.35;e.mesh.position.copy(e.pos);animModel(e,dt);if(e.tired<=0){e.mesh.rotation.x=0;banner('거대 매연 좀비가 일어났어요!','',1.4)}return}
+  if(!t){e.spd=0;animModel(e,dt);return}
+  let dx=t.pos.x-e.pos.x,dz=t.pos.z-e.pos.z;const d=Math.hypot(dx,dz)||1;
+  e.yaw=Math.atan2(dx,dz);
+  // 보스: 내려찍기
+  if(T.boss){bossTick(e,dt,d);if(e.slam)return}
+  // 해골 궁수: 거리 두고 쏘기
+  if(T.ranged){const pref=14;if(e.atk<=0&&d<T.ranged.range&&canSee(e,t)){e.atk=T.ranged.rate*rnd(.9,1.3);e.ft=0;botShoot(e,t,d)}
+    if(d<pref-3){dx=-dx;dz=-dz}else if(d<pref+3){const s=Math.sin(G.t+e.strafe*4);const ox=-dz*s,oz=dx*s;dx=ox;dz=oz}}
+  // 사냥꾼: 도약
+  if(T.leap&&d<9&&d>3&&e.ground&&e.atk<=0){e.vy=8.5;e.leap=.5;e.atk=2.4}
+  // 길찾기: 막히면 옆으로
+  let mx=dx/d,mz=dz/d;
+  if(MAP.nav&&!canSee(e,t)){if(!e.path||e.think<=0){e.think=.6;e.path=navPath(e.pos,t.pos)}if(e.path&&e.path.length){const n=e.path[0];if(Math.hypot(n.x-e.pos.x,n.z-e.pos.z)<1.3)e.path.shift();if(e.path.length){const ddx=e.path[0].x-e.pos.x,ddz=e.path[0].z-e.pos.z,l=Math.hypot(ddx,ddz)||1;mx=ddx/l;mz=ddz/l}}}
+  const probe=new V3(e.pos.x,e.pos.y+.8,e.pos.z);
+  if(!T.ranged&&d>1.2&&wallHit(probe,new V3(mx,0,mz),1.3)<1.3){let ok=false;for(const a of [.7,-.7,1.3,-1.3,2,-2]){const aa=a*(e.strafe>0?1:-1),nx=mx*Math.cos(aa)-mz*Math.sin(aa),nz=mx*Math.sin(aa)+mz*Math.cos(aa);if(wallHit(probe,new V3(nx,0,nz),1.3)>=1.3){mx=nx;mz=nz;ok=true;break}}if(!ok&&e.ground&&Math.random()<.05)e.vy=7.4}
+  const near=T.ranged?99:(T.sc>1.5?2.6:1.25);
+  let spd=T.spd*(e.buff>0?1.45:1)*(e.chill>0?.55:1)*(e.root>0?0:1)*(e.leap>0?2.2:1);if(e.leap>0)e.leap-=dt;
+  if(d>near||T.ranged){e.blocked=0;moveBody(e,mx*spd*dt,mz*spd*dt,dt);e.spd=spd;if(e.blocked){e.stuck=(e.stuck||0)+dt;if(e.stuck>1){e.strafe*=-1;e.stuck=0;if(e.ground)e.vy=7.4}}}else e.spd=0;
+  // 중력
+  e.vy-=22*dt;e.pos.y+=e.vy*dt;const gy=topAt(e.pos.x,e.pos.z,e.pos.y);if(e.pos.y<=gy){e.pos.y=gy;e.vy=0;e.ground=1}else e.ground=0;
+  // 공격
+  if(T.boom&&d<2.4){kill(e,e);explode(new V3(e.pos.x,e.pos.y+1,e.pos.z),4.2,0,e,0x84cc16);if(P.alive){const k=Math.max(0,1-d/4.5);damage(P,Math.round(45*k+10),e,false)}return}
+  if(!T.ranged&&!T.boom&&d<=near+.5&&e.atk<=0&&Math.abs(t.pos.y-e.pos.y)<2.2){e.atk=T.cd;damage(P,Math.round(T.dmg*(1+(ZT.floor-1)*.05)),e,false);e.lunge=.25;sfx('punch')}
+  if(e.lunge>0){e.lunge-=dt}
+  e.mesh.position.copy(e.pos);e.mesh.rotation.y=e.yaw;if(e.mesh.userData.legs)animModel(e,dt);
+  if(e.flashT>0)e.flashT-=dt};
+/* 보스 */
+function bossTick(e,dt,d){e.sT=(e.sT==null?4:e.sT)-dt;
+  if(e.slam){e.slam.t-=dt;const r=e.slam.ring;r.material.opacity=.35+.4*Math.abs(Math.sin(G.t*14));r.scale.setScalar(1+(1-e.slam.t/1.3)*.15);e.spd=0;animModel(e,dt);e.mesh.position.copy(e.pos);
+    if(e.slam.t<=0){scene.remove(r);const p=e.slam.p;explode(new V3(p.x,.5,p.z),7,0,e,0x65a30d);shake=Math.max(shake,1);if(P.alive){const dd=Math.hypot(P.pos.x-p.x,P.pos.z-p.z);if(dd<7&&P.pos.y<1.6)damage(P,Math.round(55*(1-dd/9)),e,false)}
+      e.slam=null;e.slams=(e.slams||0)+1;if(e.slams%3===0){e.tired=5;banner('거대 매연 좀비가 지쳤어요!','지금 공격하면 2배 피해!',2.2,'go');sfx('rare')}
+      if(e.slams%2===0){for(let i=0;i<3;i++){const [vx,vz]=pick(ZT.vents);mkZombie(pick(['walk','walk','boom','ghost']),vx,vz)}toast('🧟 보스가 졸개 좀비를 불렀어요!','bad')}}
+    return}
+  if(e.sT<=0&&d<16){e.sT=rnd(4.5,6.5);const p=new V3(P.pos.x,0,P.pos.z);const r=new THREE.Mesh(new THREE.RingGeometry(5.2,7,40),new THREE.MeshBasicMaterial({color:0xef4444,transparent:true,opacity:.6,side:THREE.DoubleSide,depthWrite:false}));r.rotation.x=-Math.PI/2;r.position.set(p.x,.1,p.z);scene.add(r);
+    const f=new THREE.Mesh(new THREE.CircleGeometry(5.2,40),new THREE.MeshBasicMaterial({color:0xef4444,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false}));f.rotation.x=-Math.PI/2;f.position.set(p.x,.09,p.z);scene.add(f);r.userData.f=f;
+    const orig=scene.remove.bind(scene);e.slam={t:1.3,p,ring:r};setTimeout(()=>scene.remove(f),1400);sfx('whistle')}}
+/* 보스가 지쳤을 때 2배 · 안전모는 머리 덜 아파요 */
+const origDamage=damage;
+damage=function(e,dmg,src,head){if(e&&e.zt==='pinata'){if(e.alive&&src===P){e.hp-=dmg;hitMarker(e.hp<=0);sfx('hit');if(e.hp<=0)e.alive=false}return}if(e&&e.zt){if(e.tired>0)dmg*=2;if(e.T.helm&&head)dmg*=.5;if(e.zt==='boss'&&head)dmg*=.8}return origDamage(e,dmg,src,head)};
+/* 처치 */
+const origKill=kill;
+kill=function(e,src){const was=G&&G.mode==='zombie'&&e.zt&&src===P;const c0=COINS;origKill(e,src);
+  if(!(G&&G.mode==='zombie'))return;
+  if(was){const gain=COINS-c0;if(gain>2){COINS-=gain-2;G.coins-=gain-2;save()}ZT.kills++}
+  if(e.zt){e.resp=1e9;
+    if(e.T.flag){for(const o of ents)if(o.zt&&o.alive&&Math.hypot(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<9)o.buff=8;toast('🚩 깃발 좀비가 쓰러지자 주변 좀비가 빨라졌어요!','bad')}
+    if(e.zt!=='boss'&&Math.random()<(e.T.sc>1.2?.6:.16))dropOrb(e.pos.x,e.pos.z,'hp');
+    else if(Math.random()<.08)dropOrb(e.pos.x,e.pos.z,'util');
+    if(e.zt==='boss')bossDown(e)}};
+/* 회복 구슬 */
+const ORBS=[];
+function dropOrb(x,z,k){const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshStandardMaterial({color:lin(k==='hp'?0x4ade80:0x60a5fa),emissive:lin(k==='hp'?0x22c55e:0x2563eb),emissiveIntensity:1.6}));m.position.set(x,topAt(x,z)+.7,z);scene.add(m);ORBS.push({m,k,t:20})}
+function orbTick(dt){for(let i=ORBS.length-1;i>=0;i--){const o=ORBS[i];o.t-=dt;o.m.rotation.y+=dt*3;o.m.position.y+=Math.sin(G.t*4)*.003;
+  if(P.alive&&Math.hypot(P.pos.x-o.m.position.x,P.pos.z-o.m.position.z)<1.4){if(o.k==='hp'){if(P.hp>=P.max)continue;P.hp=Math.min(P.max,P.hp+30);floatTxt('+30 체력',0x4ade80)}else{refill();floatTxt('탄약·도구 채움',0x60a5fa)}sfx('coin');renderHud();o.t=0}
+  if(o.t<=0){scene.remove(o.m);ORBS.splice(i,1)}}}
+function clearOrbs(){for(const o of ORBS)scene.remove(o.m);ORBS.length=0}
+/* ---------- 층 진행 ---------- */
+function clearZ(){for(const e of ents)if(e.zt&&e.mesh)scene.remove(e.mesh);ents=ents.filter(e=>!e.zt);for(const p of projs)scene.remove(p.m);projs=[];clearOrbs();if(ZT.heli){scene.remove(ZT.heli);ZT.heli=null}if(ZT.pinata){scene.remove(ZT.pinata.m);ZT.pinata=null}}
+function loadFloor(f){ZT.floor=f;clearZ();clearAreas();const roof=f>FLOORS;loadMap(roof?'ztroof':'ztower');
+  P.pos=new V3(MAP.A[0],topAt(MAP.A[0],MAP.A[1]),MAP.A[1]);P.vy=0;yaw=-Math.PI/2;pitch=0;
+  ZT.boss=null;ZT.wave=0;ZT.queue=[];ZT.state='intro';ZT.introT=2.4;G.phase='fight';
+  ZT.waveList=roof?[[['boss',1]]]:wavesFor(f);ZT.waves=ZT.waveList.length;
+  banner(roof?'🌇 옥상':`🧟 ${f}층`,roof?'거대 매연 좀비를 쓰러뜨리고 헬기로 탈출해요!':`웨이브 ${ZT.waves}개 · 모두 쓰러뜨리면 문이 열려요`,2.2,roof?'mp':'');sfx(roof?'siren':'go');
+  if(f===8)setTimeout(()=>toast('🎃 천장에 매달린 <b>에너지 박</b>을 쏘면 좀비가 한꺼번에 쏟아져요!','',4000),2400);
+  renderHud()}
+function startWave(){const W=ZT.waveList[ZT.wave];ZT.wave++;ZT.queue=[];for(const [t,n] of W)for(let i=0;i<n;i++)ZT.queue.push(t);ZT.queue=shuffle(ZT.queue);ZT.spawnT=.2;
+  if(ZT.queue[0]==='pinata'){ZT.queue=[];makePinata();return}
+  if(ZT.floor<=FLOORS)toast(`웨이브 ${ZT.wave} / ${ZT.waves}`,'',1800)}
+function makePinata(){const g=new THREE.Group();const cols=[0xef4444,0xfacc15,0x22c55e,0x3b82f6,0xa855f7];for(let i=0;i<5;i++){const m=new THREE.Mesh(new THREE.CylinderGeometry(.9-i*.05,.9-i*.05,.32,14),new THREE.MeshStandardMaterial({color:lin(cols[i])}));m.position.y=i*.32;g.add(m)}
+  g.position.set(2,3.2,0);scene.add(g);const e={zt:'pinata',team:'B',name:'에너지 박',alive:true,hp:350,max:350,pos:new V3(2,1.5,0),def:{hp:350},hs:1.6,kills:0,deaths:0,mesh:null,me:true,dummy:1,T:{},vy:0};
+  ents.push(e);ZT.pinata={m:g,e}}
+function pinataTick(dt){const p=ZT.pinata;if(!p)return;p.m.rotation.y+=dt*.8;p.m.position.y=3.2+Math.sin(G.t*2)*.15;
+  if(!p.e.alive||p.e.hp<=0){p.e.alive=false;ents=ents.filter(x=>x!==p.e);scene.remove(p.m);ZT.pinata=null;explode(new V3(2,3,0),3,0,P,0xfacc15);banner('펑! 좀비가 쏟아져요!','',1.6,'mp');
+    ZT.queue=shuffle(['walk','walk','walk','helm','helm','boom','boom','brute','flag','ghost','ghost','skel','hunt','hunt','reaper','walk','helm','ghost']);ZT.spawnT=.1}}
+function alive(){return ents.filter(e=>e.zt&&e.alive&&e.zt!=='pinata').length}
+function ztTick(dt){if(!G||G.mode!=='zombie'||G.over)return;orbTick(dt);pinataTick(dt);
+  const tag=$('zoneTag');if(tag){tag.className=alive()?'theirs':'ours';tag.textContent=ZT.floor>FLOORS?`옥상 · 보스 ${ZT.boss&&ZT.boss.alive?Math.ceil(ZT.boss.hp)+' / '+ZT.boss.max:'처치!'}`:`🧟 ${ZT.floor}층 / ${FLOORS}층 · 웨이브 ${Math.max(1,ZT.wave)}/${ZT.waves} · 남은 좀비 ${alive()+ZT.queue.length}`}
+  if(ZT.state==='intro'){ZT.introT-=dt;if(ZT.introT<=0){ZT.state='fight';startWave()}return}
+  if(ZT.state==='fight'){
+    if(ZT.queue.length){ZT.spawnT-=dt;if(ZT.spawnT<=0&&alive()<14){ZT.spawnT=rnd(.35,.9);const t=ZT.queue.shift();let v=pick(ZT.vents);for(let k=0;k<4;k++){const c=pick(ZT.vents);if(Math.hypot(c[0]-P.pos.x,c[1]-P.pos.z)>8){v=c;break}}const z=mkZombie(t,v[0]+rnd(-.4,.4),v[1]+rnd(-.4,.4));if(t==='boss'){ZT.boss=z;z.pos.set(6,0,0);banner('👹 거대 매연 좀비!','붉은 원이 보이면 바로 피해요',2.4,'mp');sfx('siren')}}}
+    else if(!alive()&&!ZT.pinata&&ZT.floor<=FLOORS){if(ZT.wave<ZT.waves){ZT.state='gap';ZT.gapT=2.2;banner('웨이브 클리어!','',1.2,'win')}else floorClear()}}
+  else if(ZT.state==='gap'){ZT.gapT-=dt;if(ZT.gapT<=0){ZT.state='fight';startWave()}}
+  else if(ZT.state==='open'){ZT.exitGlow.material.emissiveIntensity=1.2+Math.sin(G.t*5)*.6;if(P.alive&&Math.hypot(P.pos.x-ZT.exitP.x,P.pos.z-ZT.exitP.z)<2.2){ZT.state='climb';climb()}}
+  else if(ZT.state==='heli'){const h=ZT.heli;if(h){h.userData.rot.rotation.y+=dt*22;if(h.position.y>.4)h.position.y=Math.max(.4,h.position.y-dt*6);else if(P.alive&&Math.hypot(P.pos.x-12,P.pos.z)<3.2){ZT.state='won';ztEnd(true)}}}}
+function floorClear(){ZT.state='pause';sfx('rare');banner(`${ZT.floor}층 클리어!`,'',1.4,'win');addCoins(5+ZT.floor*2,`${ZT.floor}층 클리어`);
+  if(ZT.floor>(ZT.best||0)){ZT.best=ZT.floor;try{localStorage.setItem('zt_best',ZT.best)}catch(e){}}
+  setTimeout(()=>{if(!G||G.over)return;quizGate(()=>{if([2,5,8].includes(ZT.floor))weaponPick(openDoor);else openDoor()})},1300)}
+function openDoor(){ZT.state='open';if(ZT.door){ZT.door.visible=false;if(ZT.doorTrim&&ZT.doorTrim!==ZT.door)ZT.doorTrim.visible=false;const i=BOXES.indexOf(ZT.doorCol);if(i>=0)BOXES.splice(i,1)}ZT.exitGlow.visible=true;MAP.nav=null;toast('🚪 문이 열렸어요! 초록 빛 계단으로 올라가요','good');sfx('go')}
+function climb(){const f=$('flashOv');if(f){f.style.background='#000';flashV=1.2}setTimeout(()=>{if(!G||G.over)return;if(f)f.style.background='';loadFloor(ZT.floor+1)},350)}
+/* 퀴즈 문 */
+function quizGate(next){const q=nextQ();G.quizTry++;
+  openOv(`<div class="card"><div class="eyebrow">🧟 ${ZT.floor}층 클리어 · 퀴즈 문</div><h2 style="font-size:21px">⚡ 문을 열려면 퀴즈!</h2><p style="font-size:17px"><b>${q.q}</b></p>
+    <div style="display:grid;gap:8px">${q.a.map((a,i)=>`<button class="choice" data-i="${i}" type="button">${a}</button>`).join('')}</div><div id="qr"></div></div>`);
+  ov.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{const ok=+b.dataset.i===q.c;qlog(q,ok);ov.querySelectorAll('.choice').forEach(x=>{x.disabled=true;if(+x.dataset.i===q.c)x.classList.add('right')});if(!ok)b.classList.add('wrong');
+    if(ok){G.quizOK++;P.hp=Math.min(P.max,P.hp+45);refill();renderHud()}
+    $('qr').innerHTML=`<div class="note ${ok?'good':'bad'}"><b>${ok?'정답! 체력 +45 · 탄약과 도구를 다시 채웠어요':'아쉬워요! 문은 열리지만 회복은 못 받아요'}</b><br>${q.e}</div><div class="row" style="margin-top:10px"><button class="btn" id="qGo" type="button">다음으로 ▶</button></div>`;
+    $('qGo').onclick=()=>{closeOv();next()};$('qGo').focus()})}
+/* 무기 상자 */
+const POOL={p:['shotgun','minigun','ar','burst','energy','flamer','gl','sniper','wildcat','xbow'],s:['revolver','uzi','shorty','epistols','exogun','flare']};
+function weaponPick(next){const all=[...POOL.p,...POOL.s].filter(k=>WD[k]&&!Object.values(P.inv).some(w=>w.id===k));const ch=shuffle(all).slice(0,3);
+  openOv(`<div class="card"><div class="eyebrow">🎁 무기 상자</div><h2 style="font-size:21px">무기 하나를 골라요</h2><p>고른 무기는 같은 칸(주무기·보조무기)의 무기와 바뀌어요.</p>
+    <div style="display:grid;gap:8px">${ch.map(k=>`<button class="choice" data-w="${k}" type="button"><b>${WD[k].n}</b> <small style="opacity:.75">· ${WD[k].cat==='p'?'주무기':'보조무기'} · 피해 ${WD[k].dmg||'-'}</small></button>`).join('')}<button class="choice" data-w="" type="button">지금 무기 그대로</button></div></div>`);
+  ov.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{const k=b.dataset.w;if(k){const c=WD[k].cat;P.inv[c]={id:k,ammo:WD[k].mag||0,reloadT:0,cnt:WD[k].cnt||0};equip(c,true);toast(`🎁 ${WD[k].n}을(를) 얻었어요!`,'good')}closeOv();next()})}
+/* 보스 처치 → 헬기 */
+function bossDown(e){ZT.state='pause';addCoins(40,'거대 매연 좀비 처치');for(const o of ents)if(o.zt&&o.alive&&o!==e)kill(o,P);
+  banner('보스 처치!','태양광 헬기가 내려와요. H 표시로 달려가요!',3,'win');sfx('rare');
+  setTimeout(()=>{if(!G||G.over)return;const h=new THREE.Group();h.add(new THREE.Mesh(new THREE.BoxGeometry(5,2,2.4),new THREE.MeshStandardMaterial({color:lin(0x0ea5e9),metalness:.4,roughness:.4})));
+    const cab=new THREE.Mesh(new THREE.SphereGeometry(1.2,16,12),new THREE.MeshStandardMaterial({color:lin(0x93c5fd),transparent:true,opacity:.7}));cab.position.set(2.4,.2,0);h.add(cab);
+    const tail=new THREE.Mesh(new THREE.BoxGeometry(4,.5,.5),new THREE.MeshStandardMaterial({color:lin(0x0369a1)}));tail.position.set(-4,.6,0);h.add(tail);
+    const rot=new THREE.Group();rot.position.y=1.4;for(let i=0;i<4;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(7,.08,.5),new THREE.MeshStandardMaterial({color:lin(0x1e293b)}));b.rotation.y=i*Math.PI/4*2;rot.add(b)}h.add(rot);h.userData.rot=rot;
+    const sp=new THREE.Mesh(new THREE.BoxGeometry(3,.05,2),new THREE.MeshStandardMaterial({color:lin(0x1e3a8a),emissive:lin(0x1d4ed8),emissiveIntensity:.4}));sp.position.set(0,1.05,0);h.add(sp);
+    h.position.set(12,26,0);scene.add(h);ZT.heli=h;ZT.state='heli'},1500)}
+/* 쓰러졌을 때 */
+const origDeath=deathScreen;
+deathScreen=function(){if(!G||G.mode!=='zombie')return origDeath();if(G.over)return;const q=nextQ();const can=ZT.revives<2;
+  openOv(`<div class="card"><div class="eyebrow" style="color:#f43f5e">ROUND LOST · ${ZT.floor>FLOORS?'옥상':ZT.floor+'층'}</div><h2>쓰러졌어요…</h2>${P.killer?`<p class="kb">나를 쓰러뜨린 좀비 <b>${P.killer.n}</b></p>`:''}
+    ${can?`<p>퀴즈를 맞히면 <b>이 층에서 다시</b> 일어날 수 있어요 (남은 기회 ${2-ZT.revives}번)</p><p style="font-size:17px"><b>${q.q}</b></p><div style="display:grid;gap:8px">${q.a.map((a,i)=>`<button class="choice" data-i="${i}" type="button">${a}</button>`).join('')}</div>`:'<p>부활 기회를 모두 썼어요.</p>'}<div id="qr"></div>
+    <div class="row" style="margin-top:10px"><button class="btn alt" id="zEnd" type="button">결과 보기</button></div></div>`);
+  $('zEnd').onclick=()=>ztEnd(false);
+  ov.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{const ok=+b.dataset.i===q.c;qlog(q,ok);G.quizTry++;ov.querySelectorAll('.choice').forEach(x=>{x.disabled=true;if(+x.dataset.i===q.c)x.classList.add('right')});if(!ok)b.classList.add('wrong');
+    if(ok){G.quizOK++;ZT.revives++;$('qr').innerHTML=`<div class="note good"><b>정답! 다시 일어나요</b><br>${q.e}</div>`;setTimeout(()=>{closeOv();P.alive=true;P.hp=P.max;P.dying=0;refill();equip('p',true);renderHud();for(const o of ents)if(o.zt&&o.alive&&Math.hypot(o.pos.x-P.pos.x,o.pos.z-P.pos.z)<5){const k=new V3(o.pos.x-P.pos.x,0,o.pos.z-P.pos.z).normalize();moveBody(o,k.x*4,k.z*4,0)}toast('💪 다시 일어났어요!','good')},900)}
+    else{ZT.revives=2;$('qr').innerHTML=`<div class="note bad"><b>아쉬워요…</b><br>${q.e}</div>`}})};
+/* 끝 */
+function ztEnd(win){if(G.over)return;G.over=true;$('dq').hidden=true;const t=G.t;if(win){addCoins(100,'좀비 타워 탈출!');ZT.best=FLOORS+1;try{localStorage.setItem('zt_best',ZT.best)}catch(e){}}
+  openOv(`<div class="card"><div class="eyebrow">🧟 좀비 타워 · ${Math.floor(t/60)}분 ${Math.floor(t%60)}초</div><div class="big" style="text-align:center;color:${win?'#22c55e':'#f43f5e'}">${win?'탈출 성공!':'ROUND LOST'}</div>
+    <h2 style="text-align:center">${win?'태양광 헬기를 타고 오염된 탑을 탈출했어요! 🚁':`${ZT.floor>FLOORS?'옥상':ZT.floor+'층'}에서 쓰러졌어요`}</h2>
+    <div class="stats"><div><b>${Math.min(ZT.floor,FLOORS)}${ZT.floor>FLOORS?'+옥상':''}</b><small>올라간 층</small></div><div><b>${ZT.kills}</b><small>쓰러뜨린 좀비</small></div><div><b>${ZT.best>FLOORS?'탈출':ZT.best+'층'}</b><small>최고 기록</small></div><div><b>+${G.coins}</b><small>얻은 코인</small></div></div>
+    <div class="note info" style="text-align:center">에너지 퀴즈 <b>${G.quizOK} / ${G.quizTry}</b> 정답</div>${reviewHTML()}
+    <div class="row"><button class="btn" id="goBtn" type="button">다시 도전</button><button class="btn alt" id="hBtn" type="button">처음 화면으로</button></div></div>`);
+  $('goBtn').onclick=()=>{ztStart();closeOv()};$('hBtn').onclick=()=>{clearZ();showHome()}}
+/* ---------- 시작 ---------- */
+function ztStart(){audio();try{if(typeof coachEnd==='function')coachEnd()}catch(e){}OPT.mode='zombie';save();
+  if(NET.on)netLeave();for(const e of ents)if(e.mesh)scene.remove(e.mesh);for(const p of projs)scene.remove(p.m);for(const f of fxs)scene.remove(f.obj);for(const d of decals)scene.remove(d);clearAreas();clearOrbs();
+  ents=[];projs=[];fxs=[];decals.length=0;SMOKES.length=0;ZT.floor=1;ZT.kills=0;ZT.revives=0;
+  G={mode:'zombie',size:1,capA:0,capB:0,t:0,over:false,started:true,paused:false,quizOK:0,quizTry:0,qpool:shuffle(QUIZ.slice()),owner:null,rA:0,rB:0,round:0,target:9,phase:'fight',phT:0,coins:0,qlog:[],ek:{},gens:[]};
+  loadMap('ztower');P=mkEnt('A','hero',HEROES[heroPick],HEROES[heroPick].n,true,0);P.hero=heroPick;ents.push(P);
+  for(const o of [zoneFloor,zoneRing,zoneOrb,zoneHalo])if(o)o.visible=false;
+  yaw=-Math.PI/2;pitch=0;ads=0;inp.ads=false;inp.fire=false;$('dq').hidden=true;initInv(P);buildSkills();
+  P.co2=0;P.smog=0;clearMissions();clearQBox();qboxT=1e9;setRangeHud(false);setTopHud();P.killer=null;loadFloor(1);renderHud();
+  toast(`🧟 좀비 타워! ${HEROES[heroPick].n}(으)로 ${FLOORS}층 탑을 올라 탈출해요`,'good')}
+window.ztStart=ztStart;
+/* 매 프레임: updQBox 뒤에 */
+const origQ=updQBox;updQBox=function(dt){origQ(dt);if(G&&G.mode==='zombie')ztTick(dt)};
+/* 새 판 · 결과 · 처음 화면 연결 */
+const origNew=newGame;newGame=function(){if(OPT.mode==='zombie'){ztStart();return}return origNew()};
+const origHome=showHome;showHome=function(){clearZ();origHome();const bigs=ov.querySelector('.bigs');if(bigs&&!$('hZT')){const b=document.createElement('button');b.className='bigb b1';b.type='button';b.id='hZT';b.style.background='linear-gradient(135deg,#365314,#1c1917)';b.style.color='#ecfccb';
+    b.innerHTML=`<em>🧟</em><b>좀비 타워</b><small>${FLOORS}층 탑을 올라 보스를 쓰러뜨리고 탈출!${ZT.best?` · 최고 ${ZT.best>FLOORS?'탈출':ZT.best+'층'}`:''}</small>`;bigs.appendChild(b);b.onclick=()=>{ztStart();closeOv()}}};
+const origStart=showStart;showStart=function(){if(OPT.mode==='zombie')OPT.mode='duel';origStart();const ch=ov.querySelector('[data-mode="range"]');if(ch&&!ov.querySelector('[data-mode="zombie"]')){const b=document.createElement('button');b.className='chip';b.type='button';b.dataset.mode='zombie';b.textContent='🧟 좀비 타워';b.onclick=()=>{ztStart();closeOv()};ch.after(b)}};
+setTimeout(()=>{if(!G&&ov&&!ov.hidden&&ov.querySelector('.card.home'))showHome()},0);
+const origTop=setTopHud;setTopHud=function(){origTop();if(G&&G.mode==='zombie'){$('zoneTag').style.display='';$('rvTop').hidden=true}};
+})();
+
+</script>
