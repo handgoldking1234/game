@@ -319,7 +319,7 @@ var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'
 var href=function(id){return 'games/'+id+'.html'};
 var byId=function(id){return GAMES.filter(function(g){return g.id===id})[0]};
 var st={tab:'all',q:'',learn:'',more:false};
-var SHOW=9;
+var SHOW=999;
 
 /* 히어로 슬라이드 */
 var cur=0,timer=null,DUR=6500;
