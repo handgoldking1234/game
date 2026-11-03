@@ -684,7 +684,8 @@ function matchGrid(g,n){// g: n*n 배열 of {k}|null
   return null}
 const SMELT_T=4;
 /* ============ 세계 ============ */
-const OW=80,NX=112,EX=208,W=288,D=80,H=40,SEA=15;
+const OFF=64,OW=208,NX=240,EX=336,W=416,D=208,ND=80,H=40,SEA=15;// 바깥 세계는 208×208, 네더·엔드는 80×80
+const zMax=x=>x<OW?D:ND;
 const RG={over:[0,OW],nether:[NX,NX+80],end:[EX,EX+80]};const regOf=x=>x>=EX?'end':x>=NX?'nether':'over';let CUR_R='over';
 let NSP={x:NX+58.5,y:16,z:41,yaw:Math.PI/2},ESP={x:EX+17.5,y:20,z:40.5,yaw:-Math.PI/2},FORT={x:NX+23,z:40},FRAMES=[],EPIT=[],CRY=[],EC={x:EX+44,z:40},EH=18,RUIN=null,CHESTS=[],DRAGON_DEAD=0,PF=0;
 let world=new Uint8Array(W*D*H),ORI=new Uint8Array(W*D*H);
@@ -696,11 +697,11 @@ let CHANGES={},SEEDW=12345;
 function setRaw(x,y,z,v){if(inW(x,y,z))world[idx(x,y,z)]=v}
 function hash2(x,z,s){let h=Math.imul(x,374761393)+Math.imul(z,668265263)+Math.imul(s,1442695041);h=Math.imul(h^(h>>>13),1274126177);return ((h^(h>>>16))>>>0)/4294967295}
 function vn(x,z,s=0){const xi=Math.floor(x),zi=Math.floor(z),xf=x-xi,zf=z-zi,u=xf*xf*(3-2*xf),v=zf*zf*(3-2*zf);const a=hash2(xi,zi,s),b=hash2(xi+1,zi,s),c=hash2(xi,zi+1,s),d=hash2(xi+1,zi+1,s);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
-const VC={x:40,z:40};
-function biome(x,z){const t=vn(x/34,z/34,SEEDW+5);if(Math.hypot(x-VC.x,z-VC.z)<12)return'village';if(t<.32)return'snow';if(t>.7)return'desert';return vn(x/16,z/16,SEEDW+9)>.55?'forest':'plains'}
-function surfH(x,z){const s=SEEDW;let h=18+(vn(x/24,z/24,s)-.5)*12+(vn(x/9,z/9,s+1)-.5)*5;const b=biome(x,z);if(b==='snow')h+=4+vn(x/11,z/11,s+2)*9;if(b==='desert')h=17+(vn(x/14,z/14,s+3)-.5)*3;
+const VC={x:40+OFF,z:40+OFF};
+function biome(x,z){const ox=x-OFF,oz=z-OFF;const t=vn(ox/34,oz/34,SEEDW+5);if(Math.hypot(x-VC.x,z-VC.z)<12)return'village';if(t<.32)return'snow';if(t>.7)return'desert';return vn(ox/16,oz/16,SEEDW+9)>.55?'forest':'plains'}
+function surfH(x,z){const ox=x-OFF,oz=z-OFF;const s=SEEDW;let h=18+(vn(ox/24,oz/24,s)-.5)*12+(vn(ox/9,oz/9,s+1)-.5)*5;const b=biome(x,z);if(b==='snow')h+=4+vn(ox/11,oz/11,s+2)*9;if(b==='desert')h=17+(vn(ox/14,oz/14,s+3)-.5)*3;
   const dv=Math.hypot(x-VC.x,z-VC.z);if(dv<15){const k=clamp((15-dv)/5,0,1);h=h*(1-k)+19*k}return clamp(Math.round(h),6,H-6)}
-let SPAWN={x:40.5,y:21,z:44.5};
+let SPAWN={x:40.5+OFF,y:21,z:44.5+OFF};
 /* ============ 🌋 네더 · 🌌 엔드 만들기 ============ */
 function buildFrame(x,y,z,ax,fill){for(let i=0;i<4;i++)for(let j=0;j<5;j++){const edge=i===0||i===3||j===0||j===4;const X=ax==='x'?x:x+i,Z=ax==='x'?z+i:z;setRaw(X,y+j,Z,edge?50:fill)}}
 function genRuin(HM){const rx=VC.x+17,rz=VC.z-2;let h=0;for(let dz=-2;dz<=4;dz++)for(let dx=-2;dx<=3;dx++)h=Math.max(h,HM[(rx+dx)+(rz+dz)*W]);if(h<=SEA)h=SEA+1;
@@ -708,11 +709,11 @@ function genRuin(HM){const rx=VC.x+17,rz=VC.z-2;let h=0;for(let dz=-2;dz<=4;dz++
   buildFrame(rx,h+1,rz,'x',0);RUIN={x:rx,y:h+1,z:rz};
   setRaw(rx+2,h+1,rz+4,45);CHESTS.push([(rx+2)+','+(h+1)+','+(rz+4),[['flint_steel',1],['obsidian',2],['bread',2],['torch',8]]])}
 function genNether(){const s=SEEDW+77;RS=(SEEDW*31+7)%2147483646+1;
-  for(let z=0;z<D;z++)for(let x=NX;x<NX+80;x++){const lx=x-NX;let h=10+(vn(lx/14,z/14,s)-.5)*16+(vn(lx/5,z/5,s+1)-.5)*6;const e=Math.min(lx,79-lx,z,79-z);if(e<5)h+=(5-e)*4;h=clamp(Math.round(h),3,32);
+  for(let z=0;z<ND;z++)for(let x=NX;x<NX+80;x++){const lx=x-NX;let h=10+(vn(lx/14,z/14,s)-.5)*16+(vn(lx/5,z/5,s+1)-.5)*6;const e=Math.min(lx,79-lx,z,79-z);if(e<5)h+=(5-e)*4;h=clamp(Math.round(h),3,32);
     setRaw(x,0,z,17);for(let y=1;y<=h;y++)setRaw(x,y,z,52);if(vn(lx/9,z/9,s+2)>.68&&h>9)setRaw(x,h,z,54);for(let y=h+1;y<=8;y++)setRaw(x,y,z,57)}
   for(let k=0;k<22;k++){const x=NX+5+srand()*70|0,z=5+srand()*70|0;const top=12+srand()*13|0;const r=1+srand()*1.6;for(let y=1;y<=top;y++){const rr=r*(1-(y/top)*.4);for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++)if(dx*dx+dz*dz<=rr*rr+.3)setRaw(x+dx,y,z+dz,52)}for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++)if(srand()<.6)setRaw(x+dx,top+1,z+dz,55)}
   for(let k=0;k<9;k++){const x=NX+8+srand()*64|0,z=8+srand()*64|0,y=26+srand()*7|0,r=2+srand()*2.5;for(let dy=-2;dy<=1;dy++)for(let dz=-5;dz<=5;dz++)for(let dx=-5;dx<=5;dx++){if(dx*dx+dz*dz+dy*dy*2>r*r)continue;setRaw(x+dx,y+dy,z+dz,dy<=-1&&srand()<.45?55:52)}}
-  for(let k=0;k<80;k++){let x=NX+srand()*80|0,z=srand()*D|0,y=1+srand()*22|0;for(let i=0;i<5;i++){if(get(x,y,z)===52)setRaw(x,y,z,56);x+=Math.round(srand()*2-1);y+=Math.round(srand()*2-1);z+=Math.round(srand()*2-1)}}
+  for(let k=0;k<80;k++){let x=NX+srand()*80|0,z=srand()*ND|0,y=1+srand()*22|0;for(let i=0;i<5;i++){if(get(x,y,z)===52)setRaw(x,y,z,56);x+=Math.round(srand()*2-1);y+=Math.round(srand()*2-1);z+=Math.round(srand()*2-1)}}
   // 도착 포털 섬
   const px=NX+56,pz=40,py=15;
   for(let dz=-4;dz<=4;dz++)for(let dx=-4;dx<=4;dx++){for(let y=py+1;y<=py+9;y++)setRaw(px+dx,y,pz+dz,0);setRaw(px+dx,py,pz+dz,Math.abs(dx)<=2&&Math.abs(dz)<=3?50:53);for(let y=py-1;y>0;y--){const c=get(px+dx,y,pz+dz);if(c===52||c===56||c===54)break;setRaw(px+dx,y,pz+dz,52)}}
@@ -731,7 +732,7 @@ function genNether(){const s=SEEDW+77;RS=(SEEDW*31+7)%2147483646+1;
   const empty=new Set([1,4,7,10]);FRAMES.forEach((f,i)=>setRaw(f[0],f[1],f[2],empty.has(i)?59:60));
   setRaw(fx0+2,FY+1,fz0+2,45);CHESTS.push([(fx0+2)+','+(FY+1)+','+(fz0+2),[['blaze_rod',2],['ender_pearl',2],['bread',3],['coin',3]]])}
 function genEnd(){RS=(SEEDW*57+11)%2147483646+1;const s=SEEDW+99;EC={x:EX+44,z:40};EH=18;CRY=[];
-  const isl=(cx,cz,R,top,depth)=>{for(let z=Math.max(0,cz-R-2);z<=Math.min(D-1,cz+R+2);z++)for(let x=Math.max(EX,cx-R-2);x<=Math.min(EX+79,cx+R+2);x++){const d=Math.hypot(x-cx,z-cz)+(vn(x/6,z/6,s)-.5)*3;if(d>R)continue;const k=d/R;const t=Math.round(top-k*k*2);const b=Math.round(top-(1-k)*depth-1);for(let y=Math.max(5,b);y<=t;y++)setRaw(x,y,z,58)}};
+  const isl=(cx,cz,R,top,depth)=>{for(let z=Math.max(0,cz-R-2);z<=Math.min(ND-1,cz+R+2);z++)for(let x=Math.max(EX,cx-R-2);x<=Math.min(EX+79,cx+R+2);x++){const d=Math.hypot(x-cx,z-cz)+(vn(x/6,z/6,s)-.5)*3;if(d>R)continue;const k=d/R;const t=Math.round(top-k*k*2);const b=Math.round(top-(1-k)*depth-1);for(let y=Math.max(5,b);y<=t;y++)setRaw(x,y,z,58)}};
   isl(EC.x,EC.z,28,EH,12);
   for(let k=0;k<6;k++){const a=srand()*6.28,r=33+srand()*4;isl(EC.x+Math.cos(a)*r|0,EC.z+Math.sin(a)*r|0,3+srand()*3|0,14+srand()*8|0,4)}
   for(let i=0;i<8;i++){const a=i/8*6.28;const px=Math.round(EC.x+Math.cos(a)*16),pz=Math.round(EC.z+Math.sin(a)*16);const top=EH+5+(i%4)*2+(srand()*2|0);const r=i%2?1.2:1.8;
@@ -740,26 +741,58 @@ function genEnd(){RS=(SEEDW*57+11)%2147483646+1;const s=SEEDW+99;EC={x:EX+44,z:4
 function prefill(){if(PF)return;PF=1;for(const [k,items] of CHESTS){const st=getCont(k,'chest');if(st.slots.some(Boolean))continue;items.forEach((it,i)=>{st.slots[i]=mkStack(it[0],it[1])})}}
 function convCh(ch){const o={};for(const k in ch){const i=+k;const x=i%80,z=(i/80|0)%80,y=i/6400|0;o[x+z*W+y*W*D]=ch[k]}return o}
 
+const inOld=(x,z)=>x>=OFF&&x<OFF+80&&z>=OFF&&z<OFF+80;
+// 🌍 넓어진 바깥 땅 (옛 땅은 건드리지 않아요)
+function genOuter(HM){const keep=RS;RS=(SEEDW*13+5)%2147483646+1;
+  for(let z=0;z<D;z++)for(let x=0;x<OW;x++){if(inOld(x,z))continue;let h=surfH(x,z);const b=biome(x,z);const e=Math.min(x,OW-1-x,z,D-1-z);if(e<6)h=Math.max(SEA+2,h);HM[x+z*W]=h;
+    for(let y=0;y<=h;y++){let v=3;if(y===0||(y===1&&srand()<.5))v=17;else if(y>h-4){v=b==='desert'?5:2;if(y===h){v=b==='desert'?5:b==='snow'?18:1;if(h<=SEA+1&&b!=='snow')v=5}}setRaw(x,y,z,v)}
+    for(let y=h+1;y<=SEA;y++)setRaw(x,y,z,6)}
+  const area=(OW*D-6400)/6400;
+  for(let k=0;k<16*area;k++){let x=srand()*OW,z=srand()*D,y=4+srand()*12,a=srand()*6.28,p=(srand()-.5)*.5;if(inOld(x|0,z|0))continue;const L=50+srand()*60;
+    for(let st=0;st<L;st++){const r=1.2+srand()*1.1;for(let dy=-2;dy<=2;dy++)for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){if(dx*dx+dy*dy+dz*dz>r*r)continue;const X=x+dx|0,Y=y+dy|0,Z=z+dz|0;if(!inW(X,Y,Z)||Y<2||X>=OW||inOld(X,Z))continue;const c=get(X,Y,Z);if(c===17||c===6)continue;if(get(X,Y+1,Z)===6)continue;setRaw(X,Y,Z,0)}
+      x+=Math.cos(a);z+=Math.sin(a);y+=p;a+=(srand()-.5)*.6;p=clamp(p+(srand()-.5)*.2,-.5,.5);y=clamp(y,3,26)}}
+  const vein=(id,n,size,y0,y1)=>{for(let k=0;k<n*area;k++){let x=srand()*OW|0,z=srand()*D|0,y=y0+srand()*(y1-y0)|0;if(inOld(x,z))continue;for(let st=0;st<size;st++){if(!inOld(x,z)&&x<OW&&get(x,y,z)===3)setRaw(x,y,z,id);x+=Math.round(srand()*2-1);y+=Math.round(srand()*2-1);z+=Math.round(srand()*2-1)}}};
+  vein(11,70,9,4,32);vein(13,38,6,3,26);vein(12,38,6,3,24);vein(14,16,5,2,14);vein(15,9,3,2,10);vein(44,8,7,2,9);vein(16,20,8,3,30);
+  for(let k=0;k<900*area;k++){const x=2+srand()*(OW-4)|0,z=2+srand()*(D-4)|0;if(x>=OFF-3&&x<OFF+83&&z>=OFF-3&&z<OFF+83)continue;const b=biome(x,z),h=HM[x+z*W];const top=get(x,h,z);
+    if(b==='desert'){if(top===5&&srand()<.08&&h>SEA+1){const n=1+srand()*3|0;for(let i=1;i<=n;i++)setRaw(x,h+i,z,19)}continue}
+    if(top!==1&&top!==18)continue;if(get(x,h+1,z))continue;
+    const dens=b==='forest'?.5:b==='snow'?.18:.06;
+    if(srand()<dens)tree(x,h+1,z,b==='snow');else if(top===1&&srand()<.35)setRaw(x,h+1,z,srand()<.12?47:27);else if(srand()<(SEASON.ev==='halloween'?.05:.012)&&top===1)setRaw(x,h+1,z,34)}
+  // 🏕️ 탐험 보상: 넓은 세계 곳곳의 캠프 상자
+  const loot=[[['bread',3],['torch',8],['iron_ingot',3]],[['coal',8],['apple',4],['gold_ingot',2]],[['iron_ingot',4],['bread',2],['diamond',1]],[['torch',12],['coal',6],['redstone',4]],[['apple',5],['iron_ingot',2],['obsidian',1]],[['bread',4],['diamond',1],['torch',6]]];
+  const spots=[[24,24],[OW-26,30],[30,OW-28],[OW-30,OW-26],[OW/2,14],[14,OW/2+6]];
+  spots.forEach(([cx,cz],n)=>{cx|=0;cz|=0;let h=HM[cx+cz*W];if(h<=SEA)h=SEA+1;for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){for(let y=h+1;y<=h+5;y++)setRaw(cx+dx,y,cz+dz,0);setRaw(cx+dx,h,cz+dz,(dx+dz)&1?4:9)}
+    setRaw(cx-2,h+1,cz-2,9);setRaw(cx+2,h+1,cz-2,9);setRaw(cx-2,h+1,cz+2,9);setRaw(cx+2,h+1,cz+2,9);setRaw(cx-2,h+2,cz-2,43);setRaw(cx+2,h+2,cz+2,43);
+    const items=loot[n%loot.length].filter(it=>ITEM[it[0]]);setRaw(cx,h+1,cz,45);CHESTS.push([cx+','+(h+1)+','+cz,items])});
+  RS=keep}
+function mapOld(x,z){if(x<80)return [x+OFF,z+OFF];if(x>=208)return [x-208+EX,z];if(x>=112)return [x-112+NX,z];return null}
+function convV2(sv){const W0=288,D0=80;const ch={};for(const k in sv.ch||{}){const i=+k;const x=i%W0,z=(i/W0|0)%D0,y=i/(W0*D0)|0;const m=mapOld(x,z);if(m)ch[m[0]+m[1]*W+y*W*D]=sv.ch[k]}sv.ch=ch;
+  const mk=o=>{const r={};for(const k in o||{}){const [x,y,z]=k.split(',').map(Number);const m=mapOld(x,z);if(m)r[m[0]+','+y+','+m[1]]=o[k]}return r};
+  sv.gens=mk(sv.gens);sv.cont=mk(sv.cont);sv.grow=mk(sv.grow);
+  sv.drops=(sv.drops||[]).filter(a=>{const m=mapOld(a[3],a[5]);if(!m)return false;a[3]=m[0];a[5]=m[1];return true});
+  const mp=o=>{if(!o)return o;const m=mapOld(o.x,o.z);if(m){o.x=m[0]+(o.x%1);o.z=m[1]+(o.z%1)}return o};
+  mp(sv.P);if(sv.S){if(sv.S.spawn){const m=mapOld(sv.S.spawn.x,sv.S.spawn.z);if(m){sv.S.spawn.x=m[0];sv.S.spawn.z=m[1]}}mp(sv.S.owPort)}
+  sv.v=3;return sv}
 function genWorld(seed){SEEDW=seed;CHANGES={};RS=seed%2147483646+1;world.fill(0);ORI.fill(0);
   const HM=new Int16Array(W*D);
-  for(let z=0;z<D;z++)for(let x=0;x<OW;x++){const h=surfH(x,z),b=biome(x,z);HM[x+z*W]=h;
+  for(let oz=0;oz<80;oz++)for(let ox=0;ox<80;ox++){const x=ox+OFF,z=oz+OFF;const h=surfH(x,z),b=biome(x,z);HM[x+z*W]=h;
     for(let y=0;y<=h;y++){let v=3;if(y===0||(y===1&&srand()<.5))v=17;else if(y>h-4){v=b==='desert'?5:2;if(y===h){v=b==='desert'?5:b==='snow'?18:1;if(h<=SEA+1&&b!=='snow')v=5}}setRaw(x,y,z,v)}
     for(let y=h+1;y<=SEA;y++)setRaw(x,y,z,6)}
   // 동굴
-  for(let k=0;k<16;k++){let x=srand()*OW,z=srand()*D,y=4+srand()*12,a=srand()*6.28,p=(srand()-.5)*.5;const L=50+srand()*60;
-    for(let s=0;s<L;s++){const r=1.2+srand()*1.1;for(let dy=-2;dy<=2;dy++)for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){if(dx*dx+dy*dy+dz*dz>r*r)continue;const X=x+dx|0,Y=y+dy|0,Z=z+dz|0;if(!inW(X,Y,Z)||Y<2||X>=OW)continue;const c=get(X,Y,Z);if(c===17||c===6)continue;if(get(X,Y+1,Z)===6)continue;setRaw(X,Y,Z,0)}
+  for(let k=0;k<16;k++){let x=OFF+srand()*80,z=OFF+srand()*80,y=4+srand()*12,a=srand()*6.28,p=(srand()-.5)*.5;const L=50+srand()*60;
+    for(let s=0;s<L;s++){const r=1.2+srand()*1.1;for(let dy=-2;dy<=2;dy++)for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){if(dx*dx+dy*dy+dz*dz>r*r)continue;const X=x+dx|0,Y=y+dy|0,Z=z+dz|0;if(!inW(X,Y,Z)||Y<2||!inOld(X,Z))continue;const c=get(X,Y,Z);if(c===17||c===6)continue;if(get(X,Y+1,Z)===6)continue;setRaw(X,Y,Z,0)}
       x+=Math.cos(a);z+=Math.sin(a);y+=p;a+=(srand()-.5)*.6;p=clamp(p+(srand()-.5)*.2,-.5,.5);y=clamp(y,3,26)}}
   // 광석
-  const vein=(id,n,size,y0,y1)=>{for(let k=0;k<n;k++){let x=srand()*OW|0,z=srand()*D|0,y=y0+srand()*(y1-y0)|0;for(let s=0;s<size;s++){if(get(x,y,z)===3)setRaw(x,y,z,id);x+=Math.round(srand()*2-1);y+=Math.round(srand()*2-1);z+=Math.round(srand()*2-1)}}};
+  const vein=(id,n,size,y0,y1)=>{for(let k=0;k<n;k++){let x=OFF+(srand()*80|0),z=OFF+(srand()*80|0),y=y0+srand()*(y1-y0)|0;for(let s=0;s<size;s++){if(get(x,y,z)===3)setRaw(x,y,z,id);x+=Math.round(srand()*2-1);y+=Math.round(srand()*2-1);z+=Math.round(srand()*2-1)}}};
   vein(11,70,9,4,32);vein(13,38,6,3,26);vein(12,38,6,3,24);vein(14,16,5,2,14);vein(15,9,3,2,10);vein(44,8,7,2,9);vein(16,20,8,3,30);
   // 나무·풀·선인장
-  for(let k=0;k<900;k++){const x=2+srand()*(OW-4)|0,z=2+srand()*(D-4)|0,b=biome(x,z),h=HM[x+z*W];const top=get(x,h,z);
+  for(let k=0;k<900;k++){const x=OFF+(2+srand()*76|0),z=OFF+(2+srand()*76|0),b=biome(x,z),h=HM[x+z*W];const top=get(x,h,z);
     if(b==='village')continue;
     if(b==='desert'){if(top===5&&srand()<.08&&h>SEA+1){const n=1+srand()*3|0;for(let i=1;i<=n;i++)setRaw(x,h+i,z,19)}continue}
     if(top!==1&&top!==18)continue;if(get(x,h+1,z))continue;
     const dens=b==='forest'?.5:b==='snow'?.18:.06;
     if(srand()<dens)tree(x,h+1,z,b==='snow');else if(top===1&&srand()<.35)setRaw(x,h+1,z,srand()<.12?47:27);else if(srand()<(SEASON.ev==='halloween'?.05:.012)&&top===1)setRaw(x,h+1,z,34)}
-  village(HM);CHESTS=[];genRuin(HM);genNether();genEnd();
+  village(HM);CHESTS=[];genRuin(HM);genOuter(HM);genNether();genEnd();
   return HM}
 function tree(x,y,z,spruce){const h=4+(srand()*2|0)+(spruce?1:0);for(let k=0;k<h;k++)setRaw(x,y+k,z,7);
   if(spruce){for(let dy=2;dy<=h;dy++){const r=dy>=h-1?1:(h-dy)%2?2:1;for(let dz=-r;dz<=r;dz++)for(let dx=-r;dx<=r;dx++){if(Math.abs(dx)+Math.abs(dz)>r+1)continue;if(get(x+dx,y+dy,z+dz)===0)setRaw(x+dx,y+dy,z+dz,8)}}setRaw(x,y+h,z,8);return}
@@ -847,11 +880,14 @@ function buildChunk(cx,cz){const key=cx+','+cz;const old=chunks[key];if(old)for(
     const m=new THREE.Mesh(g,mat);if(k==='w')m.renderOrder=2;m.visible=regOf(cx*CS)===CUR_R;scene.add(m);ms.push(m)}
   chunks[key]=ms}
 const NCX=Math.ceil(W/CS),NCZ=Math.ceil(D/CS);
-function buildAll(){for(let cx=0;cx<NCX;cx++)for(let cz=0;cz<NCZ;cz++)buildChunk(cx,cz)}
+const LAZY=new Set();
+function buildAll(){const px=started||P.x?P.x:VC.x,pz=started||P.z?P.z:VC.z;LAZY.clear();for(let cx=0;cx<NCX;cx++)for(let cz=0;cz<NCZ;cz++){if(regOf(cx*CS)!==regOf(px)){buildChunk(cx,cz);continue}const d=Math.hypot((cx+.5)*CS-px,(cz+.5)*CS-pz);if(d<56)buildChunk(cx,cz);else{if(chunks[cx+','+cz])for(const m of chunks[cx+','+cz]){scene.remove(m);m.geometry.dispose()}delete chunks[cx+','+cz];LAZY.add(cx+','+cz)}}}
+function lazyTick(){if(!LAZY.size)return;const px=camera.position.x,pz=camera.position.z;let best=null,bd=1e9;for(const k of LAZY){const [a,b]=k.split(',').map(Number);const d=Math.hypot((a+.5)*CS-px,(b+.5)*CS-pz);if(d<bd){bd=d;best=k}}const [a,b]=best.split(',').map(Number);LAZY.delete(best);buildChunk(a,b)}
+let cullT=0;function cullChunks(dt){cullT-=dt;if(cullT>0)return;cullT=.4;const px=camera.position.x,pz=camera.position.z,lim=(U.uFar.value||70)+30;for(const k in chunks){const [a,b]=k.split(',').map(Number);if(regOf(a*CS)!==CUR_R)continue;const v=Math.hypot((a+.5)*CS-px,(b+.5)*CS-pz)<lim;for(const m of chunks[k])m.visible=v}}
 const dirty=new Set();
 function markArea(x,z,r){for(let cx=Math.max(0,Math.floor((x-r)/CS));cx<=Math.min(NCX-1,Math.floor((x+r)/CS));cx++)for(let cz=Math.max(0,Math.floor((z-r)/CS));cz<=Math.min(NCZ-1,Math.floor((z+r)/CS));cz++)dirty.add(cx+','+cz)}
-function regionVis(){if(regionVis.r===CUR_R)return;regionVis.r=CUR_R;for(const k of [...PEND]){const q=k.split(',').map(Number);if(regOf(q[0]*CS)===CUR_R)buildChunk(q[0],q[1])}for(const k in chunks){const v=regOf(+k.split(',')[0]*CS)===CUR_R;for(const m of chunks[k])m.visible=v}}
-function flushDirty(){for(const k of dirty){const [a,b]=k.split(',').map(Number);buildChunk(a,b)}dirty.clear()}
+function regionVis(){if(regionVis.r===CUR_R)return;regionVis.r=CUR_R;for(const k of [...PEND]){const q=k.split(',').map(Number);if(regOf(q[0]*CS)===CUR_R){if(Math.hypot((q[0]+.5)*CS-P.x,(q[1]+.5)*CS-P.z)<56)buildChunk(q[0],q[1]);else{PEND.delete(k);LAZY.add(k)}}}for(const k in chunks){const v=regOf(+k.split(',')[0]*CS)===CUR_R;for(const m of chunks[k])m.visible=v}}
+function flushDirty(){for(const k of dirty){const [a,b]=k.split(',').map(Number);LAZY.delete(k);buildChunk(a,b)}dirty.clear();lazyTick();lazyTick();cullChunks(1/60)}
 // 블록 바꾸기 (remote: 네트워크에서 온 것)
 function setBlock(x,y,z,v,o={}){if(!inW(x,y,z))return;const i=idx(x,y,z),old=world[i];if(old===v&&!o.force)return;world[i]=v;ORI[i]=o.ori||0;CHANGES[i]=o.ori?[v,o.ori]:v;
   const ol=lightOf(old)||(B[old]&&B[old].lamp),nl=lightOf(v)||(B[v]&&B[v].lamp);if(nl&&!B[v].nolist)LIGHTS.set(i,v);else LIGHTS.delete(i);
@@ -870,7 +906,7 @@ function iconURL(k){if(ICON[k])return ICON[k];const it=ITEM[k];const c=document.
 const itemName=k=>ITEM[k]?ITEM[k].n:k;
 
 /* ============ 플레이어 상태 ============ */
-const P={x:40.5,y:21,z:44.5,vx:0,vy:0,vz:0,yaw:Math.PI,pitch:0,ground:false,fallY:0,sneak:false,sprint:false,inWater:false,eyeIn:false};
+const P={x:40.5+OFF,y:21,z:44.5+OFF,vx:0,vy:0,vz:0,yaw:Math.PI,pitch:0,ground:false,fallY:0,sneak:false,sprint:false,inWater:false,eyeIn:false};
 let S;// 내 상태 (가방·체력 등)
 function freshS(){return {inv:Array(36).fill(null),armor:null,sel:0,hp:20,food:20,sat:5,xp:0,spawn:null,qi:0,st:{},seen:{},dead:0}}
 const stat=(k,n=1)=>{S.st[k]=(S.st[k]||0)+n};
@@ -916,7 +952,7 @@ function updPlayer(dt){if(S.dead)return;const fid=get(Math.floor(P.x),Math.floor
       if(!P.ground){const fall=P.fallY-P.y;if(fall>3.6&&!inW_)hurtMe(Math.floor(fall-3),'낙하');}P.ground=true}P.vy=0}
   if(P.ground||inW_)P.fallY=P.y;else P.fallY=Math.max(P.fallY,P.y);
   if(P.x>=EX&&P.y<4){P.x=ESP.x;P.y=ESP.y;P.z=ESP.z;P.vy=0;P.fallY=P.y;hurtMe(6,'공허');return}if(P.y<-10){P.y=SPAWN.y;hurtMe(4,'공허')}
-  {const rg=RG[regOf(P.x)];P.x=clamp(P.x,rg[0]+.4,rg[1]-.4)}P.z=clamp(P.z,.4,D-.4);
+  {const rg=RG[regOf(P.x)];P.x=clamp(P.x,rg[0]+.4,rg[1]-.4)}P.z=clamp(P.z,.4,zMax(P.x)-.4);
   // 배고픔
   S.exh=(S.exh||0)+dt*(P.sprint?.15:Math.hypot(P.vx,P.vz)>.5?.05:.02);if(S.exh>=4){S.exh=0;if(S.sat>0)S.sat=Math.max(0,S.sat-1);else S.food=Math.max(0,S.food-1)}
   S.regT=(S.regT||0)+dt;if(S.food>=18&&S.hp<20&&S.regT>3.5){S.regT=0;S.hp=Math.min(20,S.hp+1);S.exh+=1.5}if(S.food<=0&&S.regT>4){S.regT=0;if(S.hp>1)hurtMe(1,'배고픔')}
@@ -1257,14 +1293,14 @@ function dragonStep(m,dt,PL){const T=MOBT.dragon;m.hurt=Math.max(0,m.hurt-dt);m.
   else{m.ph='circle';m.ang=(m.ang||0)+dt*.32;tx=EC.x+Math.cos(m.ang)*19;tz=EC.z+Math.sin(m.ang)*19;ty=EH+13+Math.sin(m.ang*2)*3;if(m.pt<=0&&EPL.length){m.ph='swoop';m.pt=6}
     m.sh=(m.sh==null?3:m.sh)-dt;if(m.sh<=0&&EPL.length){m.sh=rnd(3,5);const p=pick(EPL);if(Math.hypot(p.x-m.x,p.z-m.z)<40){mobShoot(m,p);fx('fire',m.x,m.y+1.5,m.z+1)}}}
   const dx=tx-m.x,dy=ty-m.y,dz=tz-m.z,d=Math.hypot(dx,dy,dz)||1;const sp=m.ph==='swoop'?13:9,st=Math.min(d,sp*dt);m.x+=dx/d*st;m.y+=dy/d*st;m.z+=dz/d*st;m.yaw=Math.atan2(dx,dz);m.moving=1;
-  m.x=clamp(m.x,EX+2,EX+78);m.z=clamp(m.z,2,D-2);m.y=clamp(m.y,EH-1,H+6)}
+  m.x=clamp(m.x,EX+2,EX+78);m.z=clamp(m.z,2,ND-2);m.y=clamp(m.y,EH-1,H+6)}
 function dragonDead(m){if(DRAGON_DEAD)return;DRAGON_DEAD=1;const cx=EC.x,cz=EC.z;let y0=EH;for(let y=H-1;y>0;y--)if(get(cx,y,cz)===58){y0=y;break}
   for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){const r=Math.hypot(dx,dz);if(r>2.6)continue;setBlock(cx+dx,y0,cz+dz,r>1.8?17:64)}
   for(let y=y0+1;y<=y0+3;y++)setBlock(cx,y,cz,17);setBlock(cx,y0+4,cz,63);if(m.killer)giveXP(m.killer,50);netAll({t:'dragon'})}
 function dragonWin(){DRAGON_DEAD=1;if(CUR_R==='end'){stat('dragon');quest();setTimeout(()=>learn('🐉 엔더 드래곤을 물리쳤어요!','가운데에 생긴 <b>귀환 포털</b>로 마을에 돌아가요. 🥚 기둥 위의 <b>드래곤 알</b>은 기념품이에요!<br><br>에너지는 사라지지 않고 <b>모습만 바뀌어요</b>(에너지 보존). 드래곤을 물리친 힘도 음식의 <b>화학 에너지</b>가 몸을 움직이는 <b>운동 에너지</b>로 바뀐 거예요.'),900)}toast('🐉 엔더 드래곤이 쓰러졌어요! 🎉','good')}
-function enderTp(m){const rg=RG[regOf(m.x)];for(let k=0;k<12;k++){const x=m.x+rnd(-8,8),z=m.z+rnd(-8,8);if(x<rg[0]+1||x>rg[1]-1||z<1||z>D-1)continue;const y=groundY(x,z,m.y+6);if(y<5)continue;if(!boxHit(x,y+.05,z,.25,2.8)){fx('poof',m.x,m.y+1,m.z);m.x=x;m.y=y;m.z=z;m.tx=x;m.tz=z;fx('poof',x,y+1,z);return}}}
+function enderTp(m){const rg=RG[regOf(m.x)];for(let k=0;k<12;k++){const x=m.x+rnd(-8,8),z=m.z+rnd(-8,8);if(x<rg[0]+1||x>rg[1]-1||z<1||z>zMax(x)-1)continue;const y=groundY(x,z,m.y+6);if(y<5)continue;if(!boxHit(x,y+.05,z,.25,2.8)){fx('poof',m.x,m.y+1,m.z);m.x=x;m.y=y;m.z=z;m.tx=x;m.tz=z;fx('poof',x,y+1,z);return}}}
 function spawnOther(ALL){const NP=ALL.filter(p=>regOf(p.x)==='nether'),EP=ALL.filter(p=>regOf(p.x)==='end');const cnt=r=>MOBS.filter(m=>regOf(m.x)===r&&m.t!=='dragon').length;
-  const tryP=(L,r,rmin,rmax)=>{const p=pick(L);const rg=RG[r];for(let k=0;k<14;k++){const an=Math.random()*6.28,rr=rnd(rmin,rmax);const x=Math.floor(p.x+Math.cos(an)*rr)+.5,z=Math.floor(p.z+Math.sin(an)*rr)+.5;if(x<rg[0]+1||x>rg[1]-1||z<1||z>D-1)continue;
+  const tryP=(L,r,rmin,rmax)=>{const p=pick(L);const rg=RG[r];for(let k=0;k<14;k++){const an=Math.random()*6.28,rr=rnd(rmin,rmax);const x=Math.floor(p.x+Math.cos(an)*rr)+.5,z=Math.floor(p.z+Math.sin(an)*rr)+.5;if(x<rg[0]+1||x>rg[1]-1||z<1||z>zMax(x)-1)continue;
       const X=Math.floor(x),Z=Math.floor(z);const ys=[];for(let y=5;y<H-3;y++)if(SOLID(get(X,y-1,Z))&&!get(X,y,Z)&&!get(X,y+1,Z)&&!get(X,y+2,Z))ys.push(y);if(!ys.length)continue;const y=ys.reduce((q,c)=>Math.abs(c-p.y)<Math.abs(q-p.y)?c:q);if(Math.abs(y-p.y)>12)continue;return {x,y,z}}return null};
   if(NP.length&&cnt('nether')<4+NP.length*3){const p=tryP(NP,'nether',12,28);if(p){const nearF=Math.hypot(p.x-FORT.x,p.z-FORT.z)<24;const t=nearF&&Math.random()<.6?'blaze':Math.random()<.18?'enderman':'zpig';spawnMob(t,p.x,p.y+(t==='blaze'?2:0),p.z)}}
   if(EP.length){if(cnt('end')<3+EP.length*2){const p=tryP(EP,'end',10,26);if(p)spawnMob('enderman',p.x,p.y,p.z)}
@@ -1274,7 +1310,7 @@ function allPlayers(){const L=S.dead?[]:[{id:'me',x:P.x,y:P.y,z:P.z}];if(NET.on)
 function darkSpot(x,y,z){const L=lightsNear(Math.floor(x)-1,Math.floor(z)-1,Math.floor(x)+1,Math.floor(z)+1);if(blockLightAt(x,y+.5,z,L)>.3)return false;return !exposed(Math.floor(x),Math.floor(y),Math.floor(z))||sunK()<.25}
 let spawnT=0;
 function spawnLoop(){const ALL=allPlayers();if(!ALL.length)return;spawnOther(ALL);const PL=ALL.filter(p=>p.x<OW);const pass=MOBS.filter(m=>MOBT[m.t].kind==='passive').length,host=MOBS.filter(m=>MOBT[m.t].kind==='hostile'&&m.x<OW).length;
-  const tryPos=(rmin,rmax,ok)=>{const p=pick(PL);for(let k=0;k<12;k++){const a=Math.random()*6.28,r=rnd(rmin,rmax);const x=Math.floor(p.x+Math.cos(a)*r)+.5,z=Math.floor(p.z+Math.sin(a)*r)+.5;if(x<1||z<1||x>W-1||z>D-1)continue;
+  const tryPos=(rmin,rmax,ok)=>{const p=pick(PL);for(let k=0;k<12;k++){const a=Math.random()*6.28,r=rnd(rmin,rmax);const x=Math.floor(p.x+Math.cos(a)*r)+.5,z=Math.floor(p.z+Math.sin(a)*r)+.5;if(x<1||z<1||x>W-1||z>zMax(x)-1)continue;
     const ys=[];for(let y=1;y<H-2;y++){if(SOLID(get(Math.floor(x),y-1,Math.floor(z)))&&!SOLID(get(Math.floor(x),y,Math.floor(z)))&&!SOLID(get(Math.floor(x),y+1,Math.floor(z)))&&get(Math.floor(x),y,Math.floor(z))!==6)ys.push(y)}if(!ys.length)continue;const y=pick(ys);if(Math.abs(y-p.y)>14)continue;if(ok(x,y,z))return {x,y,z}}return null};
   if(PL.length&&pass<12&&sunK()>.3){const t=pick(['cow','pig','sheep','chicken']);const p=tryPos(20,40,(x,y,z)=>[1,18].includes(get(Math.floor(x),y-1,Math.floor(z)))&&exposed(Math.floor(x),y,Math.floor(z))&&Math.hypot(x-VC.x,z-VC.z)>12);if(p){const n=1+(Math.random()*3|0);for(let i=0;i<n;i++)spawnMob(t,p.x+rnd(-1,1),p.y,p.z+rnd(-1,1))}}
   const cap=5+PL.length*3+Math.floor(CO2/20);
@@ -1311,7 +1347,7 @@ function updMobs(dt){spawnT-=dt;if(spawnT<=0){spawnT=1.2;spawnLoop()}
       if(T.dmg&&!T.ranged&&!T.boom&&best<(T.kind==='golem'?2:1.4)&&Math.abs((tgt.y||m.y)-m.y)<2.2&&m.atk<=0){m.atk=T.kind==='golem'?1.2:1;if(tgt.mob){hitMob(tgt.mob,T.dmg,null,m.x,m.z,1.5);tgt.mob.vy=7}else mobHits(tgt,T.dmg,m)}
       if(best<1.1&&!T.ranged){dx=dz=0}}
     else if(m.flee>0){dx=m.x-m.fx;dz=m.z-m.fz;sp=T.sp*1.8}
-    else{dx=m.tx-m.x;dz=m.tz-m.z;if(Math.hypot(dx,dz)<.4){dx=dz=0;m.wait-=dt;if(m.wait<=0){m.wait=rnd(2,7);const r=T.kind==='villager'||T.kind==='golem'?9:8;const hx=T.kind==='villager'||T.kind==='golem'?VC.x:m.x,hz=T.kind==='villager'||T.kind==='golem'?VC.z:m.z;const rg=RG[regOf(m.x)];m.tx=clamp(hx+rnd(-r,r),rg[0]+1,rg[1]-1);m.tz=clamp(hz+rnd(-r,r),1,D-1)}}}
+    else{dx=m.tx-m.x;dz=m.tz-m.z;if(Math.hypot(dx,dz)<.4){dx=dz=0;m.wait-=dt;if(m.wait<=0){m.wait=rnd(2,7);const r=T.kind==='villager'||T.kind==='golem'?9:8;const hx=T.kind==='villager'||T.kind==='golem'?VC.x:m.x,hz=T.kind==='villager'||T.kind==='golem'?VC.z:m.z;const rg=RG[regOf(m.x)];m.tx=clamp(hx+rnd(-r,r),rg[0]+1,rg[1]-1);m.tz=clamp(hz+rnd(-r,r),1,zMax(hx)-1)}}}
     if(T.boom&&!tgt)m.fuse=Math.max(0,m.fuse-dt);
     mobMove(m,dx,dz,sp,dt);
     if(T.fly){const gy=groundY(m.x,m.z,m.y+3);const ty=Math.max(gy+2.2,tgt&&tgt.y!=null?tgt.y+1.4:gy+2.2)+Math.sin(performance.now()/600+m.id)*.4;m.vy=0;m.y+=(ty-m.y)*Math.min(1,dt*1.5);m.ground=false;if(Math.random()<dt*3)fx('fire',m.x,m.y+.6,m.z);continue}
@@ -1690,12 +1726,12 @@ function lobby(){const has=!!store.get('save',null);openCard(`<div style="text-a
   ['nick','code'].forEach(i=>$(i).addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'&&i==='code')$('join').click()}))})}
 
 /* ============ 저장 ============ */
-function save(){if(NET.guest||!started)return;try{const ch={};for(const k in CHANGES)ch[k]=CHANGES[k];store.set('save',{v:2,dragon:DRAGON_DEAD,pf:PF,seed:SEEDW,S,P:{x:P.x,y:P.y,z:P.z,yaw:P.yaw,pitch:P.pitch},ch,T,cont:CONT,co2:CO2,trees:TREES,bat:BAT,gens:Object.fromEntries(Object.entries(GENS).map(([k,g])=>[k,[g.fuel,g.burn]])),grow:GROW,drops:DROPS.map(packDrop),season:SEASON})}catch(e){}}
+function save(){if(NET.guest||!started)return;try{const ch={};for(const k in CHANGES)ch[k]=CHANGES[k];store.set('save',{v:3,dragon:DRAGON_DEAD,pf:PF,seed:SEEDW,S,P:{x:P.x,y:P.y,z:P.z,yaw:P.yaw,pitch:P.pitch},ch,T,cont:CONT,co2:CO2,trees:TREES,bat:BAT,gens:Object.fromEntries(Object.entries(GENS).map(([k,g])=>[k,[g.fuel,g.burn]])),grow:GROW,drops:DROPS.map(packDrop),season:SEASON})}catch(e){}}
 addEventListener('visibilitychange',()=>{if(document.hidden)save()});addEventListener('beforeunload',save);
 
 /* ============ 시작 ============ */
 function startGame(asGuest){if(started)return;
-  if(!asGuest){const sv=store.get('save',null);if(sv&&sv.seed){if(!sv.v)sv.ch=convCh(sv.ch||{});PF=sv.pf||0;SEASON=sv.season||SEASON;repaintSeason();applyWorld(Object.assign({},sv,{season:SEASON}));S=Object.assign(freshS(),sv.S);Object.assign(P,sv.P);BAT=sv.bat||30;Object.assign(GROW,sv.grow||{});prefill();toast('저장된 세계를 불러왔어요','good')}
+  if(!asGuest){const sv=store.get('save',null);if(sv&&sv.seed){if(!sv.v)sv.ch=convCh(sv.ch||{});if((sv.v||1)<3){convV2(sv);setTimeout(()=>toast('🌍 세계가 7배 넓어졌어요! 마을 밖으로 탐험해 보세요','good'),2500)}PF=sv.pf||0;SEASON=sv.season||SEASON;repaintSeason();applyWorld(Object.assign({},sv,{season:SEASON}));S=Object.assign(freshS(),sv.S);Object.assign(P,sv.P);BAT=sv.bat||30;Object.assign(GROW,sv.grow||{});prefill();toast('저장된 세계를 불러왔어요','good')}
     else{genWorld((Math.random()*1e6|0)+1);calcTopAll();scanLights();genScan();PF=0;prefill();for(const k in GENS)if(GENS[k].k==='coalgen'){GENS[k].fuel=5;GENS[k].burn=14}S=freshS();P.x=SPAWN.x;P.y=SPAWN.y;P.z=SPAWN.z;P.yaw=0;addItem('apple',3,undefined,true);setTimeout(()=>{if(ov.hidden)learn('⛏️ 에너지 블록 마을에 온 걸 환영해요!','마을은 밤마다 <b>전기가 모자라 깜깜해져요</b>. 먼저 나무를 캐서(왼쪽 클릭 꾹) 도구를 만들고, 밤을 버티며 자원을 모아요. 지금 마을은 <b>석탄 발전기</b> 하나와 배터리로 겨우 버티고 있어요. 석탄은 탄소를 내뿜고 언젠가 바닥나요. <b>재생에너지 발전기</b>를 만들어 마을에 불을 켜 주세요!<br><br>오른쪽 위 <b>미션</b>을 따라가 보세요.')},1200)}}
   else{S=freshS();P.x=SPAWN.x+rnd(-1,1);P.y=SPAWN.y;P.z=SPAWN.z;addItem('apple',3,undefined,true)}
   buildAll();started=true;document.body.classList.remove('pre');closeCard();me=mkAvatar(NET.nick||'나');me.g.children.forEach(c=>{if(c.isSprite)c.visible=false});renderHot();renderVitals();quest();$('lockHint').hidden=touchUI;P.fallY=P.y;
@@ -1855,7 +1891,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;const t=now/
     swing=Math.max(0,swing-dt*4);const mv=Math.hypot(P.vx,P.vz)>.5&&P.ground;hand.position.set(.5+(mv?Math.cos(t*5.5)*.02:0),-.42+(mv?Math.abs(Math.sin(t*5.5))*.03:0)-Math.sin(swing*Math.PI)*.12,-.7+Math.sin(swing*Math.PI)*.1);hand.rotation.set(-Math.sin(swing*Math.PI)*.8,-.15,0);
     const hl2=lightAtPos(P.x,P.y+1,P.z);handMat.color.setScalar(hl2);armMesh.material.color.setHex(0xd9a87a).multiplyScalar(hl2);sleeve.material.color.setHex(0x2c7fbf).multiplyScalar(hl2);
     hudT-=dt;if(hudT<=0){hudT=.25;renderHud();renderVitals()}saveT+=dt;if(saveT>25){saveT=0;save()}}
-  else{const a=t*.05;camera.position.set(40+Math.cos(a)*42,40,40+Math.sin(a)*42);camera.lookAt(40,16,40);flushDirty()}
+  else{const a=t*.05;camera.position.set(VC.x+Math.cos(a)*42,40,VC.z+Math.sin(a)*42);camera.lookAt(VC.x,16,VC.z);flushDirty()}
   updSky(t,dt);
   renderer.autoClear=true;renderer.render(scene,camera);if(started&&VIEW===0&&!S.dead){renderer.autoClear=false;renderer.clearDepth();renderer.render(vmScene,vmCam)}
   requestAnimationFrame(frame)}
