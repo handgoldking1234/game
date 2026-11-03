@@ -59,6 +59,7 @@ body.pre .hud{display:none!important}
 #toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
 .toast{background:rgba(15,23,42,.9);color:#fff;border-radius:12px;padding:8px 14px;font-size:14px;font-weight:800;animation:tin .25s;max-width:86vw;text-align:center}
 .toast.good{background:rgba(21,128,61,.94)}.toast.bad{background:rgba(185,28,28,.94)}.toast.gold{background:linear-gradient(90deg,#b45309,#a21caf)}
+body.panel #toast{top:auto;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 8px)}
 @keyframes tin{from{transform:translateY(10px);opacity:0}}
 #banner{position:fixed;left:50%;top:30%;transform:translateX(-50%);z-index:29;text-align:center;font-size:40px;font-weight:900;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 18px rgba(0,0,0,.45);opacity:0;transition:opacity .4s;pointer-events:none;width:94vw}
 #banner.on{opacity:1}
@@ -564,7 +565,8 @@ function buildPlant(s){const g=new THREE.Group(),G=0x3f9a35,G2=0x2f7d2a;let prod
     else{const r=.15*(s.fs||1)*(s.k==='palm'?1.3:1);m=M('sph',s.c,r,r*(s.id==='mango'?1.25:1),r,x,y,z)}
     m.userData.base=m.scale.clone();g.add(m);fr.push(m)}
   if(prod)prod.userData.base=prod.scale.clone();
-  return {g,fr}}
+  const flw=new THREE.Group();const fy={root:.6,flower:.8,ground:.25,bush:.85,stalk:1.9,tree:2.75,palm:2.7,cactus:1.65,vine:1.8,sunflower:2.5}[s.k]||.8;for(let i=0;i<(s.k==='tree'?6:3);i++){const a=i*2.1,r=s.k==='tree'?.8:s.k==='bush'?.45:.15;const p=M('sphL',i%2?0xffffff:0xf9a8d4,.09,.09,.09,Math.cos(a)*r,fy+(i%2)*.1,Math.sin(a)*r);flw.add(p);flw.add(M('sphL',0xfde047,.04,.04,.04,Math.cos(a)*r,fy+(i%2)*.1+.07,Math.sin(a)*r))}flw.visible=false;g.add(flw);
+  return {g,fr,flw}}
 const SPRV={};
 function buildGear(id){const g=new THREE.Group();if(id==='rod'){g.add(M('cyl',0x94a3b8,.06,4,.06,0,2,0),M('sph',0xfde047,.18,.18,.18,0,4.05,0),M('box',0x475569,.4,.2,.4,0,.1,0))}
   else{const c=id==='spr3'?0xfacc15:id==='spr2'?0x0ea5e9:0x64748b;g.add(M('cyl',c,.16,.6,.16,0,.3,0));const h=new THREE.Group();h.position.y=.65;h.add(M('box',c,.9,.08,.08,0,0,0),M('sph',0x93c5fd,.12,.12,.12,.45,0,0),M('sph',0x93c5fd,.12,.12,.12,-.45,0,0));g.add(h);g.userData.head=h;
@@ -638,6 +640,7 @@ function syncPlot(idx,cells,spr,dt,mine){const v=PLOTV[idx];
     const key=plantKey(pl);if(!o||o.s!==pl.s||o.key!==key){if(!o||o.s!==pl.s){if(o)v.g.remove(o.g);const b=buildPlant(SEEDS[pl.s]);const [x,z]=cellPos(idx,c);b.g.position.set(x,.24,z);b.g.rotation.y=(c*2.399)%6.28;v.g.add(b.g);o=v.cells[c]={...b,s:pl.s,key:''}}
       o.key=key;const s=SEEDS[pl.s];o.fr.forEach((m,i)=>{const f=pl.f[i];m.visible=!!f;if(f){m.material=fruitMat(s,f,isRipe(s,pl,f));m.userData.cell=c;m.userData.fi=i}});o.g.userData.cell=c}
     const s=SEEDS[pl.s];const gp=s.m?Math.min(1,pl.g/s.g):Math.min(1,pl.f[0].p/s.g);o.g.scale.setScalar((.25+.75*gp)*PSC);
+    if(o.flw){const st=stageOf(pl);o.flw.visible=st===2}
     o.fr.forEach((m,i)=>{const f=pl.f[i];if(!f)return;const ripe=isRipe(s,pl,f);const sz=Math.cbrt(f.w/s.kg);const pr=s.m?Math.min(1,f.p/s.rg):gp;const k=(s.m?.25+.75*pr:1)*sz*(ripe?1:.9);m.scale.copy(m.userData.base).multiplyScalar(k)})}
   // 스프링클러
   const want=(spr||[]).map(sp=>sp.c+':'+sp.t).join();if(v.sprKey!==want){v.spr.forEach(o=>v.g.remove(o));v.spr=[];for(const sp of spr||[]){const o=buildGear(sp.t);const [x,z]=cellPos(idx,sp.c);o.position.set(x+.8,.24,z+.8);v.g.add(o);v.spr.push(o)}v.sprKey=want}
@@ -655,10 +658,10 @@ function act(c,fi){const pl=S.cells[c];const sel=GAME.sel;
   if(sel==='gear:can'){if(!pl){toast('물을 줄 식물이 없어요');return}S.gear.can--;advancePlant(pl,15);SND.plant();GAME.dirty=true;drawBar();const [x,z]=cellPos(GAME.idx,c);popText(x,1.4,z,'💧 쑥쑥!');splash(x,z);return}
   if(sel.startsWith('gear:')){const id=sel.slice(5);if(S.spr.find(sp=>sp.c===c)){toast('여기엔 이미 도구가 있어요');return}if(S.spr.length>=8){toast('도구는 8개까지 놓을 수 있어요');return}S.gear[id]--;S.spr.push({c,t:id,left:GEAR[GI[id]].dur});SND.plant();GAME.dirty=true;drawBar();toast(`${GEAR[GI[id]].e} ${GEAR[GI[id]].n}을(를) 놓았어요`,'good');return}
   if(pl){const s=SEEDS[pl.s];const rip=pl.f.filter(f=>isRipe(s,pl,f)).length;if(rip){for(let i=0;i<pl.f.length;i++)if(isRipe(s,pl,pl.f[i])){harvest(c,i);return}}
-    const left=s.m?(pl.g<s.g?s.g-pl.g:Math.min(...pl.f.map(f=>s.rg-f.p))):s.g-pl.f[0].p;const [x,z]=cellPos(GAME.idx,c);popText(x,1.6,z,`${s.e} ${s.n} · ${pl.g<s.g&&s.m?'자라는 중':'열매 익는 중'} ${mmss(left/growRate(c))}`)}}
+    const left=s.m?(pl.g<s.g?s.g-pl.g:Math.min(...pl.f.map(f=>s.rg-f.p))):s.g-pl.f[0].p;const [x,z]=cellPos(GAME.idx,c);const st=observe(pl);popText(x,1.6,z,`${s.e} ${STG[st].e} ${STG[st].n} · ${pl.g<s.g&&s.m?'자라는 중':'열매 익는 중'} ${mmss(left/growRate(c))}`)}}
 function harvest(c,fi){const pl=S.cells[c];if(!pl)return;const s=SEEDS[pl.s],f=pl.f[fi];if(!f||!isRipe(s,pl,f))return;
   if(S.fruits.length>=300){toast('🎒 가방이 가득 찼어요! 판매대에서 팔아 주세요','bad');return}
-  S.fruits.push({s:pl.s,w:f.w,m:f.m});S.harvests++;const val=fruitValue({s:pl.s,w:f.w,m:f.m});
+  S.fruits.push({s:pl.s,w:f.w,m:f.m});S.harvests++;observe(pl);const val=fruitValue({s:pl.s,w:f.w,m:f.m});
   const [x,z]=cellPos(GAME.idx,c);popText(x,1.6,z,`${s.e} ${f.w}kg ${f.m?[...MUTS].filter((m,i)=>f.m&(1<<i)).map(m=>m.e).join(''):''} · 🪙${fmt(val)}`);
   if(f.m&(MB.rainbow|MB.gold|MB.star|MB.shock))toast(`대박! ${mutText(f.m)} ${s.n} 수확!`,'gold');
   if(s.m)pl.f[fi]=newFruit(s,c);else S.cells[c]=null;SND.pick();GAME.dirty=true;tut(2)}
@@ -666,7 +669,7 @@ function harvestNear(){let best=null,bd=3.2;S.cells.forEach((pl,c)=>{if(!pl)retu
 const SPL=[];function splash(x,z){for(let i=0;i<8;i++){const m=M('sphL',0x7dd3fc,.08,.08,.08,x,.9,z);m.userData.v=[(Math.random()-.5)*3,2+Math.random()*2,(Math.random()-.5)*3];scene.add(m);SPL.push({m,t:.7})}}
 
 /* ---------- 날씨 ---------- */
-function weatherTick(dt){const w=weatherAt(now());if(w.slot!==GAME.wxSlot||w.k!==GAME.wx){const was=GAME.wx;GAME.wx=w.k;GAME.wxSlot=w.slot;if(GAME.on&&w.k.id!=='clear'&&was!==w.k){banner(`${w.k.e} ${w.k.n}!`,w.k.msg,4500);setTimeout(()=>{if(GAME.wx===w.k)toast('📘 '+w.k.fact,'',5500)},4600)}else if(GAME.on&&w.k.id==='clear'&&was.id!=='clear')toast('☀️ 날씨가 맑아졌어요')}
+function weatherTick(dt){const w=weatherAt(now());if(w.slot!==GAME.wxSlot||w.k!==GAME.wx){const was=GAME.wx,wasS=GAME.wxSlot;GAME.wx=w.k;GAME.wxSlot=w.slot;if(w.slot!==wasS&&GAME.on)checkForecast(w.slot);if(GAME.on&&w.k.id!=='clear'&&was!==w.k){S.seenWx=S.seenWx||{};if(!S.seenWx[w.k.id]){S.seenWx[w.k.id]=1;setTimeout(()=>toast('📘 새 날씨 카드: '+w.k.e+' '+w.k.n+' (🎒 가방 → 학습)','good',4000),9500)}banner(`${w.k.e} ${w.k.n}!`,w.k.msg,4500);setTimeout(()=>{if(GAME.wx===w.k)toast('📘 '+w.k.fact,'',5500)},4600)}else if(GAME.on&&w.k.id==='clear'&&was.id!=='clear')toast('☀️ 날씨가 맑아졌어요')}
   const k=GAME.wx.id;$('wxW').textContent=k==='clear'?`☀️ 맑음 · 다음 날씨 ${mmss(w.next)}`:`${GAME.wx.e} ${GAME.wx.n} ${mmss(w.left)}`;$('wxW').classList.toggle('on',k!=='clear');
   const rs=RESTOCK-now()%RESTOCK;$('wxS').textContent=k==='clear'?`🌱 새 씨앗까지 ${mmss(rs)}`:GAME.wx.msg;
   if(k==='clear'||!GAME.on)return;
@@ -691,8 +694,8 @@ function petTick(dt){const p=dt*SEC;for(const uid of S.eq){const pt=S.pets.find(
   for(const e of S.eggs)if(e.left>0){e.left=Math.max(0,e.left-p*(1+petHas('egg')));if(e.left===0){toast(`${EGGS[e.k].e} 알이 부화할 준비가 됐어요! 🎒 가방 → 펫`,'good');$('bBag').classList.add('dot')}}}
 
 /* ---------- 카드(가게·가방) ---------- */
-function openCard(html,cls){$('ov').hidden=false;$('ov').className=cls||'';$('ov').innerHTML=`<div class="card">${html}</div>`;GAME.panel=true;updHint();const x=$('ov').querySelector('.x');if(x)x.onclick=closeCard}
-function closeCard(){if(!GAME.on)return;$('ov').hidden=true;$('ov').innerHTML='';GAME.panel=null;updHint()}
+function openCard(html,cls){document.body.classList.add('panel');$('ov').hidden=false;$('ov').className=cls||'';$('ov').innerHTML=`<div class="card">${html}</div>`;GAME.panel=true;updHint();const x=$('ov').querySelector('.x');if(x)x.onclick=closeCard}
+function closeCard(){if(!GAME.on)return;document.body.classList.remove('panel');$('ov').hidden=true;$('ov').innerHTML='';GAME.panel=null;updHint()}
 $('ov').addEventListener('pointerdown',e=>{if(e.target===$('ov')&&GAME.on)closeCard()});
 function askCard(t,d,ok,fn){openCard(`<h2>${t}</h2><p class="d">${d}</p><div class="row"><button class="btn b4" id="aOk" type="button">${ok}</button><button class="btn b3" id="aNo" type="button">그만두기</button></div>`);$('aOk').onclick=()=>{closeCard();fn()};$('aNo').onclick=closeCard}
 function rarB(r){const R_=RAR[r];return `<span class="r${R_.c==='rb'?' rb':''}" style="background:${R_.c==='rb'?'':R_.c}">${R_.n}</span>`}
@@ -718,49 +721,71 @@ function sellShop(){const list=S.fruits.map((f,i)=>({f,i,v:fruitValue(f)})).sort
 function earn(v){if(!v)return;S.coins+=v;S.earned+=v;SND.coin();tut(3);GAME.dirty=true}
 /* 날씨 박사 퀴즈 */
 const QZ=[
- ['높은 하늘에서 수증기가 응결해 작은 물방울·얼음 알갱이로 떠 있는 것은?',['구름','바람','무지개','번개']],
- ['밤에 차가워진 풀잎 등에 수증기가 응결해 맺힌 물방울은?',['이슬','서리','우박','안개']],
- ['지표면 가까이에 작은 물방울이 떠 있어 앞이 뿌옇게 보이는 현상은?',['안개','구름','이슬','황사']],
- ['습도를 잴 때 쓰는 도구는?',['건습구 습도계','풍향계','우량계','나침반']],
- ['비가 얼마나 왔는지 재는 도구는?',['우량계','풍향계','온도계','습도계']],
- ['바람이 불어오는 방향을 알려 주는 도구는?',['풍향계','우량계','온도계','저울']],
- ['바람은 어디에서 어디로 불까요?',['고기압 → 저기압','저기압 → 고기압','바다 → 하늘','남쪽 → 북쪽만']],
- ['맑은 날 낮에 바닷가에서는 바람이 어느 쪽으로 불까요?',['바다 → 육지','육지 → 바다','위 → 아래','바람이 안 불어요']],
- ['맑은 날 밤에 바닷가에서는 바람이 어느 쪽으로 불까요?',['육지 → 바다','바다 → 육지','아래 → 위','바람이 안 불어요']],
- ['우리나라 겨울에 차고 건조한 공기 덩어리는 어디에서 올까요?',['북서쪽 대륙','남동쪽 바다','남서쪽 바다','북동쪽 바다']],
- ['우리나라 여름에 덥고 습한 공기 덩어리는 어디에서 올까요?',['남동쪽 바다','북서쪽 대륙','북쪽 극지방','서쪽 사막']],
- ['같은 부피일 때 더 무거운 공기는?',['차가운 공기','따뜻한 공기','둘 다 같아요','공기는 무게가 없어요']],
- ['공기의 무게 때문에 생기는 누르는 힘을 무엇이라고 할까요?',['기압','습도','기온','풍속']],
- ['식물이 빛을 받아 스스로 양분을 만드는 일은?',['광합성','증산 작용','호흡','수분']],
- ['광합성에 꼭 필요한 것이 아닌 것은?',['소금','빛','물','이산화 탄소']],
- ['뿌리가 하는 일로 알맞은 것은?',['물을 흡수해요','꽃가루를 만들어요','빛을 모아요','씨를 퍼뜨려요']],
- ['잎에 도달한 물이 기공을 통해 수증기로 빠져나가는 것은?',['증산 작용','광합성','응결','수정']],
- ['벌·나비가 꽃가루를 옮겨 주는 것을 무엇이라고 할까요?',['수분(꽃가루받이)','증산','발아','광합성']],
- ['씨가 싹 트는 데 꼭 필요한 조건은?',['알맞은 온도와 물','많은 비료','소금물','어둠만']],
- ['번개가 친 뒤 천둥소리가 늦게 들리는 까닭은?',['빛이 소리보다 빨라서','소리가 빛보다 빨라서','구름이 소리를 막아서','귀가 늦게 들어서']],
- ['높은 건물 꼭대기에 번개를 안전하게 땅으로 흘려보내는 장치는?',['피뢰침','풍향계','안테나','우량계']],
- ['구름 속 얼음 알갱이가 녹지 않고 땅까지 내려오면?',['눈','비','이슬','안개']],
- ['일기 예보에서 "강수 확률"은 무엇을 뜻할까요?',['비나 눈이 올 가능성','바람의 세기','기온','미세먼지 양']],
- ['습도가 높은 날 일어나는 일로 알맞은 것은?',['빨래가 잘 안 말라요','빨래가 아주 빨리 말라요','정전기가 많이 생겨요','눈이 와요']],
- ['황사는 주로 어디에서 날아올까요?',['중국·몽골의 사막','태평양 바다','북극','남극']],
- ['태양광 발전은 어떤 에너지를 전기 에너지로 바꿀까요?',['빛 에너지','소리 에너지','화학 에너지','위치 에너지']],
- ['풍력 발전은 무엇의 힘으로 전기를 만들까요?',['바람','파도','석탄','지열']],
- ['재생 에너지가 아닌 것은?',['석탄','태양광','풍력','수력']],
- ['이슬과 구름의 공통점은?',['수증기가 응결해서 생겨요','얼음으로만 되어 있어요','땅에서만 생겨요','낮에만 생겨요']],
- ['열매 속에 씨가 있는 까닭은?',['씨를 퍼뜨려 자손을 남기려고','물을 저장하려고','빛을 모으려고','무거워지려고']]];
+ ['높은 하늘에서 수증기가 응결해 작은 물방울·얼음 알갱이로 떠 있는 것은?',['구름','바람','무지개','번개'],'공기가 높이 올라가 차가워지면 수증기가 응결해 작은 물방울이 되고, 이것이 모여 구름이 돼요.'],
+ ['밤에 차가워진 풀잎 등에 수증기가 응결해 맺힌 물방울은?',['이슬','서리','우박','안개'],'밤에 기온이 내려가 차가워진 물체 표면에 공기 중 수증기가 응결하면 이슬이 맺혀요.'],
+ ['지표면 가까이에 작은 물방울이 떠 있어 앞이 뿌옇게 보이는 현상은?',['안개','구름','이슬','황사'],'지표면 근처의 공기가 차가워져 수증기가 응결해 떠 있으면 안개예요. 높은 하늘에 생기면 구름이에요.'],
+ ['습도를 잴 때 쓰는 도구는?',['건습구 습도계','풍향계','우량계','나침반'],'건구 온도계와 습구 온도계의 온도 차이를 습도표에서 찾으면 습도를 알 수 있어요.'],
+ ['건습구 습도계에서 습구 온도가 건구 온도보다 낮은 까닭은?',['헝겊의 물이 증발하면서 열을 빼앗아서','습구가 햇빛을 덜 받아서','습구가 물에 젖어 무거워서','온도계가 고장 나서'],'물이 증발할 때 주변의 열을 빼앗아요. 공기가 건조할수록 증발이 잘 돼 두 온도 차이가 커져요.'],
+ ['건구 온도와 습구 온도의 차이가 클수록 습도는?',['낮아요','높아요','변하지 않아요','0%가 돼요'],'공기가 건조할수록 물이 잘 증발해 습구 온도가 더 많이 내려가요. 차이가 크면 습도가 낮은 거예요.'],
+ ['비가 얼마나 왔는지 재는 도구는?',['우량계','풍향계','온도계','습도계'],'우량계에 모인 빗물의 높이(mm)로 비의 양(강수량)을 재요.'],
+ ['바람이 불어오는 방향을 알려 주는 도구는?',['풍향계','우량계','온도계','저울'],'풍향계의 화살표는 바람이 불어오는 쪽을 가리켜요. 북쪽에서 불어오면 북풍이에요.'],
+ ['바람은 어디에서 어디로 불까요?',['고기압 → 저기압','저기압 → 고기압','바다 → 하늘','남쪽 → 북쪽만'],'두 곳의 기압 차이 때문에 공기가 고기압에서 저기압으로 움직이는 것이 바람이에요.'],
+ ['맑은 날 낮에 바닷가에서는 바람이 어느 쪽으로 불까요?',['바다 → 육지','육지 → 바다','위 → 아래','바람이 안 불어요'],'낮에는 육지가 바다보다 빨리 데워져 육지가 저기압이 돼요. 그래서 바다에서 육지로 해풍이 불어요.'],
+ ['맑은 날 밤에 바닷가에서는 바람이 어느 쪽으로 불까요?',['육지 → 바다','바다 → 육지','아래 → 위','바람이 안 불어요'],'밤에는 육지가 바다보다 빨리 식어 바다 쪽이 저기압이 돼요. 그래서 육지에서 바다로 육풍이 불어요.'],
+ ['우리나라 겨울에 차고 건조한 공기 덩어리는 어디에서 올까요?',['북서쪽 대륙','남동쪽 바다','남서쪽 바다','북동쪽 바다'],'북서쪽 대륙에서 오는 공기 덩어리는 차갑고 건조해서 겨울이 춥고 건조해요.'],
+ ['우리나라 여름에 덥고 습한 공기 덩어리는 어디에서 올까요?',['남동쪽 바다','북서쪽 대륙','북쪽 극지방','서쪽 사막'],'남동쪽 바다에서 오는 공기 덩어리는 따뜻하고 습해서 여름이 덥고 습해요.'],
+ ['공기 덩어리가 바다 위에 오래 머물면 어떤 성질을 띨까요?',['습해져요','건조해져요','무거워져요','색이 변해요'],'공기 덩어리는 머문 곳의 성질을 닮아요. 바다 위는 습하고, 대륙 위는 건조해요.'],
+ ['같은 부피일 때 더 무거운 공기는?',['차가운 공기','따뜻한 공기','둘 다 같아요','공기는 무게가 없어요'],'차가운 공기는 알갱이가 촘촘해 같은 부피에서 더 무거워요. 그래서 기압이 높아요.'],
+ ['공기의 무게 때문에 생기는 누르는 힘을 무엇이라고 할까요?',['기압','습도','기온','풍속'],'공기도 무게가 있어 물체를 눌러요. 이 힘이 기압이에요.'],
+ ['주변보다 기압이 높은 곳을 무엇이라고 할까요?',['고기압','저기압','진공','태풍'],'주변보다 기압이 높으면 고기압, 낮으면 저기압이에요. 고기압일 때는 대체로 날씨가 맑아요.'],
+ ['저기압이 다가오면 날씨는 대체로 어떻게 될까요?',['흐리거나 비가 와요','아주 맑아요','항상 눈이 와요','바람이 멈춰요'],'저기압에서는 공기가 위로 올라가며 식어 구름이 잘 생겨서 흐리거나 비가 오기 쉬워요.'],
+ ['구름 속 작은 물방울이 합쳐져 무거워지면 어떻게 될까요?',['비가 되어 떨어져요','더 높이 올라가요','사라져요','얼음으로만 변해요'],'작은 물방울이 서로 합쳐져 커지고 무거워지면 떨어지는데, 이것이 비예요.'],
+ ['구름 속 얼음 알갱이가 녹지 않고 땅까지 내려오면?',['눈','비','이슬','안개'],'얼음 알갱이가 커져 떨어질 때 녹지 않으면 눈, 녹으면 비가 돼요.'],
+ ['응결이란 무엇일까요?',['수증기가 물방울로 변하는 것','물이 수증기로 변하는 것','물이 얼음이 되는 것','얼음이 녹는 것'],'공기 중 수증기가 차가워져 물방울로 변하는 것을 응결이라고 해요. 이슬·안개·구름이 모두 응결로 생겨요.'],
+ ['차가운 컵 표면에 물방울이 맺히는 까닭은?',['공기 중 수증기가 응결해서','컵에서 물이 새어서','얼음이 컵을 뚫고 나와서','컵이 땀을 흘려서'],'차가운 컵 주변의 공기가 식으면서 수증기가 응결해 물방울이 맺혀요. 이슬이 생기는 원리와 같아요.'],
+ ['습도가 높은 날 일어나는 일로 알맞은 것은?',['빨래가 잘 안 말라요','빨래가 아주 빨리 말라요','정전기가 많이 생겨요','눈이 와요'],'습도가 높으면 공기 중 수증기가 많아 물이 잘 증발하지 않아요. 곰팡이도 잘 생겨요.'],
+ ['습도가 너무 낮을 때 할 수 있는 일은?',['가습기를 틀거나 젖은 수건을 널어요','제습기를 틀어요','창문을 꼭 닫고 난로만 켜요','물을 마시지 않아요'],'건조할 때는 가습기나 젖은 수건으로 습도를 높여요. 너무 습할 때는 제습기를 써요.'],
+ ['일기 예보에서 "강수 확률"은 무엇을 뜻할까요?',['비나 눈이 올 가능성','바람의 세기','기온','미세먼지 양'],'강수 확률 70%는 비나 눈이 올 가능성이 높다는 뜻이에요. 우산을 챙기면 좋아요.'],
+ ['번개가 친 뒤 천둥소리가 늦게 들리는 까닭은?',['빛이 소리보다 빨라서','소리가 빛보다 빨라서','구름이 소리를 막아서','귀가 늦게 들어서'],'빛은 1초에 약 30만 km, 소리는 약 340 m를 가요. 그래서 번쩍이는 빛을 먼저 보고 소리는 나중에 들어요.'],
+ ['높은 건물 꼭대기에 번개를 안전하게 땅으로 흘려보내는 장치는?',['피뢰침','풍향계','안테나','우량계'],'피뢰침은 번개의 전기를 땅으로 안전하게 흘려보내 건물을 지켜요.'],
+ ['천둥·번개가 칠 때 안전한 행동은?',['건물 안으로 들어가요','큰 나무 밑에 서 있어요','넓은 운동장 가운데 있어요','우산을 높이 들어요'],'번개는 높은 곳에 잘 떨어져요. 나무 밑이나 넓은 곳은 위험하니 건물 안으로 피해요.'],
+ ['황사는 주로 어디에서 날아올까요?',['중국·몽골의 사막','태평양 바다','북극','남극'],'봄철 중국·몽골 사막의 모래 먼지가 바람을 타고 우리나라까지 날아와요. 마스크를 써요.'],
+ ['태풍은 주로 어디에서 만들어질까요?',['따뜻한 열대 바다','차가운 극지방','높은 산꼭대기','사막'],'태풍은 따뜻한 열대 바다에서 수증기를 많이 얻어 만들어지는 강한 저기압이에요.'],
+ ['폭염 경보가 내렸을 때 알맞은 행동은?',['물을 자주 마시고 한낮 바깥 활동을 줄여요','한낮에 운동장을 달려요','물을 마시지 않아요','두꺼운 옷을 입어요'],'폭염 때는 물을 자주 마시고 시원한 곳에서 쉬며, 한낮(12~17시) 바깥 활동을 줄여요.'],
+ ['식물이 빛을 받아 스스로 양분을 만드는 일은?',['광합성','증산 작용','호흡','수분'],'잎은 빛 에너지와 물, 이산화 탄소로 양분(녹말)을 만들어요. 이것이 광합성이에요.'],
+ ['광합성에 꼭 필요한 것이 아닌 것은?',['소금','빛','물','이산화 탄소'],'광합성에는 빛, 물, 이산화 탄소가 필요해요. 그 결과 양분과 산소가 만들어져요.'],
+ ['뿌리가 하는 일로 알맞은 것은?',['물을 흡수해요','꽃가루를 만들어요','빛을 모아요','씨를 퍼뜨려요'],'뿌리는 땅속의 물을 흡수하고 식물을 지지해요. 양분을 저장하는 뿌리도 있어요(당근·고구마).'],
+ ['줄기가 하는 일은?',['물과 양분이 이동하는 통로예요','빛을 받아 양분을 만들어요','꽃가루를 옮겨요','씨를 만들어요'],'줄기는 뿌리에서 흡수한 물을 잎으로, 잎에서 만든 양분을 온몸으로 보내는 통로예요.'],
+ ['잎에 도달한 물이 기공을 통해 수증기로 빠져나가는 것은?',['증산 작용','광합성','응결','수정'],'증산 작용은 뿌리에서 물을 끌어올리고 식물의 온도를 조절해요.'],
+ ['벌·나비가 꽃가루를 옮겨 주는 것을 무엇이라고 할까요?',['수분(꽃가루받이)','증산','발아','광합성'],'꽃가루가 암술에 옮겨 붙는 것을 꽃가루받이라고 해요. 그래야 씨와 열매가 생겨요.'],
+ ['꽃이 하는 가장 중요한 일은?',['씨를 만들어요','물을 흡수해요','양분을 만들어요','식물을 지지해요'],'꽃가루받이가 일어나면 꽃에서 씨가 만들어지고, 씨를 싸고 있는 부분이 열매로 자라요.'],
+ ['씨가 싹 트는 데 꼭 필요한 조건은?',['알맞은 온도와 물','많은 비료','소금물','어둠만'],'씨가 싹 트려면 알맞은 양의 물과 온도가 필요해요. 싹 튼 뒤 잘 자라려면 빛도 필요해요.'],
+ ['씨를 심은 뒤 가장 먼저 나오는 것은?',['뿌리와 떡잎','꽃','열매','단풍잎'],'씨에서 뿌리가 먼저 나와 땅을 붙잡고, 이어서 떡잎이 땅 위로 올라와요.'],
+ ['식물의 한살이 순서로 알맞은 것은?',['씨 → 싹 → 잎·줄기 → 꽃 → 열매','꽃 → 씨 → 열매 → 싹','열매 → 꽃 → 싹 → 씨','싹 → 열매 → 씨 → 꽃'],'씨가 싹 트고 자라 꽃이 피고, 열매를 맺어 다시 씨를 남겨요. 이 과정을 한살이라고 해요.'],
+ ['한해살이 식물과 여러해살이 식물의 차이는?',['한 해 안에 한살이를 마치는지 여부','꽃 색깔','잎의 개수','키의 크기'],'벼·옥수수처럼 한 해 안에 씨를 남기고 죽으면 한해살이, 사과나무처럼 여러 해 사는 것은 여러해살이 식물이에요.'],
+ ['열매 속에 씨가 있는 까닭은?',['씨를 퍼뜨려 자손을 남기려고','물을 저장하려고','빛을 모으려고','무거워지려고'],'동물이 열매를 먹고 씨를 퍼뜨리거나, 바람·물에 씨가 날아가 새로운 곳에서 싹 트도록 해요.'],
+ ['같은 식물이라도 비가 알맞게 오면 잘 자라는 까닭은?',['식물이 자라는 데 물이 필요해서','비가 열매를 크게 칠해서','비가 해를 가려서','비가 씨를 없애서'],'물은 광합성의 재료이고, 양분을 옮기는 데도 쓰여요. 그래서 알맞은 비는 식물에게 도움이 돼요.'],
+ ['태양광 발전은 어떤 에너지를 전기 에너지로 바꿀까요?',['빛 에너지','소리 에너지','화학 에너지','위치 에너지'],'태양 전지는 햇빛의 빛 에너지를 전기 에너지로 바꿔요.'],
+ ['풍력 발전은 무엇의 힘으로 전기를 만들까요?',['바람','파도','석탄','지열'],'바람이 날개를 돌리면 발전기가 운동 에너지를 전기 에너지로 바꿔요.'],
+ ['재생 에너지가 아닌 것은?',['석탄','태양광','풍력','수력'],'석탄·석유는 쓰면 다시 만들기 어려운 화석 연료예요. 햇빛·바람·물은 계속 다시 얻을 수 있어요.'],
+ ['이슬과 구름의 공통점은?',['수증기가 응결해서 생겨요','얼음으로만 되어 있어요','땅에서만 생겨요','낮에만 생겨요'],'이슬은 물체 표면에서, 구름은 높은 하늘에서 수증기가 응결해 생겨요.'],
+ ['기온은 보통 하루 중 언제 가장 높을까요?',['오후 2시 무렵','해 뜰 무렵','자정','아침 7시'],'태양이 가장 높은 정오보다 조금 늦은 오후 2시 무렵 땅이 가장 많이 데워져 기온이 가장 높아요.'],
+ ['기온을 잴 때 알맞은 방법은?',['그늘진 곳, 땅에서 1.2~1.5m 높이에서 재요','햇빛 아래 땅바닥에서 재요','온도계를 손으로 꼭 쥐고 재요','물속에 넣고 재요'],'햇빛이나 땅의 열을 직접 받지 않도록 그늘에서, 지면에서 약 1.2~1.5m 높이에서 재요.']];
 let liveT=null;
-function quizShop(){const cd=60-(now()-S.quizT);if(cd>0){openCard(`<button class="x" type="button">✕</button><h2>🧑‍🔬 날씨 박사</h2><p class="d">허허, 공부도 쉬엄쉬엄! <b id="qzT">${mmss(cd)}</b> 뒤에 새 문제를 낼게요.</p>`);liveT=()=>{const c=60-(now()-S.quizT);if(c<=0)quizShop();else if($('qzT'))$('qzT').textContent=mmss(c)};return}
-  const q=QZ[Math.random()*QZ.length|0];const opts=q[1].map((t,i)=>[t,i]).sort(()=>Math.random()-.5);const reward=Math.max(40,Math.min(50000,Math.round(S.coins*.08)));
-  openCard(`<button class="x" type="button">✕</button><h2>🧑‍🔬 날씨 박사의 퀴즈</h2><p class="d">맞히면 <b>🪙 ${fmt(reward)}</b>! 가끔 씨앗도 덤으로 줘요.</p><div class="qz">${q[0]}</div><div class="qo">${opts.map(([t,i])=>`<button type="button" data-i="${i}">${t}</button>`).join('')}</div>`);liveT=null;
-  $('ov').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{if(S.quizT>now()-1)return;S.quizT=now();const ok=b.dataset.i==='0';$('ov').querySelectorAll('[data-i]').forEach(x=>{x.disabled=true;if(x.dataset.i==='0')x.classList.add('ok')});
-    if(ok){earn(reward);let bonus='';if(Math.random()<.35){const s=SEEDS[1+(Math.random()*5|0)];S.seeds[s.id]=(S.seeds[s.id]||0)+1;bonus=` + ${s.e} ${s.n} 씨앗`;drawBar()}toast(`정답! 🪙 ${fmt(reward)}${bonus}`,'good')}else{b.classList.add('no');S.quizT=now()-30;SND.bad();toast('아쉬워요! 30초 뒤에 다시 도전해요','bad')}})}
+function quizShop(){const CD=45;const cd=CD-(now()-S.quizT);if(cd>0){openCard(`<button class="x" type="button">✕</button><h2>🧑‍🔬 날씨 박사</h2><p class="d">허허, 공부도 쉬엄쉬엄! <b id="qzT">${mmss(cd)}</b> 뒤에 새 문제를 낼게요.<br>그동안 <b>🌡️ 날씨 측정소</b>에서 다음 날씨를 예보해 보거나, 식물을 눌러 <b>한살이 관찰</b>을 해 봐요.</p>`);liveT=()=>{const c=CD-(now()-S.quizT);if(c<=0)quizShop();else if($('qzT'))$('qzT').textContent=mmss(c)};return}
+  S.qdeck=(S.qdeck&&S.qdeck.length)?S.qdeck:QZ.map((_,i)=>i).sort(()=>Math.random()-.5);const qi=S.qdeck.pop(),q=QZ[qi];const opts=q[1].map((t,i)=>[t,i]).sort(()=>Math.random()-.5);const reward=Math.max(40,Math.min(50000,Math.round(S.coins*.08)));
+  openCard(`<button class="x" type="button">✕</button><h2>🧑‍🔬 날씨 박사의 퀴즈 <small>연속 정답 ${S.qstreak||0}</small></h2><p class="d">맞히면 <b>🪙 ${fmt(reward)}</b>! 3문제 연속으로 맞히면 씨앗 선물!</p><div class="qz">${q[0]}</div><div class="qo">${opts.map(([t,i])=>`<button type="button" data-i="${i}">${t}</button>`).join('')}</div><div id="qExp"></div>`);liveT=null;
+  $('ov').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{if(S.quizT>now()-1)return;S.quizT=now();const ok=b.dataset.i==='0';S.qN=(S.qN||0)+1;$('ov').querySelectorAll('[data-i]').forEach(x=>{x.disabled=true;if(x.dataset.i==='0')x.classList.add('ok')});
+    if(ok){S.qOK=(S.qOK||0)+1;S.qstreak=(S.qstreak||0)+1;earn(reward);let bonus='';if(S.qstreak%3===0){const s=SEEDS[2+(Math.random()*5|0)];S.seeds[s.id]=(S.seeds[s.id]||0)+1;bonus=` + 🎁 ${s.e} ${s.n} 씨앗`;drawBar()}toast(`정답! 🪙 ${fmt(reward)}${bonus}`,'good')}else{b.classList.add('no');S.qstreak=0;S.quizT=now()-25;SND.bad();(S.qmiss=S.qmiss||[]).includes(qi)||S.qmiss.push(qi)}
+    if(ok&&S.qmiss)S.qmiss=S.qmiss.filter(x=>x!==qi);
+    $('qExp').innerHTML=`<div class="sum" style="display:block;background:${ok?'#f0fdf4':'#fef2f2'};font-weight:600;line-height:1.5;margin-top:10px"><b style="font-size:15px">${ok?'⭕ 정답!':'❌ 아쉬워요! 정답: '+q[1][0]}</b><br>📘 ${q[2]}</div>`})}
 function bagCard(tab){tab=tab||'fruit';$('bBag').classList.remove('dot');const T=(id,n)=>`<button type="button" data-t="${id}" class="${tab===id?'on':''}">${n}</button>`;let body='';
   if(tab==='fruit'){const c={};S.fruits.forEach(f=>{const k=f.s+':'+f.m;(c[k]=c[k]||{f,n:0,v:0}).n++;c[k].v+=fruitValue(f)});const L=Object.values(c).sort((a,b)=>b.v-a.v);body=L.map(({f,n,v})=>{const s=SEEDS[f.s];return `<div class="it"><div class="e">${s.e}</div><div><div class="n">${s.n} ×${n}</div><div class="m">${mutText(f.m)||'변이 없음'}</div></div><div class="a"><span class="pr">🪙 ${fmt(v)}</span></div></div>`}).join('')||'<div class="empty">아직 수확한 열매가 없어요</div>';body=`<p class="d">열매 ${S.fruits.length}/300개 · 판매대에서 팔 수 있어요</p><div class="list">${body}</div>`}
   else if(tab==='seed'){body=`<div class="list">${[...SEEDS.filter(s=>S.seeds[s.id]>0).map(s=>`<div class="it"><div class="e">${s.e}</div><div><div class="n">${s.n} ${rarB(s.r)}</div><div class="m">${s.m?'🔁 여러 번 수확':'✂️ 한 번 수확'}</div></div><div class="a"><b>${S.seeds[s.id]}개</b><button class="btn sm" type="button" data-u="seed:${s.id}">손에 들기</button></div></div>`),...GEAR.filter(g=>S.gear[g.id]>0).map(g=>`<div class="it"><div class="e">${g.e}</div><div><div class="n">${g.n}</div><div class="m">${g.d}</div></div><div class="a"><b>${S.gear[g.id]}개</b><button class="btn sm b2" type="button" data-u="gear:${g.id}">손에 들기</button></div></div>`)].join('')||'<div class="empty">씨앗이 없어요. 씨앗 가게에 가 봐요!</div>'}</div>`}
-  else{const eg=S.eggs.map((e,i)=>`<div class="it"><div class="e">${EGGS[e.k].e}</div><div><div class="n">${EGGS[e.k].n}</div><div class="m">${e.left>0?'부화까지 '+mmss(e.left/(1+petHas('egg'))):'두근두근… 부화할 준비 완료!'}</div></div><div class="a"><button class="btn sm b4" type="button" data-h="${i}" ${e.left>0?'disabled':''}>부화!</button></div></div>`).join('');
+  else if(tab==='pet'){const eg=S.eggs.map((e,i)=>`<div class="it"><div class="e">${EGGS[e.k].e}</div><div><div class="n">${EGGS[e.k].n}</div><div class="m">${e.left>0?'부화까지 '+mmss(e.left/(1+petHas('egg'))):'두근두근… 부화할 준비 완료!'}</div></div><div class="a"><button class="btn sm b4" type="button" data-h="${i}" ${e.left>0?'disabled':''}>부화!</button></div></div>`).join('');
     const pt=S.pets.map(p=>{const P=PETS[p.k],on=S.eq.includes(p.u);return `<div class="it${on?' lock':''}"><div class="e">${P.e}</div><div><div class="n">${P.n}</div><div class="m">${P.d}</div></div><div class="a"><button class="btn sm ${on?'b3':''}" type="button" data-q="${p.u}">${on?'쉬게 하기':'데리고 다니기'}</button></div></div>`}).join('');
     body=`<p class="d">펫은 3마리까지 데리고 다닐 수 있어요 (지금 ${S.eq.length}/3)</p><div class="list">${eg}${pt||(eg?'':'<div class="empty">아직 펫이 없어요. 알 가게에서 알을 사 봐요! 🥚</div>')}</div>`}
-  openCard(`<button class="x" type="button">✕</button><h2>🎒 가방</h2><div class="tabs">${T('fruit','🍎 열매')}${T('seed','🌱 씨앗·도구')}${T('pet','🐾 펫')}</div>${body}`);liveT=null;
+  if(tab==='learn')body=learnBody();openCard(`<button class="x" type="button">✕</button><h2>🎒 가방</h2><div class="tabs">${T('fruit','🍎 열매')}${T('seed','🌱 씨앗·도구')}${T('pet','🐾 펫')}${T('learn','📘 학습')}</div>${body}`);liveT=null;
   $('ov').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>bagCard(b.dataset.t));
   $('ov').querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{GAME.sel=b.dataset.u;barSig='';drawBar();closeCard()});
   $('ov').querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{const e=S.eggs[+b.dataset.h];if(!e||e.left>0)return;S.eggs.splice(+b.dataset.h,1);const E=EGGS[e.k];const tot=E.pets.reduce((a,p)=>a+p[1],0);let r=Math.random()*tot,k=E.pets[0][0];for(const [pk,w] of E.pets){r-=w;if(r<0){k=pk;break}}
@@ -772,11 +797,11 @@ function helpCard(back){openCard(`${back?'':'<button class="x" type="button">✕
 <li>🔁 딸기·토마토·사과나무처럼 <b>여러 번 수확</b>하는 식물은 한 번 심으면 계속 열매가 열려요.</li>
 <li>💰 <b>판매대</b>에서 열매를 팔아 코인을 벌어요. 무거울수록 비싸요!</li>
 <li>🌦️ <b>날씨</b>가 오면 익은 열매가 변해요: 💧촉촉 ×2 · ❄️시원 ×2 · 🧊꽁꽁 ×10 · 🏜️모래 ×3 · ⚡찌릿 ×50 · 🌠별빛 ×120. 아주 가끔 ✨황금 ×20, 🌈무지개 ×50 열매도 열려요.</li>
-<li>🧑‍🔬 <b>날씨 박사</b>의 퀴즈를 맞히면 코인을 받아요. 🥚 알에서는 도와주는 펫이 나와요.</li>
+<li>🧑‍🔬 <b>날씨 박사</b>의 퀴즈를 맞히면 코인을 받아요(풀이도 보여 줘요). 🥚 알에서는 도와주는 펫이 나와요.</li><li>🌡️ 길 가운데 <b>날씨 측정소</b>에서 기온·습도·바람·기압을 보고 <b>다음 날씨를 예보</b>해요. 맞히면 큰 보상!</li><li>📒 식물을 손(🤚)으로 누르면 <b>한살이 관찰 일지</b>에 기록돼요. 싹→잎·줄기→꽃→열매를 모두 보면 보상! 🎒 가방 → 📘 학습에서 확인해요.</li>
 <li>⌨️ PC: WASD 이동 · 마우스 끌기 화면 돌리기 · 휠 확대 · 1~9 고르기 · E 수확/가게 · 스페이스 점프</li>
 <li>📱 휴대폰·태블릿: 왼쪽 조이스틱 이동 · 화면 끌어 돌리기 · 눌러서 심기·수확</li>
 <li>💾 정원은 이 기기에 저장돼요. 게임을 꺼 둬도 식물은 계속 자라요!</li></ul>${back?'<div class="row"><button class="btn b3" type="button" id="hBack">← 돌아가기</button></div>':''}`,back?'lob':'');if(back)$('hBack').onclick=back;liveT=null}
-const SHOPFN={seed:seedShop,gear:gearShop,sell:sellShop,egg:eggShop,quiz:quizShop};
+const SHOPFN={seed:seedShop,gear:gearShop,sell:sellShop,egg:eggShop,quiz:quizShop,station:()=>stationCard()};const STATION_SHOP={id:'station',n:'날씨 측정소',e:'🌡️'};
 function openShop(id){audio();SHOPFN[id]()}
 /* 처음 안내 */
 const TUT=['','🌱 아래 칸에서 씨앗을 고르고 내 정원의 흙을 눌러 심어요','⏳ 식물이 자라요! 다 익으면 열매를 눌러 수확해요 (E 또는 🧺)','💰 수확한 열매는 북쪽 가게 거리의 판매대에서 팔아요','🎉 잘했어요! 씨앗 가게에서 더 비싼 씨앗을 사서 정원을 키워 봐요. 날씨가 오면 열매 값이 몇 배로!'];
@@ -844,7 +869,7 @@ function frame(t){requestAnimationFrame(frame);const dt=Math.min(.05,(t-last)/10
     ME.vy-=24*dt;ME.y=Math.max(0,ME.y+ME.vy*dt);if(ME.y===0)ME.vy=Math.max(0,ME.vy);
     ME.av.g.position.set(ME.x,ME.y,ME.z);ME.av.g.rotation.y=ME.ry;animAvatar(ME.av,ME.moving,dt,ME.y>.05);movePets(ME,dt,T);
     // 가게 가까이
-    let near=null;for(const s of SHOPS)if(Math.hypot(ME.x-s.x,ME.z-(SHOP_Z+3))<5)near=s;if((near&&near.id)!==GAME.shopNear){GAME.shopNear=near&&near.id;$('prompt').hidden=!near;if(near)$('prompt').textContent=`${near.e} ${near.n} 열기 (E)`}
+    let near=null;for(const s of SHOPS)if(Math.hypot(ME.x-s.x,ME.z-(SHOP_Z+3))<5)near=s;if(Math.hypot(ME.x,ME.z+31)<4.5)near=STATION_SHOP;if((near&&near.id)!==GAME.shopNear){GAME.shopNear=near&&near.id;$('prompt').hidden=!near;if(near)$('prompt').textContent=`${near.e} ${near.n} 열기 (E)`}
     if(KEY.KeyE&&!GAME.panel&&!GAME.shopNear){eHold+=dt;if(eHold>.18){eHold=0;harvestNear()}}else eHold=0}
   if(!GAME.on)CAMS.yaw+=dt*.06;
   // 카메라
@@ -870,6 +895,44 @@ function frame(t){requestAnimationFrame(frame);const dt=Math.min(.05,(t-last)/10
   for(let i=BOLTS.length-1;i>=0;i--){const b=BOLTS[i];b.t-=dt;if(b.m){const k=Math.max(0,b.t/1.1);b.o.position.set(b.m.x+18*k,40*k,b.m.z-10*k)}if(b.t<=0){scene.remove(b.o);BOLTS.splice(i,1)}}
   for(let i=SPL.length-1;i>=0;i--){const s=SPL[i];s.t-=dt;const v=s.m.userData.v;v[1]-=12*dt;s.m.position.x+=v[0]*dt;s.m.position.y+=v[1]*dt;s.m.position.z+=v[2]*dt;if(s.t<=0){scene.remove(s.m);SPL.splice(i,1)}}
   R.render(scene,cam)}
+
+
+/* ---------- 🌡️ 날씨 측정소 · 일기 예보 ---------- */
+const WXR={clear:{t:24,h:45,p:1020,ws:2,wd:'남풍'},rain:{t:18,h:92,p:1002,ws:5,wd:'남동풍'},snow:{t:-2,h:82,p:1006,ws:4,wd:'북서풍'},storm:{t:21,h:95,p:997,ws:9,wd:'남서풍'},sand:{t:20,h:24,p:1011,ws:10,wd:'북서풍'},meteor:{t:13,h:36,p:1025,ws:1,wd:'북풍'}};
+function nextWx(){const w=weatherAt(now());const t=(w.slot+1)*WX_SLOT;const k=weatherAt(t+1).k;return {k,slot:w.slot+1,in:WX_SLOT-(now()-w.slot*WX_SLOT)}}
+function readings(){const w=weatherAt(now());let r;if(w.k.id!=='clear')r=Object.assign({},WXR[w.k.id]);else{const n=nextWx();const el=now()-w.slot*WX_SLOT;const start=weatherAt(w.slot*WX_SLOT+1).k.id==='clear'?0:WX_LEN;const k=Math.pow(Math.max(0,Math.min(1,(el-start)/(WX_SLOT-start))),1.4);const A=WXR.clear,B=WXR[n.k.id];r={};for(const f of ['t','h','p','ws'])r[f]=A[f]+(B[f]-A[f])*k;r.wd=k>.5?B.wd:A.wd;r.trendP=B.p<A.p-3?'↘ 내려가는 중':B.p>A.p+3?'↗ 올라가는 중':'→ 그대로';r.trendH=B.h>A.h+10?'↗ 높아지는 중':B.h<A.h-10?'↘ 낮아지는 중':'→ 그대로'}
+  const j=Math.sin(now()*.7)*.4;r.t=Math.round((r.t+j)*10)/10;r.h=Math.round(r.h);r.p=Math.round(r.p);r.ws=Math.round(r.ws*10)/10;r.wet=Math.round((r.t-(100-r.h)/100*9)*10)/10;return r}
+function stationCard(){const w=weatherAt(now()),r=readings(),n=nextWx(),active=w.k.id!=='clear';const fc=S.fc&&S.fc.slot===n.slot?S.fc.k:null;
+  openCard(`<button class="x" type="button">✕</button><h2>🌡️ 날씨 측정소 <small>${active?w.k.e+' 지금 '+w.k.n:'☀️ 지금 맑음'}</small></h2>
+   <div class="list">
+    <div class="it"><div class="e">🌡️</div><div><div class="n">기온 ${r.t}℃</div><div class="m">그늘에서, 땅에서 1.2~1.5m 높이에서 재요.</div></div><div></div></div>
+    <div class="it"><div class="e">💧</div><div><div class="n">습도 약 ${r.h}% ${r.trendH?'<span class="mut">'+r.trendH+'</span>':''}</div><div class="m">건습구 습도계 · 건구 <b>${r.t}℃</b> / 습구 <b>${r.wet}℃</b> → 차이 <b>${Math.round((r.t-r.wet)*10)/10}℃</b>. 차이가 작을수록 습도가 높아요.</div></div><div></div></div>
+    <div class="it"><div class="e">🧭</div><div><div class="n">${r.wd} · 풍속 ${r.ws} m/s</div><div class="m">풍향계 화살표는 바람이 <b>불어오는</b> 쪽을 가리켜요. 바람은 고기압 → 저기압으로 불어요.</div></div><div></div></div>
+    <div class="it"><div class="e">⏲️</div><div><div class="n">기압 ${r.p} hPa ${r.trendP?'<span class="mut">'+r.trendP+'</span>':''}</div><div class="m">${r.p>=1013?'고기압 쪽이에요. 대체로 맑아요.':'저기압 쪽이에요. 구름이 생기기 쉬워요.'}</div></div><div></div></div>
+   </div>
+   <h2 style="font-size:17px;margin-top:12px">🔮 일기 예보관 되기 <small>맞힌 예보 ${S.fcOK||0} / ${S.fcN||0}</small></h2>
+   ${active?`<p class="d">지금은 ${w.k.n}이(가) 오는 중이에요. 날씨가 그치면 다음 날씨를 예보할 수 있어요.</p>`:`<p class="d">측정값을 보고 <b>${mmss(n.in)}</b> 뒤의 날씨를 예보해요. 맞히면 <b>🪙 ${fmt(fcReward())}</b>!<br><small style="color:#64748b">힌트: 습도↑·기압↓ → 비·뇌우 / 기온이 아주 낮고 습함 → 눈 / 아주 건조하고 바람 셈 → 모래바람 / 기압↑·건조 → 맑음·맑은 밤</small></p>
+   <div class="qo" style="grid-template-columns:repeat(3,1fr)">${WX.map(k=>`<button type="button" data-fc="${k.id}" class="${fc===k.id?'ok':''}">${k.e} ${k.id==='clear'?'계속 맑음':k.n}</button>`).join('')}</div>`}`);liveT=null;
+  $('ov').querySelectorAll('[data-fc]').forEach(b=>b.onclick=()=>{S.fc={slot:n.slot,k:b.dataset.fc};SND.plant();toast(`🔮 "${WX.find(k=>k.id===b.dataset.fc).n}" 예보를 했어요! ${mmss(n.in)} 뒤에 확인해요`,'good');stationCard()})}
+function fcReward(){return Math.max(150,Math.min(200000,Math.round(S.coins*.15)))}
+function checkForecast(slot){if(!S.fc||S.fc.slot!==slot)return;const real=weatherAt(slot*WX_SLOT+1).k;S.fcN=(S.fcN||0)+1;const ok=S.fc.k===real.id;
+  if(ok){S.fcOK=(S.fcOK||0)+1;const r=fcReward();earn(r);setTimeout(()=>toast(`🔮 예보 적중! ${real.e} ${real.n} · 🪙 ${fmt(r)}`,'gold',4500),900)}else setTimeout(()=>toast(`🔮 예보가 빗나갔어요 (예보: ${WX.find(k=>k.id===S.fc.k).n} → 실제: ${real.n})`,'',4000),900);S.fc=null}
+/* ---------- 🌱 식물의 한살이 관찰 ---------- */
+const STG=[{e:'🌱',n:'싹',d:'씨가 물과 알맞은 온도를 만나 뿌리와 떡잎이 나왔어요.'},{e:'🌿',n:'잎과 줄기',d:'잎에서 빛으로 양분을 만들고(광합성), 줄기로 물과 양분이 오가요.'},{e:'🌸',n:'꽃',d:'꽃이 피었어요. 꽃가루받이가 되면 씨와 열매가 생겨요.'},{e:'🍎',n:'열매',d:'열매가 익었어요. 열매 속 씨로 다시 한살이가 시작돼요.'}];
+function stageOf(pl){const s=SEEDS[pl.s];if(s.m){if(pl.g<s.g){const p=pl.g/s.g;return p<.3?0:p<.65?1:2}return pl.f.some(f=>isRipe(s,pl,f))?3:2}const p=pl.f[0].p/s.g;return p>=1?3:p<.3?0:p<.65?1:2}
+function observe(pl){const s=SEEDS[pl.s],st=stageOf(pl);S.jr=S.jr||{};const had=S.jr[s.id]||0,bit=1<<st;S.jr[s.id]=had|bit;
+  if(!(had&bit)){toast(`📒 관찰 일지 · ${s.e} ${s.n}: ${STG[st].e} ${STG[st].n} 기록!<br><small>${STG[st].d}</small>`,'good',4500);if(S.jr[s.id]===15){const r=Math.round(200*Math.pow(3,s.r));setTimeout(()=>{earn(r);toast(`🎉 ${s.e} ${s.n}의 한살이를 모두 관찰했어요! 🪙 ${fmt(r)}`,'gold',4500)},1200)}}
+  return st}
+/* ---------- 📘 학습 카드 ---------- */
+function learnBody(){const seenW=S.seenWx||{};const wx=WX.filter(k=>k.id!=='clear').map(k=>`<div class="it${seenW[k.id]?'':' out'}"><div class="e">${seenW[k.id]?k.e:'❔'}</div><div><div class="n">${seenW[k.id]?k.n:'아직 못 본 날씨'}</div><div class="m">${seenW[k.id]?k.fact:'날씨가 오면 카드가 열려요'}</div></div><div></div></div>`).join('');
+  const jr=S.jr||{};const plants=SEEDS.filter(s=>jr[s.id]||S.seeds[s.id]||S.cells.some(p=>p&&p.s===SI[s.id])).map(s=>{const b=jr[s.id]||0;return `<div class="it"><div class="e">${s.e}</div><div><div class="n">${s.n} 한살이 ${[0,1,2,3].filter(i=>b&(1<<i)).length}/4</div><div class="m" style="font-size:16px;letter-spacing:2px">${STG.map((t,i)=>b&(1<<i)?t.e:'⬜').join(' → ')}</div></div><div></div></div>`}).join('')||'<div class="empty">식물을 심고 손(🤚)으로 눌러 관찰해 봐요</div>';
+  const nW=Object.keys(seenW).length,nJ=Object.values(jr).filter(v=>v===15).length;
+  const goals=[['🌦️ 날씨 5종류 경험하기',nW>=5,`${nW}/5`],['🔮 일기 예보 3번 맞히기',(S.fcOK||0)>=3,`${S.fcOK||0}/3`],['🧑‍🔬 퀴즈 10문제 맞히기',(S.qOK||0)>=10,`${S.qOK||0}/10`],['📒 식물 3종류 한살이 완성',nJ>=3,`${nJ}/3`]];
+  const miss=(S.qmiss||[]).slice(-5).map(i=>QZ[i]).filter(Boolean).map(q=>`<div class="it"><div class="e">📝</div><div><div class="n" style="font-size:14px">${q[0]}</div><div class="m">정답: <b>${q[1][0]}</b> · ${q[2]}</div></div><div></div></div>`).join('');
+  return `<p class="d"><b>🎯 학습 목표</b></p><div class="list">${goals.map(([t,ok,v])=>`<div class="it${ok?' lock':''}"><div class="e">${ok?'✅':'⬜'}</div><div><div class="n">${t}</div></div><div class="a"><b>${v}</b></div></div>`).join('')}</div>
+   <p class="d" style="margin-top:10px"><b>🌦️ 날씨 카드</b></p><div class="list">${wx}</div>
+   <p class="d" style="margin-top:10px"><b>📒 식물의 한살이 관찰 일지</b> <small style="color:#64748b">· 🌱싹 → 🌿잎·줄기 → 🌸꽃 → 🍎열매</small></p><div class="list">${plants}</div>
+   ${miss?`<p class="d" style="margin-top:10px"><b>📝 다시 보기 (틀린 문제)</b></p><div class="list">${miss}</div>`:''}`}
 
 /* ---------- 시작 ---------- */
 function startGame(idx){GAME.idx=idx||0;GAME.on=true;document.body.classList.remove('pre');$('ov').hidden=true;$('ov').innerHTML='';GAME.panel=null;
