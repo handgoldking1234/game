@@ -4337,10 +4337,13 @@ window.ztStart=ztStart;
 const origQ=updQBox;updQBox=function(dt){origQ(dt);if(G&&G.mode==='zombie')ztTick(dt)};
 /* 새 판 · 결과 · 처음 화면 연결 */
 const origNew=newGame;newGame=function(){if(OPT.mode==='zombie'){ztStart();return}return origNew()};
-const origHome=showHome;showHome=function(){clearZ();origHome();const bigs=ov.querySelector('.bigs');if(bigs&&!$('hZT')){const b=document.createElement('button');b.className='bigb b1';b.type='button';b.id='hZT';b.style.background='linear-gradient(135deg,#365314,#1c1917)';b.style.color='#ecfccb';
-    b.innerHTML=`<em>🧟</em><b>좀비 타워</b><small>${FLOORS}층 탑을 올라 보스를 쓰러뜨리고 탈출!${ZT.best?` · 최고 ${ZT.best>FLOORS?'탈출':ZT.best+'층'}`:''}</small>`;bigs.appendChild(b);b.onclick=()=>{ztStart();closeOv()}}};
-const origStart=showStart;showStart=function(){if(OPT.mode==='zombie')OPT.mode='duel';origStart();const ch=ov.querySelector('[data-mode="range"]');if(ch&&!ov.querySelector('[data-mode="zombie"]')){const b=document.createElement('button');b.className='chip';b.type='button';b.dataset.mode='zombie';b.textContent='🧟 좀비 타워';b.onclick=()=>{ztStart();closeOv()};ch.after(b)}};
-setTimeout(()=>{if(!G&&ov&&!ov.hidden&&ov.querySelector('.card.home'))showHome()},0);
+const origHome=showHome;showHome=function(){clearZ();origHome();addZTButtons()};
+function addZTButtons(){if(!ov||ov.hidden)return;const bigs=ov.querySelector('.bigs');if(bigs&&!bigs.querySelector('#hZT')){const b=document.createElement('button');b.className='bigb b1';b.type='button';b.id='hZT';b.style.background='linear-gradient(135deg,#365314,#1c1917)';b.style.color='#ecfccb';b.style.gridColumn='1 / -1';
+    b.innerHTML=`<em>🧟</em><b>좀비 타워</b><small>${FLOORS}층 탑을 올라 보스를 쓰러뜨리고 탈출!${ZT.best?` · 최고 ${ZT.best>FLOORS?'탈출':ZT.best+'층'}`:''}</small>`;bigs.appendChild(b);b.onclick=()=>{clearZ();ztStart();closeOv()}}
+  const ch=ov.querySelector('[data-mode="range"]');if(ch&&!ov.querySelector('[data-mode="zombie"]')){const b=document.createElement('button');b.className='chip';b.type='button';b.dataset.mode='zombie';b.textContent='🧟 좀비 타워';b.onclick=e=>{e.stopPropagation();clearZ();ztStart();closeOv()};ch.after(b)}}
+try{new MutationObserver(()=>addZTButtons()).observe(ov,{childList:true,subtree:true})}catch(e){}
+const origStart=showStart;showStart=function(){if(OPT.mode==='zombie')OPT.mode='duel';origStart();addZTButtons()};
+setTimeout(addZTButtons,0);
 const origTop=setTopHud;setTopHud=function(){origTop();if(G&&G.mode==='zombie'){$('zoneTag').style.display='';$('rvTop').hidden=true}};
 })();
 
