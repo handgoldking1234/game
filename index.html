@@ -119,7 +119,17 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .w .nm{margin-top:10px;text-align:center}
 .w .nm h3{margin:0;font-size:15px;font-weight:700}
 .w .nm p{margin:2px 0 0;font-size:12.5px;color:var(--mute)}.w .nm [data-alt]{color:var(--acc);text-decoration:underline;text-underline-offset:2px}
-.w.hide{display:none}
+.w.hide,.wi.hide{display:none}
+.wi{position:relative;display:flex;flex-direction:column}
+.wm{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:6px;font-size:12px;color:var(--mute)}
+.lk{border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:3px 10px;font:700 12px var(--ko,inherit);cursor:pointer;color:#6b7280;display:inline-flex;gap:4px;align-items:center;transition:transform .15s,background .15s,color .15s}
+.lk:hover{border-color:#f43f5e;color:#f43f5e}.lk[aria-pressed="true"]{background:#f43f5e;border-color:#f43f5e;color:#fff}
+.lk.pop{transform:scale(1.18)}
+.wm .pl b{color:#111;font-weight:700}
+.wm .hot{background:#fff1e6;color:#ea580c;border-radius:4px;padding:1px 6px;font-weight:700}
+.sort{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 18px;justify-content:center}
+.sort button{border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;color:#374151}
+.sort button[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
 .plus{display:block;margin:40px auto 0;width:56px;height:56px;border:0;background:none;cursor:pointer;position:relative}
 .plus[hidden]{display:none}
 .plus:before,.plus:after{content:'';position:absolute;left:50%;top:50%;background:#555;transform:translate(-50%,-50%);transition:transform .3s,background .2s}
@@ -202,6 +212,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
 </style>
+<script src="mwt.js" defer></script>
 </head>
 <body>
 
@@ -228,6 +239,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
     <div class="tabs" id="tabs" role="toolbar" aria-label="게임 분류"></div>
     <label class="find"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="게임·장르·개념 검색" aria-label="게임 찾기"></label>
    </div>
+   <div class="sort" id="sort" role="toolbar" aria-label="정렬"><button type="button" data-s="rec">⭐ 추천순</button><button type="button" data-s="new">🆕 새 게임</button><button type="button" data-s="pop">🔥 많이 한 순</button><button type="button" data-s="like">❤️ 좋아요 순</button></div>
    <div class="recent" id="recent" hidden></div>
    <div class="works" id="works"></div>
    <button class="plus" id="plus" type="button" aria-label="게임 더 보기"></button>
@@ -259,8 +271,8 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
   <div class="info" id="about">
    <div class="logo"><span class="mark">M</span>민왕게임월드</div>
    <dl><dt>운영</dt><dd>민왕게임월드</dd><dt>대상</dt><dd>초등학생 이상 · 😱 표시 게임은 만 10세 이상 권장</dd><dt>환경</dt><dd>최신 크롬 권장 · 3D 게임은 인터넷 연결 필요</dd></dl>
-   <dl><dt>게임</dt><dd id="fCount"></dd><dt>수업</dt><dd>5학년 2학기 「자원과 에너지」 연계</dd><dd class="copy" style="grid-column:1/-1">Copyright © 2026 Minwang Game World. All rights reserved.</dd></dl>
-   <div class="pr"><span class="o"><b>광고 없음</b>게임을 끊지 않아요</span><span><b>가입 없음</b>기록은 내 기기에만</span><span><b>설치 없음</b>크롬북 OK</span><span class="o"><b>무서움 표시</b>😱로 미리 알려요</span></div>
+   <dl><dt>게임</dt><dd id="fCount"></dd><dt>수업</dt><dd>5학년 2학기 「자원과 에너지」 연계</dd><dt>통계</dt><dd>더 좋은 게임을 위해 익명 이용 통계(기기 종류·지역·일부를 가린 IP·플레이 시간)만 모아요</dd><dd class="copy" style="grid-column:1/-1">Copyright © 2026 Minwang Game World. All rights reserved.</dd></dl>
+   <div class="pr"><span class="o"><b>광고 없음</b>게임을 끊지 않아요</span><span><b>가입 없음</b>이름·연락처 안 받아요</span><span><b>설치 없음</b>크롬북 OK</span><span class="o"><b>무서움 표시</b>😱로 미리 알려요</span></div>
   </div>
  </div>
 </footer>
@@ -320,7 +332,27 @@ var $=function(id){return document.getElementById(id)};
 var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 var href=function(id){return 'games/'+id+'.html'};
 var byId=function(id){return GAMES.filter(function(g){return g.id===id})[0]};
-var st={tab:'all',q:'',learn:'',more:false};
+var st={tab:'all',q:'',learn:'',more:false,sort:'rec'};try{st.sort=localStorage.getItem('mw_sort')||'rec'}catch(e){}
+var STATS={},MYLIKE={};try{MYLIKE=JSON.parse(localStorage.getItem('mw_likes')||'{}')}catch(e){}
+function nf(n){n=n||0;return n>=10000?(Math.round(n/1000)/10)+'만':n.toLocaleString('ko-KR')}
+function meta(g){var s=STATS[g.id]||{},lk=s.likes||0,on=!!(s.mine!=null?s.mine:MYLIKE[g.id]);var hot=(s.plays7||0)>=Math.max(5,TOP7)?'<span class="hot">🔥 인기</span>':'';
+ return '<div class="wm"><button type="button" class="lk" data-like="'+g.id+'" aria-pressed="'+on+'" aria-label="'+esc(g.t)+' 좋아요">♥ <b>'+nf(lk)+'</b></button><span class="pl">▶ <b>'+nf(s.plays||0)+'</b>회</span>'+hot+'</div>'}
+var TOP7=1e9;
+function score(g){var s=STATS[g.id]||{};return (s.plays7||0)*3+(s.plays||0)+(s.likes||0)*8}
+function sorted(list){var L=list.slice(),i0={};GAMES.forEach(function(g,i){i0[g.id]=i});
+ var NEW3=GAMES.filter(function(g){return g.tags.indexOf('new')>=0}).slice(0,3).map(function(g){return g.id});var isNew=function(g){return NEW3.indexOf(g.id)>=0};
+ if(st.sort==='new')return L.sort(function(a,b){return i0[a.id]-i0[b.id]});
+ if(st.sort==='pop')return L.sort(function(a,b){return ((STATS[b.id]||{}).plays||0)-((STATS[a.id]||{}).plays||0)||i0[a.id]-i0[b.id]});
+ if(st.sort==='like')return L.sort(function(a,b){return ((STATS[b.id]||{}).likes||0)-((STATS[a.id]||{}).likes||0)||i0[a.id]-i0[b.id]});
+ // 추천: 가장 새 게임 3개 먼저, 그다음 많이 하고 좋아요가 많은 순
+ return L.sort(function(a,b){var na=isNew(a),nb=isNew(b);if(na!==nb)return na?-1:1;if(na&&nb)return i0[a.id]-i0[b.id];return score(b)-score(a)||i0[a.id]-i0[b.id]})}
+function loadStats(){if(!window.MWT){setTimeout(loadStats,400);return}MWT.stats().then(function(rows){STATS={};var p7=[];(rows||[]).forEach(function(r){STATS[r.game]={likes:+r.likes,plays:+r.plays,plays7:+r.plays7,mine:r.mine};p7.push(+r.plays7)});p7.sort(function(a,b){return b-a});TOP7=p7.length>3?p7[2]:1e9;render()}).catch(function(){})}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-like]');if(!b)return;e.preventDefault();e.stopPropagation();var id=b.dataset.like,s=STATS[id]||(STATS[id]={likes:0,plays:0,plays7:0});
+ var on=b.getAttribute('aria-pressed')!=='true';s.mine=on;s.likes=Math.max(0,(s.likes||0)+(on?1:-1));MYLIKE[id]=on;try{localStorage.setItem('mw_likes',JSON.stringify(MYLIKE))}catch(e){}
+ b.setAttribute('aria-pressed',on);b.querySelector('b').textContent=nf(s.likes);b.classList.add('pop');setTimeout(function(){b.classList.remove('pop')},180);
+ if(window.MWT)MWT.like(id).then(function(r){s.likes=+r.count;s.mine=r.liked;b.setAttribute('aria-pressed',r.liked);b.querySelector('b').textContent=nf(s.likes)}).catch(function(){})},true);
+[].forEach.call(document.querySelectorAll('#sort [data-s]'),function(b){b.onclick=function(){st.sort=b.dataset.s;try{localStorage.setItem('mw_sort',st.sort)}catch(e){}render()}});
+setTimeout(loadStats,300);
 var SHOW=999;
 
 /* 히어로 슬라이드 */
@@ -341,11 +373,12 @@ function tabs(){var h='';for(var k in TABS)h+='<button type="button" data-t="'+k
 function item(g,hide){var t=g.tags,tg='';if(t.indexOf('new')>=0)tg+='<span class="n">NEW</span>';if(t.indexOf('mp')>=0)tg+='<span>👥 4P</span>';if(t.indexOf('scary')>=0)tg+='<span class="s">😱</span>';
  var lc=g.l.map(function(k){return '<span>'+LEARN[k].e+' '+LEARN[k].t+'</span>'}).join('');
  var alt=g.id==='backrooms'?' · <span data-alt>PC 고화질판 있음</span>':'';
- return '<a class="w'+(hide?' hide':'')+'" href="'+href(g.id)+'" target="_blank" rel="noopener" data-id="'+g.id+'"><div class="ph"><img src="'+IMG['t_'+g.id]+'" alt="'+esc(g.t)+' 게임 화면" loading="lazy" width="640" height="360"><div class="tag">'+tg+'</div><div class="ov"><b>PLAY ▶</b><small>'+esc(g.d)+'</small><div class="lc">'+lc+'</div></div></div><div class="nm"><h3>'+esc(g.t)+'</h3><p>'+esc(g.g)+(t.indexOf('mp')>=0?' · 친구랑':'')+(t.indexOf('3d')>=0?' · 3D':'')+alt+'</p></div></a>'}
+ return '<div class="wi'+(hide?' hide':'')+'"><a class="w" href="'+href(g.id)+'" target="_blank" rel="noopener" data-id="'+g.id+'"><div class="ph"><img src="'+IMG['t_'+g.id]+'" alt="'+esc(g.t)+' 게임 화면" loading="lazy" width="640" height="360"><div class="tag">'+tg+'</div><div class="ov"><b>PLAY ▶</b><small>'+esc(g.d)+'</small><div class="lc">'+lc+'</div></div></div><div class="nm"><h3>'+esc(g.t)+'</h3><p>'+esc(g.g)+(t.indexOf('mp')>=0?' · 친구랑':'')+(t.indexOf('3d')>=0?' · 3D':'')+alt+'</p></div></a>'+meta(g)+'</div>'}
 function render(){var q=st.q.trim().toLowerCase();
  var list=GAMES.filter(function(g){if(st.tab!=='all'&&tagsOf(g).indexOf(st.tab)<0)return false;if(st.learn&&g.l.indexOf(st.learn)<0)return false;
   if(q){var hay=(g.t+' '+g.g+' '+g.d+' '+g.l.map(function(k){return LEARN[k].t}).join(' ')+' '+tagsOf(g).map(function(k){return TABS[k]||''}).join(' ')).toLowerCase();if(hay.indexOf(q)<0)return false}return true});
  var filtered=st.tab!=='all'||q||st.learn;var lim=st.more||filtered?999:SHOW;
+ list=sorted(list);[].forEach.call(document.querySelectorAll('#sort [data-s]'),function(b){b.setAttribute('aria-pressed',b.dataset.s===st.sort)});
  $('works').innerHTML=list.length?list.map(function(g,i){return item(g,i>=lim)}).join(''):'<div class="empty">찾는 게임이 없어요. 다른 말로 검색해 볼까요?</div>';
  $('plus').hidden=!!filtered||list.length<=SHOW;$('plus').classList.toggle('open',st.more);$('plus').setAttribute('aria-label',st.more?'접기':'게임 더 보기');
  [].forEach.call($('tabs').children,function(b){b.setAttribute('aria-pressed',b.dataset.t===st.tab&&!st.learn?'true':'false')});var ab=$('tabs').querySelector('[aria-pressed="true"]'),tb=$('tabs');if(ab&&tb.scrollWidth>tb.clientWidth){var l=ab.offsetLeft-tb.clientWidth/2+ab.offsetWidth/2;tb.scrollTo({left:Math.max(0,l),behavior:reduce?'auto':'smooth'})}

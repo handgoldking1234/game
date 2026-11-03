@@ -27,3 +27,15 @@ GitHub Pages로 공개하려면: 저장소 Settings → Pages → Branch `main` 
 - 방 목록·접속 인원은 Supabase(iux-cloud) Realtime Presence 채널 `mwg-lobby-<게임>`으로 주고받아요. 테이블은 필요 없어요.
 - 게임 중 통신은 방장과 직접 연결(PeerJS, 막히면 MQTT 중계)이라 Supabase 사용량이 아주 적어요.
 - `.github/workflows/supabase-keepalive.yml`이 3일마다 Supabase를 깨워 둬요(무료 프로젝트 7일 잠듦 방지).
+
+## 📊 이용 통계 · 좋아요 · 관리자 페이지
+
+- `mwt.js` — 사이트와 모든 게임이 불러요. 방문(view)·목록 클릭(click)·게임 시작(play)·1분마다 플레이 시간(hb)·끝(end)을 `/api/t`로 보내요. 좋아요(`MWT.like`)와 게임별 숫자(`MWT.stats`)는 Supabase 함수로 바로 불러요.
+- `api/t.js` — Vercel 서버 함수. 기기·OS·브라우저, 나라·시도·도시(Vercel 헤더), 마지막 자리를 가린 IP와 IP 해시를 붙여 `mw_events`에 저장해요. 원래 IP는 저장하지 않아요. (선택) Vercel 환경 변수 `IP_SALT`로 해시 소금을 바꿀 수 있어요.
+- `admin.html` — 관리자 통계 페이지(검색 노출 차단). Supabase 로그인 + `mw_admins`에 등록된 이메일만 볼 수 있어요.
+
+### 처음 한 번 설정
+1. Supabase(iux-cloud) → **SQL Editor**에서 `supabase/analytics.sql` 전체를 실행해요.
+2. **Authentication → Users → Add user**로 관리자 계정(이메일·비밀번호)을 만들어요.
+3. SQL Editor에서 `insert into public.mw_admins(email) values ('관리자 이메일');` 실행.
+4. `https://iuxgame.vercel.app/admin.html`에서 로그인해요.

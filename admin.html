@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>민왕게임월드 · 관리자 통계</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#111827;--mute:#6b7280;--line:#e5e7eb;--acc:#f26b1d;--blue:#2563eb;--green:#16a34a;--red:#e11d48}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;font-size:14px}
+header{position:sticky;top:0;z-index:5;background:#111;color:#fff;display:flex;align-items:center;gap:14px;padding:12px 20px;flex-wrap:wrap}
+header .logo{font-weight:900;font-size:17px;display:flex;align-items:center;gap:8px}
+header .logo i{font-style:normal;background:var(--acc);border-radius:6px;width:26px;height:26px;display:grid;place-items:center}
+header .sp{flex:1}
+.per{display:flex;gap:4px;flex-wrap:wrap}
+.per button,.btn{border:1px solid #374151;background:#1f2937;color:#e5e7eb;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:13px}
+.per button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.lt{background:#fff;color:var(--ink);border-color:var(--line)}
+main{max-width:1320px;margin:0 auto;padding:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--line)}
+.kpi small{color:var(--mute);font-weight:700;font-size:12px;display:block}
+.kpi b{font-size:26px;font-weight:900;display:block;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.card h3{margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.card h3 small{color:var(--mute);font-weight:600}
+.s12{grid-column:span 12}.s8{grid-column:span 8}.s6{grid-column:span 6}.s4{grid-column:span 4}
+@media(max-width:980px){.s8,.s6,.s4{grid-column:span 12}}
+.cv{position:relative;height:260px}.cv.sm{height:220px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mute);font-weight:700;font-size:12px;cursor:pointer;user-select:none;position:sticky;top:0;background:#fff}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tw{max-height:420px;overflow:auto}
+.bar{height:6px;background:#fde7d6;border-radius:3px;overflow:hidden;margin-top:3px}.bar i{display:block;height:100%;background:var(--acc)}
+.pill{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;background:#eef2ff;color:#3730a3}
+.ev-play{background:#dcfce7;color:#166534}.ev-view{background:#e0f2fe;color:#075985}.ev-end,.ev-hb{background:#f3f4f6;color:#374151}.ev-like{background:#ffe4e6;color:#be123c}.ev-click{background:#fef3c7;color:#92400e}
+#login{max-width:380px;margin:12vh auto;background:#fff;border-radius:18px;padding:26px;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.08)}
+#login h1{margin:0 0 6px;font-size:22px}#login p{color:var(--mute);margin:0 0 16px;line-height:1.5}
+#login input{width:100%;font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px}
+#login button{width:100%;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer}
+.err{color:var(--red);font-weight:700;margin-top:8px;font-size:13px;line-height:1.5}
+.note{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:12px 14px;line-height:1.6;color:#7c2d12;margin-bottom:14px}
+.mute{color:var(--mute)}
+#dash[hidden],#login[hidden]{display:none}
+.loading{opacity:.5;pointer-events:none}
+</style>
+</head>
+<body>
+<section id="login">
+ <h1>🔒 관리자 로그인</h1>
+ <p>민왕게임월드 이용 통계는 관리자만 볼 수 있어요. Supabase에 등록한 관리자 계정으로 로그인하세요.</p>
+ <form id="lf"><input id="em" type="email" placeholder="이메일" autocomplete="username" required><input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" required><button type="submit">로그인</button></form>
+ <div class="err" id="lerr"></div>
+</section>
+
+<div id="dash" hidden>
+<header>
+ <div class="logo"><i>M</i>민왕게임월드 · 통계</div>
+ <div class="per" id="per"><button data-d="1">오늘</button><button data-d="7">7일</button><button data-d="30">30일</button><button data-d="90">90일</button><button data-d="0">전체</button></div>
+ <div class="sp"></div>
+ <span id="upd" class="mute" style="color:#9ca3af;font-size:12px"></span>
+ <button class="btn" id="re" type="button">↻ 새로고침</button>
+ <button class="btn" id="csv" type="button">⬇ 게임 CSV</button>
+ <button class="btn" id="out" type="button">로그아웃</button>
+</header>
+<main id="mainEl">
+ <div class="kpis" id="kpis"></div>
+ <div class="grid">
+  <div class="card s8"><h3>📈 날짜별 방문 · 플레이</h3><div class="cv"><canvas id="cDaily"></canvas></div></div>
+  <div class="card s4"><h3>📱 기기 종류 <small>방문자 기준</small></h3><div class="cv"><canvas id="cDev"></canvas></div></div>
+  <div class="card s12"><h3>🎮 게임별 선호도 <small>머리글을 눌러 정렬 · 인기 점수 = 플레이 + 좋아요×8</small></h3><div class="tw"><table id="tGames"></table></div></div>
+  <div class="card s6"><h3>🕒 시간대별 이용 <small>한국 시간</small></h3><div class="cv sm"><canvas id="cHour"></canvas></div></div>
+  <div class="card s6"><h3>📅 요일별 이용</h3><div class="cv sm"><canvas id="cWeek"></canvas></div></div>
+  <div class="card s4"><h3>💻 운영체제</h3><div class="cv sm"><canvas id="cOs"></canvas></div></div>
+  <div class="card s4"><h3>🌐 브라우저</h3><div class="cv sm"><canvas id="cBr"></canvas></div></div>
+  <div class="card s4"><h3>🗺️ 나라</h3><div class="tw" style="max-height:220px"><table id="tCountry"></table></div></div>
+  <div class="card s4"><h3>📍 지역 (시·도)</h3><div class="tw"><table id="tRegion"></table></div></div>
+  <div class="card s4"><h3>🏙️ 도시</h3><div class="tw"><table id="tCity"></table></div></div>
+  <div class="card s4"><h3>🔗 들어온 곳</h3><div class="tw"><table id="tRef"></table></div></div>
+  <div class="card s6"><h3>🖥️ 화면 크기</h3><div class="tw" style="max-height:300px"><table id="tScreen"></table></div></div>
+  <div class="card s6"><h3>🔢 IP (마지막 자리 가림) <small>학교·기관 단위 접속 파악용</small></h3><div class="tw" style="max-height:300px"><table id="tIp"></table></div></div>
+  <div class="card s12"><h3>🧾 최근 기록 <small>최근 120건</small></h3><div class="tw"><table id="tRecent"></table></div></div>
+ </div>
+ <p class="mute" style="margin-top:16px;line-height:1.6">원래 IP는 저장하지 않고 마지막 자리를 가린 IP와 해시만 남겨요. 방문자는 기기별 익명 ID로 세요(같은 사람이 다른 기기·브라우저로 오면 따로 세져요). 로컬 파일로 연 게임은 집계되지 않아요.</p>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const SB_URL='https://flrdiplgoeyuvffwxvhq.supabase.co',SB_KEY='sb_publishable_2ksFf_0qhrfq513RhbyEdA_dmGoJNb5';
+const $=id=>document.getElementById(id);
+const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+const GN={pangpang:'💥 웨더팡팡',garden:'🌱 날씨 정원',kart:'🏁 날씨 카트 레이스',wrivals:'🌪️ 날씨 라이벌즈',wisland:'🏝️ 날씨 생존 섬',dad:'👨 엄격한 에너지 아빠',hospital:'🐾 한밤의 동물병원','backrooms':'🚪 백룸 방탈출','backrooms-pc':'🚪 백룸 방탈출 PC',brawl:'💎 에너지 브롤',blocks:'⛏️ 에너지 블록 마을',park:'🎡 한밤의 에너지 공원',keycap:'⌨️ 키캡 타워',forest:'🌲 에너지 숲의 밤',rivals:'🔫 에너지 라이벌즈',spy:'🕵️ 탄소 스파이',town:'🏘️ 에너지 마을 시장',hero:'🦸 에너지 히어로',front:'🏭 에너지 전선',jump:'🦘 점프',wing:'✈️ 탄소 제로 비행단',world:'🗡️ 에너지 월드'};
+const EVN={view:'방문',play:'게임 시작',hb:'플레이 중',end:'게임 끝',click:'목록 클릭',like:'좋아요',unlike:'좋아요 취소'};
+const DEVN={mobile:'📱 휴대폰',tablet:'📲 태블릿',desktop:'🖥️ PC',chromebook:'💻 크롬북','?':'알 수 없음'};
+const nf=n=>(+n||0).toLocaleString('ko-KR');
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dur=s=>{s=+s||0;if(s<60)return s+'초';const m=Math.floor(s/60);return m<60?m+'분 '+(s%60)+'초':Math.floor(m/60)+'시간 '+(m%60)+'분'};
+let DAYS=7,DATA=null,CH={},gSort={k:'score',d:-1};
+const COLORS=['#f26b1d','#2563eb','#16a34a','#e11d48','#7c3aed','#0891b2','#ca8a04','#db2777','#4b5563','#65a30d'];
+function chart(id,cfg){if(CH[id])CH[id].destroy();CH[id]=new Chart($(id),cfg)}
+async function boot(){const {data:{session}}=await sb.auth.getSession();if(session)showDash();else showLogin()}
+function showLogin(m){$('login').hidden=false;$('dash').hidden=true;if(m)$('lerr').textContent=m}
+function showDash(){$('login').hidden=true;$('dash').hidden=false;try{DAYS=+localStorage.getItem('mw_adm_days')||7}catch(e){}load()}
+$('lf').onsubmit=async e=>{e.preventDefault();$('lerr').textContent='';const {error}=await sb.auth.signInWithPassword({email:$('em').value.trim(),password:$('pw').value});if(error){$('lerr').textContent='로그인 실패: '+(error.message.includes('Invalid')?'이메일이나 비밀번호가 맞지 않아요':error.message);return}showDash()};
+$('out').onclick=async()=>{await sb.auth.signOut();showLogin()};
+$('re').onclick=()=>load();
+document.querySelectorAll('#per [data-d]').forEach(b=>b.onclick=()=>{DAYS=+b.dataset.d;try{localStorage.setItem('mw_adm_days',DAYS)}catch(e){}load()});
+async function load(){document.querySelectorAll('#per [data-d]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.d===DAYS));$('mainEl').classList.add('loading');
+  const {data,error}=await sb.rpc('mw_admin_stats',{p_days:DAYS});$('mainEl').classList.remove('loading');
+  if(error){if(/not admin/.test(error.message)){await sb.auth.signOut();showLogin('관리자 목록(mw_admins)에 없는 계정이에요. Supabase에서 이메일을 등록해 주세요.');return}
+    $('kpis').innerHTML=`<div class="note" style="grid-column:1/-1">통계를 불러오지 못했어요: ${esc(error.message)}<br>Supabase SQL 편집기에서 <b>supabase/analytics.sql</b>을 실행했는지 확인해 주세요.</div>`;return}
+  DATA=data;render();$('upd').textContent='업데이트 '+new Date().toLocaleTimeString('ko-KR')}
+function kv(id,rows,label,fmt){const tot=rows.reduce((a,r)=>a+(+r.n||0),0)||1;$(id).innerHTML=`<tr><th>${label}</th><th class="n">수</th><th class="n">비율</th></tr>`+(rows.length?rows.map(r=>`<tr><td>${esc(fmt?fmt(r.k):r.k)}<div class="bar"><i style="width:${(r.n/tot*100).toFixed(1)}%"></i></div></td><td class="n">${nf(r.n)}</td><td class="n">${(r.n/tot*100).toFixed(1)}%</td></tr>`).join(''):'<tr><td colspan="3" class="mute">아직 기록이 없어요</td></tr>')}
+function pie(id,rows,fmt){chart(id,{type:'doughnut',data:{labels:rows.map(r=>fmt?fmt(r.k):r.k),datasets:[{data:rows.map(r=>r.n),backgroundColor:COLORS,borderWidth:0}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:12}}},cutout:'58%'}})}
+function render(){const D=DATA,T=D.totals||{};const per={1:'오늘',7:'최근 7일',30:'최근 30일',90:'최근 90일',0:'전체'}[DAYS];
+  const K=[['방문자',T.visitors,'기기 기준'],['신규 방문자',T.new_visitors,T.visitors?Math.round(T.new_visitors/T.visitors*100)+'%':''],['세션',T.sessions,'탭 단위'],['페이지뷰',T.views,'사이트 첫 화면'],['게임 플레이',T.plays,'게임 시작 수'],['평균 플레이',dur(T.avg_play_sec),'한 번 할 때'],['총 플레이',nf(T.total_play_min)+'분',''],['다른 IP',T.ips,'가린 IP 기준'],['좋아요',T.likes,'누적 '+nf(T.likes_all)]];
+  $('kpis').innerHTML=K.map(([a,b,c])=>`<div class="kpi"><small>${a} · ${per}</small><b>${typeof b==='number'?nf(b):b}</b><span>${c||''}</span></div>`).join('');
+  const dl=D.daily||[];chart('cDaily',{type:'line',data:{labels:dl.map(r=>r.d.slice(5)),datasets:[{label:'방문자',data:dl.map(r=>r.visitors),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.12)',fill:true,tension:.3},{label:'게임 플레이',data:dl.map(r=>r.plays),borderColor:'#f26b1d',tension:.3},{label:'페이지뷰',data:dl.map(r=>r.views),borderColor:'#16a34a',tension:.3,borderDash:[4,4]}]},options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+  pie('cDev',D.dev||[],k=>DEVN[k]||k);pie('cOs',D.os||[]);pie('cBr',D.br||[]);
+  const hr=Array(24).fill(0);(D.hourly||[]).forEach(r=>hr[r.h]=r.n);chart('cHour',{type:'bar',data:{labels:hr.map((_,i)=>i+'시'),datasets:[{label:'이용',data:hr,backgroundColor:hr.map((_,i)=>i>=9&&i<=15?'#f26b1d':'#93c5fd')}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+  const wk=Array(7).fill(0);(D.weekday||[]).forEach(r=>wk[r.w-1]=r.n);chart('cWeek',{type:'bar',data:{labels:['월','화','수','목','금','토','일'],datasets:[{label:'이용',data:wk,backgroundColor:'#7c3aed'}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+  kv('tCountry',D.country||[],'나라');kv('tRegion',D.region||[],'지역');kv('tCity',D.city||[],'도시');kv('tRef',D.ref||[],'들어온 곳');kv('tScreen',D.screen||[],'화면 (가로×세로)');
+  $('tIp').innerHTML='<tr><th>IP</th><th class="n">기록</th><th class="n">기기</th><th>도시</th><th>마지막</th></tr>'+((D.ips||[]).map(r=>`<tr><td>${esc(r.k)}</td><td class="n">${nf(r.n)}</td><td class="n">${nf(r.devices)}</td><td>${esc(r.city||'')}</td><td>${new Date(r.last).toLocaleString('ko-KR')}</td></tr>`).join('')||'<tr><td colspan="5" class="mute">아직 기록이 없어요</td></tr>');
+  gamesTable();
+  $('tRecent').innerHTML='<tr><th>시간</th><th>종류</th><th>게임</th><th>기기</th><th>OS</th><th>브라우저</th><th>지역</th><th>IP</th><th>방문자</th><th class="n">플레이</th></tr>'+((D.recent||[]).map(r=>`<tr><td>${new Date(r.ts).toLocaleString('ko-KR')}</td><td><span class="pill ev-${esc(r.ev)}">${esc(EVN[r.ev]||r.ev)}</span></td><td>${esc(GN[r.game]||r.game||'첫 화면')}</td><td>${esc(DEVN[r.dev]||r.dev||'')}</td><td>${esc(r.os||'')}</td><td>${esc(r.br||'')}</td><td>${esc([r.region,r.city].filter(Boolean).join(' '))}</td><td>${esc(r.ip_mask||'')}</td><td class="mute">${esc(r.vid||'')}</td><td class="n">${r.dur?dur(r.dur):''}</td></tr>`).join('')||'<tr><td colspan="10" class="mute">아직 기록이 없어요</td></tr>')}
+function gamesTable(){const rows=(DATA.games||[]).map(r=>Object.assign({},r,{name:GN[r.game]||r.game,score:(+r.plays)+(+r.likes)*8}));
+  const max=Math.max(1,...rows.map(r=>+r.plays));
+  rows.sort((a,b)=>{const k=gSort.k;const x=a[k],y=b[k];return (typeof x==='string'?x.localeCompare(y):(+x)-(+y))*gSort.d});
+  const H=[['name','게임'],['plays','플레이'],['players','플레이한 기기'],['avg_sec','평균 시간'],['total_min','총 시간(분)'],['clicks','목록 클릭'],['likes','좋아요'],['score','인기 점수']];
+  $('tGames').innerHTML='<tr><th>#</th>'+H.map(([k,l])=>`<th class="${k==='name'?'':'n'}" data-k="${k}">${l}${gSort.k===k?(gSort.d<0?' ▼':' ▲'):''}</th>`).join('')+'</tr>'+(rows.map((r,i)=>`<tr><td class="mute">${i+1}</td><td>${esc(r.name)}<div class="bar"><i style="width:${(r.plays/max*100).toFixed(1)}%"></i></div></td><td class="n">${nf(r.plays)}</td><td class="n">${nf(r.players)}</td><td class="n">${dur(r.avg_sec)}</td><td class="n">${nf(r.total_min)}</td><td class="n">${nf(r.clicks)}</td><td class="n">❤️ ${nf(r.likes)}</td><td class="n"><b>${nf(r.score)}</b></td></tr>`).join('')||'<tr><td colspan="9" class="mute">아직 기록이 없어요</td></tr>');
+  $('tGames').querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;gSort={k,d:gSort.k===k?-gSort.d:(k==='name'?1:-1)};gamesTable()})}
+$('csv').onclick=()=>{if(!DATA)return;const rows=[['game','name','plays','players','avg_sec','total_min','clicks','likes']].concat((DATA.games||[]).map(r=>[r.game,GN[r.game]||r.game,r.plays,r.players,r.avg_sec,r.total_min,r.clicks,r.likes]));
+  const b=new Blob(['﻿'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='민왕게임월드_게임통계_'+new Date().toISOString().slice(0,10)+'.csv';a.click()};
+boot();
+</script>
+</body>
+</html>

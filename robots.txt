@@ -1,7 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /admin.html
+Disallow: /api/
 
 User-agent: Yeti
 Allow: /
+Disallow: /admin.html
 
 Sitemap: https://iuxgame.vercel.app/sitemap.xml
