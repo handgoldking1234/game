@@ -407,7 +407,7 @@ const EVENTS={halloween:{n:'할로윈',e:'🎃',tip:'호박이 잔뜩! 호박+�
 function seasonMul(k){const s=SEASON.s;if(k==='solar')return s==='summer'?1.25:s==='winter'?.7:1;if(k==='wind')return s==='spring'||s==='autumn'?1.2:1;if(k==='use')return s==='winter'?1.25:s==='summer'?1.1:1;return 1}
 
 /* ============ 그림판 (16×16 픽셀 타일) ============ */
-const ATL=document.createElement('canvas');ATL.width=256;ATL.height=128;const AX=ATL.getContext('2d');
+const ATL=document.createElement('canvas');ATL.width=256;ATL.height=512;const AROWS=32;const AX=ATL.getContext('2d');
 let RS=7;function srand(){RS=(RS*16807)%2147483647;return RS/2147483647}
 const TILES={};let tileN=0;
 const rgb=(r,g,b,a)=>a!=null?`rgba(${clamp(r|0,0,255)},${clamp(g|0,0,255)},${clamp(b|0,0,255)},${a})`:`rgb(${clamp(r|0,0,255)},${clamp(g|0,0,255)},${clamp(b|0,0,255)})`;
@@ -491,6 +491,7 @@ function toolPaint(type,m){const [c,d]=MATC[m];const C=rgb(...c),Dk=rgb(...d);re
   handle(p,9);
   if(type==='pick'){for(const [x,y] of [[4,2],[5,2],[6,2],[7,2],[8,2],[9,3],[10,3],[11,4],[12,5],[13,6],[13,7],[14,8],[14,9],[14,10],[3,3],[12,4]])p(x,y,C);for(const [x,y] of [[5,3],[6,3],[7,3],[8,3],[11,5],[12,6],[12,7],[13,8],[13,9]])p(x,y,Dk)}
   if(type==='axe'){for(let y=2;y<8;y++)for(let x=8;x<13;x++)if(!(x===12&&(y===2||y===7)))p(x,y,x>10?C:Dk);p(13,3,C);p(13,4,C);p(13,5,C);p(13,6,C)}
+  if(type==='hoe'){for(const [x,y] of [[8,2],[9,2],[10,2],[11,2],[12,3],[12,4],[9,3],[10,3],[11,3]])p(x,y,C);p(12,5,Dk);p(8,3,Dk)}
   if(type==='shovel'){for(let y=1;y<6;y++)for(let x=10;x<15;x++)if(Math.abs(x-12)+Math.abs(y-3)<3)p(x,y,(x+y)%3?C:Dk);p(11,5,Dk);p(10,6,Dk)}}}
 for(const m of ['wood','stone','iron','diamond'])for(const t of ['pick','axe','shovel','sword'])tile(`${m}_${t}`,toolPaint(t,m));
 tile('stick',p=>{for(let k=0;k<11;k++){p(3+k,13-k,H1);p(4+k,13-k,H2)}});
@@ -543,9 +544,102 @@ tile('blaze_rod',p=>{for(let k=0;k<12;k++){p(3+k,13-k,rgb(250,204,21));p(4+k,13-
 tile('blaze_powder',p=>{for(let k=0;k<26;k++){const a=srand()*6.28,r=srand()*5;p(8+Math.cos(a)*r,9+Math.sin(a)*r*.7,pick([rgb(250,204,21),rgb(249,115,22),rgb(253,230,138)]))}});
 tile('ender_pearl',p=>{for(let y=3;y<13;y++)for(let x=3;x<13;x++){const d=Math.hypot(x-7.5,y-7.5);if(d<5)p(x,y,d<2.2?rgb(40,90,80):rgb(30+d*12,150-d*8,130))}p(6,5,rgb(200,255,240))});
 tile('ender_eye',p=>{for(let y=3;y<13;y++)for(let x=3;x<13;x++){const d=Math.hypot(x-7.5,y-7.5);if(d<5)p(x,y,d<1.6?rgb(10,20,10):d<3.2?rgb(90,200,90):rgb(40,110,90))}});
+/* ---- ⛏️ 마인크래프트 확장 그림 ---- */
+const oreOn=(bg,c,v=24)=>p=>{nz(p,bg,v);for(let k=0;k<5;k++){const x=1+srand()*12|0,y=1+srand()*12|0;for(const [a,b] of [[0,0],[1,0],[0,1],[1,1],[2,1]])p(x+a,y+b,rgb(c[0]+(srand()-.5)*30,c[1]+(srand()-.5)*30,c[2]+(srand()-.5)*30))}};
+const blockOf=(c,d)=>p=>{nz(p,c,10);frm(p,rgb(...d));for(let i=2;i<14;i++)p(i,2,rgb(c[0]+30,c[1]+30,c[2]+30));for(let i=3;i<13;i++)p(3,i,rgb(c[0]+18,c[1]+18,c[2]+18))};
+tile('gold_ore',ore([250,214,60]));tile('lapis_ore',ore([40,80,200]));tile('emerald_ore',ore([40,200,90]));tile('ngold_ore',oreOn([112,40,40],[250,210,60],34));
+tile('debris_side',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const r=(x*7+y*3)%5;p(x,y,rgb(96+r*6+(srand()-.5)*10,70+r*4,62))}for(let y=0;y<16;y+=4)for(let x=0;x<16;x++)p(x,y,rgb(70,50,44))});
+tile('debris_top',p=>{nz(p,[96,74,66],12);for(let r=2;r<8;r+=2)for(let a=0;a<24;a++){const t=a/24*6.28;p(8+Math.cos(t)*r,8+Math.sin(t)*r,rgb(70,52,46))}});
+tile('amethyst',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const v=Math.sin(x*1.3+y*.7)+Math.sin(y*1.1-x*.5);p(x,y,v>1?rgb(220,170,250):v>0?rgb(170,110,220):rgb(124,74,180))}});
+tile('amethyst_cluster',p=>{for(const [x,h] of [[4,8],[7,12],[10,9],[12,6]])for(let k=0;k<h;k++){p(x,15-k,rgb(200,150,250));p(x+1,15-k,rgb(150,90,210))}p(7,3,'#fff')});
+tile('calcite',p=>{nz(p,[226,228,224],10);for(let k=0;k<10;k++)p(srand()*16,srand()*16,rgb(196,198,196))});
+tile('deepslate',p=>{nz(p,[78,78,84],16);for(let y=0;y<16;y+=3)for(let x=0;x<16;x++)if(srand()<.6)p(x,y,rgb(60,60,66))});
+tile('gold_block',blockOf([248,210,60],[200,150,20]));tile('lapis_block',blockOf([36,70,180],[24,44,120]));tile('emerald_block',blockOf([40,200,100],[20,130,60]));tile('diamond_block',blockOf([110,236,226],[40,160,150]));
+tile('coal_block',blockOf([30,30,34],[14,14,16]));tile('redstone_block',blockOf([200,24,20],[130,10,10]));tile('netherite_block',blockOf([70,62,66],[40,34,38]));tile('quartz_block',blockOf([236,232,224],[200,196,186]));
+tile('tnt_side',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)p(x,y,y>=5&&y<=10?rgb(240,240,236):rgb(210,50+(x%4===0?-20:0),40));for(const [x0] of [[2],[6],[10]]){p(x0,7,'#222');p(x0+1,7,'#222');p(x0,8,'#222');p(x0+2,8,'#222');p(x0+1,9,'#222')}});
+tile('tnt_top',p=>{nz(p,[200,50,40],10);for(let y=6;y<10;y++)for(let x=6;x<10;x++)p(x,y,rgb(240,240,236));p(7,7,'#333');p(8,8,'#333')});
+tile('ladder',p=>{for(let y=0;y<16;y++){p(2,y,H1);p(3,y,H2);p(12,y,H1);p(13,y,H2)}for(const y of [2,6,10,14])for(let x=2;x<14;x++)p(x,y,x%2?H1:H2)});
+tile('door',p=>{for(let y=0;y<16;y++)for(let x=1;x<15;x++)p(x,y,rgb(150+(x%5===0?-30:0),110,64));for(let x=1;x<15;x++){p(x,0,H2);p(x,15,H2)}for(let y=3;y<7;y++)for(let x=4;x<12;x++)if(!(x===7||x===8))p(x,y,'rgba(0,0,0,0)');p(12,9,rgb(60,60,60))});
+tile('spawner',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)if(x%3===0||y%3===0||x===15||y===15)p(x,y,rgb(40,50,64));for(let k=0;k<6;k++)p(4+srand()*8,4+srand()*8,rgb(255,120,40))});
+tile('mossy',p=>{nz(p,[118,118,118],18);for(let k=0;k<18;k++){const x=srand()*16|0,y=srand()*16|0,l=2+srand()*4|0;for(let i=0;i<l;i++)p(x+i,y,rgb(80,80,80))}for(let k=0;k<40;k++)p(srand()*16,srand()*16,rgb(70+srand()*20,120+srand()*30,50))});
+tile('sandstone',p=>{nz(p,[216,202,150],10);for(let x=0;x<16;x++){p(x,3,rgb(196,182,128));p(x,12,rgb(196,182,128))}});
+tile('sandstone_top',p=>nz(p,[222,210,160],8));
+tile('terracotta',p=>nz(p,[164,86,44],10));
+tile('ice',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)p(x,y,rgb(150+(x+y)%4*8,190,240));for(let k=0;k<4;k++){const x=srand()*12|0;for(let i=0;i<4;i++)p(x+i,3+k*3+i/2,'#e6f4ff')}});
+tile('stonebrick',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const m=y%8===7||((y>>3)%2?(x+4)%8===7:x%8===7);p(x,y,m?rgb(70,70,70):rgb(128+(srand()-.5)*14,128,128))}});
+tile('mossy_brick',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const m=y%8===7||((y>>3)%2?(x+4)%8===7:x%8===7);p(x,y,m?rgb(70,70,70):srand()<.3?rgb(80,130,60):rgb(124,124,124))}});
+tile('cobweb',p=>{for(let a=0;a<8;a++){const t=a/8*6.28;for(let r=0;r<8;r++)p(8+Math.cos(t)*r,8+Math.sin(t)*r,'rgba(240,240,240,.9)')}for(const r of [3,6])for(let a=0;a<28;a++){const t=a/28*6.28;p(8+Math.cos(t)*r,8+Math.sin(t)*r,'rgba(230,230,230,.85)')}});
+tile('blackstone',p=>{nz(p,[42,36,44],14);for(let k=0;k<12;k++)p(srand()*16,srand()*16,rgb(60,52,62))});
+tile('gilded',p=>{nz(p,[42,36,44],14);for(let k=0;k<5;k++){const x=1+srand()*12|0,y=1+srand()*12|0;p(x,y,rgb(250,200,50));p(x+1,y,rgb(230,170,30));p(x,y+1,rgb(230,170,30))}});
+tile('basalt',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)p(x,y,rgb(80+(x%4)*6+(srand()-.5)*10,80+(x%4)*6,86))});
+tile('purpur',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const m=x%8===0||y%8===0;p(x,y,m?rgb(140,96,140):rgb(170+(srand()-.5)*14,124,170))}});
+tile('end_rod',p=>{for(let y=1;y<15;y++){p(7,y,'#fff');p(8,y,rgb(230,220,250))}for(let x=5;x<11;x++){p(x,14,rgb(200,180,220));p(x,15,rgb(180,160,200))}});
+tile('bookshelf',p=>{nz(p,[178,140,88],10);for(const y0 of [1,9]){for(let x=1;x<15;x++){const c=[[160,40,40],[40,90,160],[60,130,60],[170,140,40],[110,60,130]][(x+y0)%5];for(let y=y0;y<y0+6;y++)p(x,y,x%3===0?rgb(80,50,30):rgb(...c))}}for(let x=0;x<16;x++){p(x,0,H2);p(x,7,H2);p(x,8,H2);p(x,15,H2)}});
+tile('enchant_top',p=>{nz(p,[160,36,40],10);for(let y=4;y<12;y++)for(let x=3;x<13;x++)p(x,y,x===7||x===8?rgb(120,90,60):rgb(240,236,220));p(5,6,'#555');p(10,7,'#555')});
+tile('enchant_side',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)p(x,y,y<4?rgb(160,36,40):rgb(28,20,34));for(let x=0;x<16;x+=3)p(x,3,rgb(90,236,224))});
+tile('cake_top',p=>{nz(p,[246,240,236],6);for(const [x,y] of [[3,3],[8,5],[12,10],[5,11],[10,2]])p(x,y,rgb(220,30,40))});
+tile('cake_side',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)p(x,y,y<4?rgb(246,240,236):y<6?rgb(230,60,70):rgb(200,150,90+(srand()-.5)*20))});
+tile('hay_top',p=>{nz(p,[200,170,50],20);for(let r=2;r<8;r+=3)for(let a=0;a<20;a++){const t=a/20*6.28;p(8+Math.cos(t)*r,8+Math.sin(t)*r,rgb(170,140,30))}});
+tile('hay_side',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)p(x,y,y===3||y===12?rgb(130,40,30):rgb(210+(srand()-.5)*30,176,60))});
+tile('magma',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const v=Math.sin(x*.9+y*.4)+Math.sin(y*.8-x*.3)+srand()*.4;p(x,y,v>1.2?rgb(255,170,40):v>.6?rgb(200,70,20):rgb(80,30,24))}});
+tile('crying',p=>{nz(p,[22,14,32],14);for(let k=0;k<14;k++)p(srand()*16,srand()*16,rgb(70,44,110));for(let k=0;k<14;k++)p(srand()*16,srand()*16,rgb(150,60,230))});
+tile('bone_block',p=>{nz(p,[230,226,206],8);frm(p,rgb(196,190,166));for(let y=4;y<12;y++)p(7,y,rgb(206,200,176))});
+tile('sugar_cane',p=>{for(const x of [4,8,11])for(let y=0;y<16;y++){p(x,y,y%5===0?rgb(150,200,100):rgb(110,180,80));p(x+1,y,rgb(90,150,60))}p(6,4,rgb(110,180,80));p(10,9,rgb(110,180,80))});
+// 아이템
+tile('raw_gold',lump([232,190,60]));tile('gold_ingot',ingot([250,210,60]));
+tile('gold_nugget',p=>{for(const [x,y] of [[6,6],[7,6],[6,7],[7,7],[9,9],[10,9],[9,10],[5,10],[6,11]])p(x,y,rgb(250,214,70));p(7,6,'#fff6c0')});
+tile('lapis',p=>{for(let y=4;y<13;y++)for(let x=4;x<12;x++)if(Math.abs(x-8)+Math.abs(y-8.5)<5)p(x,y,(x+y)%3?rgb(40,80,200):rgb(90,130,240))});
+tile('emerald',p=>{for(let y=2;y<15;y++){const w=y<8?(y-1)*.8:(15-y)*.8;for(let x=8-w;x<8+w;x++)p(x,y,(x+y)%4?rgb(40,200,100):rgb(170,255,200))}});
+tile('amethyst_shard',p=>{for(let k=0;k<9;k++){p(5+k*.6,13-k,rgb(200,150,250));p(6+k*.6,13-k,rgb(150,90,210))}for(let k=0;k<5;k++){p(10+k*.3,13-k,rgb(180,120,240))}});
+tile('netherite_scrap',lump([110,90,84]));tile('netherite_ingot',ingot([76,68,72]));
+tile('cod',p=>{for(let x=3;x<12;x++)for(let y=6;y<11;y++)if(Math.abs(y-8.5)<(x<5?1:2.6))p(x,y,rgb(190,170,130+(y>8?-20:0)));for(const [x,y] of [[12,6],[12,7],[13,5],[12,10],[13,11],[12,9]])p(x,y,rgb(170,150,110));p(4,7,'#222')});
+tile('ccod',p=>{for(let x=3;x<12;x++)for(let y=6;y<11;y++)if(Math.abs(y-8.5)<(x<5?1:2.6))p(x,y,rgb(220,190,140));for(const [x,y] of [[12,6],[12,7],[13,5],[12,10],[13,11]])p(x,y,rgb(200,160,110))});
+tile('salmon',p=>{for(let x=3;x<12;x++)for(let y=6;y<11;y++)if(Math.abs(y-8.5)<(x<5?1:2.6))p(x,y,y<8?rgb(170,60,50):rgb(240,130,110));for(const [x,y] of [[12,6],[13,5],[12,10],[13,11]])p(x,y,rgb(150,50,40));p(4,7,'#222')});
+tile('csalmon',p=>{for(let x=3;x<12;x++)for(let y=6;y<11;y++)if(Math.abs(y-8.5)<(x<5?1:2.6))p(x,y,rgb(230,140,100))});
+tile('puffer',p=>{for(let y=3;y<14;y++)for(let x=3;x<13;x++)if(Math.hypot(x-8,y-8.5)<5)p(x,y,(x+y)%4?rgb(240,200,40):rgb(200,160,30));for(const [x,y] of [[2,8],[13,8],[8,2],[8,14],[4,4],[12,4]])p(x,y,'#eee');p(6,7,'#222');p(10,7,'#222')});
+tile('rabbit_raw',meat([230,170,160],1));tile('rabbit_cooked',meat([200,130,80],1));tile('rabbit_hide',p=>{for(let y=4;y<13;y++)for(let x=4;x<12;x++)p(x,y,rgb(180+(srand()-.5)*20,140,100))});
+tile('gunpowder',p=>{for(let k=0;k<40;k++){const a=srand()*6.28,r=srand()*5;p(8+Math.cos(a)*r,10+Math.sin(a)*r*.6,pick([rgb(90,90,90),rgb(60,60,60),rgb(120,120,120)]))}});
+tile('slimeball',p=>{for(let y=4;y<13;y++)for(let x=4;x<13;x++)if(Math.hypot(x-8.5,y-8.5)<4.4)p(x,y,rgb(110,200,90));p(6,6,'#d9ffc8')});
+tile('ghast_tear',p=>{for(let y=3;y<14;y++){const w=y<8?(y-3)*.7:(14-y)*.9;for(let x=8-w;x<=8+w;x++)p(x,y,rgb(210,240,240))}p(7,8,'#fff')});
+tile('magma_cream',p=>{for(let y=4;y<13;y++)for(let x=4;x<13;x++)if(Math.hypot(x-8.5,y-8.5)<4.4)p(x,y,(x+y)%3?rgb(200,80,30):rgb(250,200,60))});
+tile('spider_eye',p=>{for(let y=5;y<13;y++)for(let x=4;x<12;x++)if(Math.hypot(x-8,y-9)<4)p(x,y,rgb(160,30,50));p(7,8,'#222');p(9,9,'#222')});
+tile('ink_sac',p=>{for(let y=4;y<14;y++)for(let x=4;x<12;x++)if(Math.hypot(x-8,y-9)<4.2)p(x,y,rgb(30,30,40));p(6,7,'#556')});
+tile('shulker_shell',p=>{for(let y=3;y<13;y++)for(let x=2;x<14;x++)if(((x-8)/6)**2+((y-9)/5)**2<1&&y<11)p(x,y,(x+y)%3?rgb(150,100,150):rgb(120,80,120))});
+tile('honey',p=>{for(let y=4;y<13;y++)for(let x=3;x<13;x++)p(x,y,(x+y)%2?rgb(250,180,40):rgb(230,150,20))});
+tile('bucket',p=>{for(let y=5;y<14;y++)for(let x=4+(13-y)/4;x<12-(13-y)/4;x++)p(x,y,x<6?rgb(200,200,206):rgb(160,160,168));for(let x=5;x<11;x++)p(x,5,rgb(90,90,96));for(let a=0;a<12;a++){const t=a/11*3.14;p(8+Math.cos(t)*4,5-Math.sin(t)*3,rgb(120,120,128))}});
+const bucketOf=c=>p=>{for(let y=5;y<14;y++)for(let x=4+(13-y)/4;x<12-(13-y)/4;x++)p(x,y,x<6?rgb(200,200,206):rgb(160,160,168));for(let x=5;x<11;x++){p(x,5,rgb(...c));p(x,6,rgb(...c))}for(let a=0;a<12;a++){const t=a/11*3.14;p(8+Math.cos(t)*4,5-Math.sin(t)*3,rgb(120,120,128))}};
+tile('water_bucket',bucketOf([60,110,230]));tile('lava_bucket',bucketOf([255,130,30]));tile('milk_bucket',bucketOf([250,250,250]));
+tile('fishing_rod',p=>{for(let k=0;k<12;k++){p(2+k,14-k,H1);p(3+k,14-k,H2)}for(let y=3;y<12;y++)p(14,y,'#ddd');p(14,12,rgb(220,40,40))});
+tile('compass',p=>{for(let y=2;y<14;y++)for(let x=2;x<14;x++){const d=Math.hypot(x-7.5,y-7.5);if(d<6)p(x,y,d>4.8?rgb(150,150,156):rgb(220,220,210))}for(let k=0;k<4;k++){p(8,4+k,rgb(220,40,40));p(7,8+k,rgb(70,70,80))}});
+tile('clock',p=>{for(let y=2;y<14;y++)for(let x=2;x<14;x++){const d=Math.hypot(x-7.5,y-7.5);if(d<6)p(x,y,d>4.8?rgb(220,170,40):y<8?rgb(120,190,250):rgb(30,40,90))}p(7,7,'#fff');p(8,6,'#222');p(9,5,'#222')});
+tile('map',p=>{for(let y=2;y<14;y++)for(let x=2;x<14;x++)p(x,y,rgb(220,206,160));for(let k=0;k<20;k++)p(3+srand()*10,3+srand()*10,pick([rgb(90,160,70),rgb(70,110,200),rgb(160,120,80)]));p(8,8,rgb(220,30,30))});
+tile('shears',p=>{for(let k=0;k<6;k++){p(4+k,4+k,rgb(210,210,216));p(11-k,4+k,rgb(180,180,186))}for(const [x,y] of [[3,11],[4,12],[5,12],[11,11],[12,12],[10,12],[4,11],[11,12]])p(x,y,rgb(200,40,40))});
+tile('shield',p=>{for(let y=2;y<15;y++)for(let x=3;x<13;x++){if(y>11&&Math.abs(x-7.5)>(15-y)*1.4)continue;p(x,y,x===3||x===12||y===2?rgb(120,120,126):(x+y)%5?rgb(150,110,64):rgb(130,92,52))}for(let y=4;y<12;y++)p(7,y,rgb(140,140,146))});
+tile('crossbow',p=>{for(let k=0;k<11;k++){p(3+k,13-k,H1);p(4+k,13-k,H2)}for(let a=0;a<14;a++){const t=a/13;p(2+t*8,4+t*0,rgb(110,80,50));p(10+t*0,4+t*8,rgb(110,80,50))}for(let k=0;k<8;k++)p(3+k,4+k,'#ddd')});
+tile('totem',p=>{for(let y=2;y<15;y++)for(let x=5;x<11;x++)p(x,y,rgb(230,200,90));for(let x=3;x<13;x++)p(x,7,rgb(230,200,90));p(6,4,rgb(40,160,80));p(9,4,rgb(40,160,80));p(7,10,rgb(120,90,40));p(8,10,rgb(120,90,40))});
+tile('golden_apple',p=>{for(let y=4;y<14;y++)for(let x=3;x<13;x++){if(((x-7.5)/4.8)**2+((y-9)/4.8)**2<1)p(x,y,rgb(250,210-(x>9?30:0),60))}p(8,2,H1);p(8,3,H1);p(9,2,rgb(60,160,60));p(6,6,'#fff')});
+tile('cookie',p=>{for(let y=3;y<14;y++)for(let x=3;x<14;x++)if(Math.hypot(x-8,y-8.5)<5)p(x,y,rgb(200,140,70));for(const [x,y] of [[6,6],[10,7],[7,10],[11,11],[5,9]])p(x,y,rgb(80,40,20))});
+tile('pie',p=>{for(let y=6;y<13;y++)for(let x=2;x<15;x++)if(Math.abs(x-8)<6.5-(y<8?(8-y):0))p(x,y,y<8?rgb(220,150,70):rgb(200,120,50));for(let x=4;x<13;x+=2)p(x,7,rgb(240,190,110))});
+tile('cake_i',p=>{for(let y=6;y<13;y++)for(let x=2;x<14;x++)p(x,y,y<8?rgb(246,240,236):rgb(200,150,90));for(const x of [4,8,12])p(x,6,rgb(220,30,40))});
+tile('sugar',p=>{for(let k=0;k<40;k++){const a=srand()*6.28,r=srand()*5;p(8+Math.cos(a)*r,10+Math.sin(a)*r*.6,pick(['#fff','#eee','#ddd']))}});
+tile('paper',p=>{for(let y=3;y<13;y++)for(let x=3;x<13;x++)p(x,y,(x+y)%7?rgb(240,240,236):rgb(220,220,216))});
+tile('book',p=>{for(let y=3;y<14;y++)for(let x=3;x<13;x++)p(x,y,x<5?rgb(110,60,30):x>11?rgb(240,240,236):rgb(150,80,40));for(let y=3;y<14;y++)p(12,y,rgb(230,230,226))});
+tile('bone_meal',p=>{for(let k=0;k<40;k++){const a=srand()*6.28,r=srand()*5;p(8+Math.cos(a)*r,10+Math.sin(a)*r*.6,pick(['#fff','#f0f0e8','#ddd']))}});
+tile('ladder_i',p=>{for(let y=0;y<16;y++){p(3,y,H1);p(4,y,H2);p(11,y,H1);p(12,y,H2)}for(const y of [2,6,10,14])for(let x=3;x<13;x++)p(x,y,x%2?H1:H2)});
+tile('door_i',p=>{for(let y=1;y<15;y++)for(let x=4;x<12;x++)p(x,y,rgb(150+(x%4===0?-30:0),110,64));for(let y=3;y<7;y++)for(let x=5;x<11;x++)if(x!==7&&x!==8)p(x,y,rgb(190,220,240));p(10,9,rgb(60,60,60))});
+tile('bobber',p=>{for(let y=5;y<11;y++)for(let x=5;x<11;x++)p(x,y,y<8?rgb(220,40,40):'#fff')});
+MATC.gold=[[250,214,70],[200,150,30]];MATC.netherite=[[86,76,80],[50,44,48]];
+for(const m of ['wood','stone','iron','gold','diamond','netherite'])for(const t of ['pick','axe','shovel','sword','hoe'])if(TILES[`${m}_${t}`]==null)tile(`${m}_${t}`,toolPaint(t,m));
+const ARMC={leather:[[160,96,52],[120,70,36]],gold:[[250,214,70],[200,150,30]],iron:[[225,225,230],[180,180,186]],diamond:[[90,236,224],[40,170,160]],netherite:[[86,76,80],[50,44,48]]};
+function armorPaint(sl,m){const [c,d]=ARMC[m];const C=rgb(...c),Dk=rgb(...d);return p=>{
+  if(sl===0){for(let y=3;y<10;y++)for(let x=3;x<13;x++){if(y>5&&x>4&&x<11)continue;p(x,y,(x+y)%5?C:Dk)}}
+  if(sl===1){for(let y=2;y<15;y++)for(let x=2;x<14;x++){const arm=y<7&&(x<4||x>11);const gap=y<5&&x>5&&x<10;if(gap)continue;if(arm||(x>=4&&x<=11))p(x,y,(x+y)%5?C:Dk)}}
+  if(sl===2){for(let y=2;y<15;y++)for(let x=3;x<13;x++){if(y>5&&x>6&&x<9)continue;p(x,y,(x+y)%5?C:Dk)}}
+  if(sl===3){for(let y=6;y<13;y++)for(const x0 of [2,9])for(let x=x0;x<x0+5;x++){if(y<9&&x>x0+2)continue;p(x,y,(x+y)%4?C:Dk)}}}}
+for(const m in ARMC)for(let i=0;i<4;i++){const k=`${m}_${['helmet','chest','legs','boots'][i]}`;if(!(m==='iron'&&i===1))tile(k,armorPaint(i,m))}
 function repaintSeason(){RS=7;paintTile(TILES.grass,P_GRASS);paintTile(TILES.grass_side,P_GSIDE);paintTile(TILES.leaves,P_LEAF);paintTile(TILES.tallgrass,p=>{const g=SG();for(let k=0;k<7;k++){const x=1+k*2+(srand()*2|0),h=5+srand()*8|0;for(let y=16-h;y<16;y++)p(x,y,rgb(g[0]-20+srand()*20,g[1]-10+srand()*20,g[2]-10))}});tex.needsUpdate=true;ICON={}}
 const tex=new THREE.CanvasTexture(ATL);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;
-const uvOf=t=>{const u=(t%16)/16,v=1-Math.floor(t/16)/8;return [u+.001,v-.125+.001,u+1/16-.001,v-.001]};
+const uvOf=t=>{const u=(t%16)/16,v=1-Math.floor(t/16)/AROWS;return [u+.001,v-1/AROWS+.0002,u+1/16-.001,v-.0002]};
 
 /* ============ 블록 ============ */
 // tex: [위, 옆, 아래, 앞]  tool: 알맞은 도구  tier: 캐서 얻으려면 필요한 곡괭이 등급(0나무 1돌 2철 3다이아)
@@ -616,6 +710,49 @@ blk(61,'eportal','엔드 포털',['eportal','eportal'],{solid:false,trans:1,nora
 blk(62,'crystal','엔드 수정',['crystal','crystal'],{hard:.15,light:15,drop:null});
 blk(63,'dragon_egg','드래곤 알',['dragon_egg','dragon_egg'],{hard:3,light:2});
 blk(64,'rportal','귀환 포털',['eportal','eportal'],{solid:false,trans:1,noray:1,hard:1e9,light:10,drop:null});
+/* ---- ⛏️ 새 블록 (번호는 뒤에만 붙여요: 옛 저장과 친구 세계가 그대로 맞아요) ---- */
+blk(65,'gold_ore','금광석',['gold_ore','gold_ore'],{hard:3,tool:'pick',tier:2,drop:'raw_gold'});
+blk(66,'lapis_ore','청금석 광석',['lapis_ore','lapis_ore'],{hard:3,tool:'pick',tier:1,drop:'lapis',dropN:[4,8]});
+blk(67,'emerald_ore','에메랄드 광석',['emerald_ore','emerald_ore'],{hard:3,tool:'pick',tier:2,drop:'emerald'});
+blk(68,'ngold_ore','네더 금광석',['ngold_ore','ngold_ore'],{hard:2,tool:'pick',tier:0,drop:'gold_nugget',dropN:[2,5]});
+blk(69,'ancient_debris','고대 잔해',['debris_top','debris_side'],{hard:12,tool:'pick',tier:3});
+blk(70,'amethyst','자수정 블록',['amethyst','amethyst'],{hard:1.5,tool:'pick',tier:0});
+blk(71,'amethyst_cluster','자수정 덩어리',['amethyst_cluster','amethyst_cluster'],{solid:false,cross:true,hard:.6,tool:'pick',light:5,drop:'amethyst_shard',dropN:[2,4]});
+blk(72,'calcite','방해석',['calcite','calcite'],{hard:1,tool:'pick',tier:0});
+blk(73,'deepslate','심층암',['deepslate','deepslate'],{hard:3,tool:'pick',tier:0});
+blk(74,'gold_block','금 블록',['gold_block','gold_block'],{hard:4,tool:'pick',tier:2});
+blk(75,'lapis_block','청금석 블록',['lapis_block','lapis_block'],{hard:4,tool:'pick',tier:1});
+blk(76,'emerald_block','에메랄드 블록',['emerald_block','emerald_block'],{hard:5,tool:'pick',tier:2});
+blk(77,'diamond_block','다이아몬드 블록',['diamond_block','diamond_block'],{hard:5,tool:'pick',tier:2});
+blk(78,'coal_block','석탄 블록',['coal_block','coal_block'],{hard:4,tool:'pick',tier:0});
+blk(79,'redstone_block','레드스톤 블록',['redstone_block','redstone_block'],{hard:4,tool:'pick',tier:0,light:7});
+blk(80,'netherite_block','네더라이트 블록',['netherite_block','netherite_block'],{hard:15,tool:'pick',tier:3});
+blk(81,'quartz_block','석영 블록',['quartz_block','quartz_block'],{hard:1,tool:'pick',tier:0});
+blk(82,'tnt','TNT',['tnt_top','tnt_side','tnt_top'],{hard:0});
+blk(83,'ladder','사다리',['ladder','ladder'],{solid:false,cut:true,hard:.4,tool:'axe'});
+blk(84,'door','나무 문',['door','door'],{cut:true,hard:3,tool:'axe',use:'door'});
+blk(85,'door_open','열린 나무 문',['door','door'],{solid:false,cut:true,hard:3,tool:'axe',use:'door',drop:'door',noitem:1});
+blk(86,'spawner','몬스터 생성기',['spawner','spawner'],{cut:true,hard:5,tool:'pick',tier:0,drop:null,noitem:1});
+blk(87,'mossy','이끼 낀 조약돌',['mossy','mossy'],{hard:2,tool:'pick',tier:0});
+blk(88,'sandstone','사암',['sandstone_top','sandstone','sandstone_top'],{hard:1,tool:'pick',tier:0});
+blk(89,'terracotta','테라코타',['terracotta','terracotta'],{hard:1.3,tool:'pick',tier:0});
+blk(90,'ice','얼음',['ice','ice'],{hard:.5,tool:'pick',drop:null});
+blk(91,'stonebrick','돌 벽돌',['stonebrick','stonebrick'],{hard:1.5,tool:'pick',tier:0});
+blk(92,'mossy_brick','이끼 낀 돌 벽돌',['mossy_brick','mossy_brick'],{hard:1.5,tool:'pick',tier:0});
+blk(93,'cobweb','거미줄',['cobweb','cobweb'],{solid:false,cross:true,hard:4,tool:'sword',drop:'string'});
+blk(94,'blackstone','블랙스톤',['blackstone','blackstone'],{hard:1.5,tool:'pick',tier:0});
+blk(95,'gilded','금 박힌 블랙스톤',['gilded','gilded'],{hard:1.5,tool:'pick',tier:0,drop:'gildrop'});
+blk(96,'basalt','현무암',['basalt','basalt'],{hard:1.3,tool:'pick',tier:0});
+blk(97,'purpur','퍼퍼 블록',['purpur','purpur'],{hard:1.5,tool:'pick',tier:0});
+blk(98,'end_rod','엔드 막대',['end_rod','end_rod'],{solid:false,cross:true,small:1,hard:0,light:14});
+blk(99,'bookshelf','책장',['planks','bookshelf','planks'],{hard:1.5,tool:'axe',drop:'book',dropN:[3,3]});
+blk(100,'enchant','마법 부여대',['enchant_top','enchant_side','obsidian'],{hard:5,tool:'pick',tier:0,use:'enchant',half:1,light:7});
+blk(101,'cake','케이크',['cake_top','cake_side','cake_side'],{hard:.5,use:'cake',half:1,drop:null});
+blk(102,'hay','건초 더미',['hay_top','hay_side','hay_top'],{hard:.5,tool:'hoe'});
+blk(103,'magma','마그마 블록',['magma','magma'],{hard:.5,tool:'pick',tier:0,light:3});
+blk(104,'crying','우는 흑요석',['crying','crying'],{hard:10,tool:'pick',tier:3,light:10});
+blk(105,'bone_block','뼈 블록',['bone_block','bone_block'],{hard:2,tool:'pick',tier:0});
+blk(106,'sugar_cane','사탕수수',['sugar_cane','sugar_cane'],{solid:false,cross:true,hard:0});
 const LAMP_ON=TILES.lamp_on,LAMP_OFF=TILES.lamp_off;
 const OPAQUE=id=>{const b=B[id];return !!(b&&b.solid&&!b.cut&&!b.half)};
 const SOLID=id=>{const b=B[id];return !!(b&&b.solid)};
@@ -624,10 +761,10 @@ const SKYBLOCK=id=>{const b=B[id];return !!(b&&b.solid&&!b.cut&&id!==8)};
 /* ============ 아이템 ============ */
 const ITEM={};
 const IT=(k,n,o={})=>ITEM[k]=Object.assign({k,n,stack:64},o);
-for(const b of B)if(b&&!b.air&&!['water','bedrock','furnace_on','wheat_young','wheat_ripe','farmland','grass','snowgrass','tallgrass','gift','leaves','nportal','lava','end_frame','end_frame_eye','eportal','crystal','rportal'].includes(b.key))IT(b.key,b.n,{b:b.id});
+for(const b of B)if(b&&!b.air&&!b.noitem&&!['water','bedrock','furnace_on','wheat_young','wheat_ripe','farmland','grass','snowgrass','tallgrass','gift','leaves','nportal','lava','end_frame','end_frame_eye','eportal','crystal','rportal'].includes(b.key))IT(b.key,b.n,{b:b.id});
 IT('leaves','나뭇잎',{b:8});IT('grass','잔디 블록',{b:1});
-const TOOLD={wood:{t:0,n:'나무',sp:2,dur:60},stone:{t:1,n:'돌',sp:4,dur:132},iron:{t:2,n:'철',sp:6,dur:250},diamond:{t:3,n:'다이아몬드',sp:8,dur:800}};
-const TOOLT={pick:{n:'곡괭이',dmg:2},axe:{n:'도끼',dmg:4},shovel:{n:'삽',dmg:2},sword:{n:'검',dmg:4}};
+const TOOLD={wood:{t:0,n:'나무',sp:2,dur:60},stone:{t:1,n:'돌',sp:4,dur:132},iron:{t:2,n:'철',sp:6,dur:250},gold:{t:0,n:'금',sp:12,dur:32},diamond:{t:3,n:'다이아몬드',sp:8,dur:800},netherite:{t:4,n:'네더라이트',sp:9,dur:1600}};
+const TOOLT={pick:{n:'곡괭이',dmg:2},axe:{n:'도끼',dmg:4},shovel:{n:'삽',dmg:2},sword:{n:'검',dmg:4},hoe:{n:'괭이',dmg:1}};
 for(const m in TOOLD)for(const t in TOOLT)IT(`${m}_${t}`,`${TOOLD[m].n} ${TOOLT[t].n}`,{tile:`${m}_${t}`,stack:1,tool:{type:t,tier:TOOLD[m].t,sp:TOOLD[m].sp,dmg:TOOLT[t].dmg+TOOLD[m].t,dur:TOOLD[m].dur},dur:TOOLD[m].dur});
 Object.assign(ITEM,{});
 IT('stick','막대기',{tile:'stick',fuel:.5});IT('coal','석탄',{tile:'coal',fuel:8,fossil:1,desc:'아주 오래전 식물이 땅속에 묻혀 생긴 화석 연료. 태우면 이산화 탄소가 많이 나와요.'});
@@ -644,6 +781,30 @@ IT('flint','부싯돌',{tile:'flint',desc:'자갈을 캐면 가끔 나와요.'})
 ITEM.pumpkin.tile='pumpkin_i';ITEM.log.fuel=1.5;ITEM.planks.fuel=1.5;ITEM.sapling.fuel=.5;ITEM.sand.smelt='glass';ITEM.cobble.smelt='stone';ITEM.log.smelt='charcoal';ITEM.craft.fuel=1.5;ITEM.chest.fuel=1.5;ITEM.cactus.smelt=null;
 ITEM.sapling.plantTree=1;ITEM.netherrack.smelt='nbrick';
 const CO2F={coal:1.2,charcoal:.15,log:.12,planks:.1,stick:.03,methane:.25,wheat:.03,sapling:.03,craft:.1,chest:.1};
+/* ---- ⛏️ 새 아이템 ---- */
+IT('raw_gold','금광석 덩이',{tile:'raw_gold',smelt:'gold_ingot'});IT('gold_ingot','금 주괴',{tile:'gold_ingot',desc:'금은 전기가 아주 잘 통하고 녹슬지 않아 스마트폰·컴퓨터 회로에 조금씩 써요. 피글린이 좋아해요!'});IT('gold_nugget','금 조각',{tile:'gold_nugget',desc:'9개를 모으면 금 주괴가 돼요.'});
+IT('lapis','청금석',{tile:'lapis',desc:'옛날엔 아주 귀한 파란 물감 재료였어요. 마법 부여대에서 써요.'});IT('emerald','에메랄드',{tile:'emerald',desc:'눈 덮인 산속 깊은 곳에서 나와요. 주민과 거래할 수 있어요.'});
+IT('amethyst_shard','자수정 조각',{tile:'amethyst_shard',desc:'자수정은 석영(이산화 규소)의 한 종류예요. 땅속 빈 동굴(정동)에서 자라요.'});
+IT('netherite_scrap','네더라이트 파편',{tile:'netherite_scrap',desc:'고대 잔해를 화로에 녹여 얻어요.'});IT('netherite_ingot','네더라이트 주괴',{tile:'netherite_ingot',desc:'파편 4 + 금 주괴 4. 다이아몬드 도구·갑옷과 함께 놓으면 네더라이트로 업그레이드!'});
+IT('cod','날 대구',{tile:'cod',food:2,smelt:'ccod'});IT('ccod','구운 대구',{tile:'ccod',food:5});IT('salmon','날 연어',{tile:'salmon',food:2,smelt:'csalmon'});IT('csalmon','구운 연어',{tile:'csalmon',food:6});
+IT('puffer','복어',{tile:'puffer',food:1,pois:6,desc:'먹으면 독에 걸려요! 우유로 나아요.'});IT('rabbit_raw','날 토끼고기',{tile:'rabbit_raw',food:3,smelt:'rabbit_cooked'});IT('rabbit_cooked','구운 토끼고기',{tile:'rabbit_cooked',food:5});IT('rabbit_hide','토끼 가죽',{tile:'rabbit_hide'});
+IT('golden_apple','황금 사과',{tile:'golden_apple',food:4,desc:'먹으면 체력이 빠르게 회복돼요(재생). 배불러도 먹을 수 있어요.'});IT('cookie','쿠키',{tile:'cookie',food:2});IT('pie','호박 파이',{tile:'pie',food:8});
+IT('spider_eye','거미 눈',{tile:'spider_eye',food:2,pois:4});IT('gunpowder','화약',{tile:'gunpowder',desc:'크리퍼가 떨어뜨려요. 모래와 함께 TNT를 만들어요.'});IT('slimeball','슬라임 볼',{tile:'slimeball'});IT('ghast_tear','가스트의 눈물',{tile:'ghast_tear'});
+IT('magma_cream','마그마 크림',{tile:'magma_cream'});IT('ink_sac','먹물 주머니',{tile:'ink_sac',desc:'오징어가 떨어뜨려요.'});IT('shulker_shell','셜커 껍데기',{tile:'shulker_shell'});
+IT('bucket','양동이',{tile:'bucket',stack:16,desc:'물·용암을 뜨거나 소에게 쓰면 우유를 받아요.'});IT('water_bucket','물 양동이',{tile:'water_bucket',stack:1});IT('lava_bucket','용암 양동이',{tile:'lava_bucket',stack:1,fuel:100,desc:'용암은 땅속의 뜨거운 열(지열)이에요. 화로 연료로 아주 오래 타요!'});IT('milk_bucket','우유 양동이',{tile:'milk_bucket',stack:1,desc:'마시면 독이 나아요.'});
+IT('fishing_rod','낚싯대',{tile:'fishing_rod',stack:1,dur:64});IT('compass','나침반',{tile:'compass',stack:1,desc:'손에 들면 마을(처음 장소)이 어느 쪽인지 알려 줘요. 지구는 커다란 자석이에요!'});IT('clock','시계',{tile:'clock',stack:1,desc:'손에 들면 낮·밤을 알려 줘요.'});IT('map','지도',{tile:'map',stack:1,desc:'오른쪽 클릭하면 지도를 펼쳐요. 발견한 구조물이 표시돼요.'});
+IT('shears','가위',{tile:'shears',stack:1,dur:238,desc:'양에게 쓰면 양털을 깎아요. 나뭇잎·거미줄도 빨리 잘라요.'});IT('shield','방패',{tile:'shield',stack:1,dur:336,desc:'들고 오른쪽 버튼을 누르고 있으면 앞에서 오는 공격을 막아요.'});IT('crossbow','쇠뇌',{tile:'crossbow',stack:1,dur:326,desc:'활보다 세고 멀리 나가요.'});IT('totem','불사의 토템',{tile:'totem',stack:1,desc:'가방에 있으면 쓰러질 때 한 번 살려 줘요.'});
+IT('sugar','설탕',{tile:'sugar'});IT('paper','종이',{tile:'paper'});IT('book','책',{tile:'book'});IT('bone_meal','뼈가루',{tile:'bone_meal',desc:'묘목·밀에 쓰면 쑥쑥 자라요. 식물에게 거름(양분)이에요.'});
+ITEM.ladder.tile='ladder_i';ITEM.door.tile='door_i';ITEM.cake.tile='cake_i';ITEM.cake.stack=1;ITEM.sugar_cane.fuel=.5;ITEM.hay.fuel=4;ITEM.coal_block.fuel=72;ITEM.coal_block.fossil=1;ITEM.bookshelf.fuel=1.5;ITEM.ladder.fuel=.5;ITEM.door.fuel=1;
+ITEM.ancient_debris.smelt='netherite_scrap';ITEM.coal_block.desc='석탄 9개를 뭉친 블록. 오래 타지만 화석 연료라 탄소가 많이 나와요.';ITEM.deepslate.desc='땅 깊은 곳은 누르는 힘(압력)이 커서 돌이 더 단단해요.';ITEM.sugar_cane.desc='물가에서 자라요. 사탕수수로 바이오에탄올(식물 연료)도 만들어요. 바이오 발전기 연료!';
+ITEM.tnt.desc='부싯돌과 부시로 불을 붙이면 4초 뒤 펑! 조심해요.';ITEM.bone_block.desc='화석: 아주 오래전 생물의 흔적이에요. 석탄·석유도 오래전 생물에서 만들어졌어요.';ITEM.diamond.desc='다이아몬드는 석탄처럼 탄소로 되어 있어요! 땅속 깊은 곳의 높은 열과 압력으로 생겨요.';ITEM.obsidian.desc='용암이 물을 만나 빠르게 식으면 생기는 화산 유리예요.';
+ITEM.dust.n='레드스톤(전기 가루)';B[14].n='레드스톤 광석';ITEM.dust_ore&&(ITEM.dust_ore.n='레드스톤 광석');
+CO2F.coal_block=10.8;CO2F.sugar_cane=.03;CO2F.hay=.2;CO2F.lava_bucket=0;
+// 갑옷: 투구·흉갑·레깅스·부츠 (철 흉갑은 원래 있던 '철 갑옷'이에요)
+const ARMS={leather:{n:'가죽',pts:[1,3,2,1],dur:80,mat:'leather',c:0x8b5a2b},gold:{n:'금',pts:[2,5,3,1],dur:110,mat:'gold_ingot',c:0xf4c430},iron:{n:'철',pts:[2,6,5,2],dur:240,mat:'iron_ingot',c:0xd8d8de},diamond:{n:'다이아몬드',pts:[3,8,6,3],dur:520,mat:'diamond',c:0x4fe0d0},netherite:{n:'네더라이트',pts:[3,8,6,3],dur:740,c:0x4a4246}};
+const ASLOT=['helmet','chest','legs','boots'],ASN=['투구','흉갑','레깅스','부츠'];
+const armKey=(m,i)=>m==='iron'&&i===1?'armor':`${m}_${ASLOT[i]}`;
+for(const m in ARMS)for(let i=0;i<4;i++){const k=armKey(m,i);if(k==='armor'){Object.assign(ITEM.armor,{n:'철 갑옷 (흉갑)',armor:ARMS.iron.pts[1],slot:1,am:'iron',dur:ARMS.iron.dur});continue}IT(k,`${ARMS[m].n} ${ASN[i]}`,{tile:k,stack:1,armor:ARMS[m].pts[i],slot:i,am:m,dur:ARMS[m].dur})}
 const BLOCKITEM=k=>ITEM[k]&&ITEM[k].b!=null&&!B[ITEM[k].b].air;
 
 /* ============ 조합법 ============ */
@@ -670,6 +831,23 @@ R('lamp',2,[' G ','GDG',' W '],{G:'glass',D:'dust',W:'wire'},{energy:1});
 R('efurnace',1,['IDI','WFW','III'],{I:'iron_ingot',D:'dust',W:'wire',F:'furnace'},{energy:1});
 R('brick',4,['CC','CC'],{C:'stone'});
 RS_('flint_steel',1,['iron_ingot','flint']);RS_('blaze_powder',2,['blaze_rod']);RS_('ender_eye',1,['ender_pearl','blaze_powder']);R('solar',1,['GGG','QCQ'],{G:'glass',Q:'quartz',C:'copper_ingot'},{energy:1});
+/* ---- ⛏️ 새 조합법 ---- */
+MATK.gold='gold_ingot';
+for(const m in MATK){const M=MATK[m];R(`${m}_hoe`,1,['MM',' S',' S'],{M,S:'stick'});if(m==='gold'){R('gold_pick',1,['MMM',' S ',' S '],{M,S:'stick'});R('gold_axe',1,['MM','MS',' S'],{M,S:'stick'});R('gold_shovel',1,['M','S','S'],{M,S:'stick'});R('gold_sword',1,['M','M','S'],{M,S:'stick'})}}
+for(const t of ['pick','axe','shovel','sword','hoe'])RS_(`netherite_${t}`,1,[`diamond_${t}`,'netherite_ingot']);
+const blk9=(b,i)=>{R(b,1,['XXX','XXX','XXX'],{X:i});RS_(i,9,[b])};
+blk9('gold_block','gold_ingot');blk9('lapis_block','lapis');blk9('emerald_block','emerald');blk9('diamond_block','diamond');blk9('coal_block','coal');blk9('redstone_block','dust');blk9('netherite_block','netherite_ingot');blk9('hay','wheat');blk9('bone_block','bone_meal');
+R('gold_ingot',1,['XXX','XXX','XXX'],{X:'gold_nugget'});RS_('gold_nugget',9,['gold_ingot']);
+RS_('netherite_ingot',1,['netherite_scrap','netherite_scrap','netherite_scrap','netherite_scrap','gold_ingot','gold_ingot','gold_ingot','gold_ingot']);
+R('quartz_block',1,['QQ','QQ'],{Q:'quartz'});R('amethyst',1,['QQ','QQ'],{Q:'amethyst_shard'});R('magma',1,['QQ','QQ'],{Q:'magma_cream'});R('sandstone',1,['QQ','QQ'],{Q:'sand'});R('stonebrick',4,['QQ','QQ'],{Q:'cobble'});RS_('mossy',1,['cobble','leaves']);RS_('mossy_brick',1,['stonebrick','leaves']);
+for(const m in ARMS){if(m==='netherite'){for(let i=0;i<4;i++)RS_(armKey(m,i),1,[armKey('diamond',i),'netherite_ingot']);continue}const M=ARMS[m].mat;R(armKey(m,0),1,['MMM','M M'],{M});if(m!=='iron')R(armKey(m,1),1,['M M','MMM','MMM'],{M});R(armKey(m,2),1,['MMM','M M','M M'],{M});R(armKey(m,3),1,['M M','M M'],{M})}
+R('tnt',1,['GSG','SGS','GSG'],{G:'gunpowder',S:'sand'});R('ladder',3,['S S','SSS','S S'],{S:'stick'});R('door',3,['PP','PP','PP'],{P:'planks'});
+R('bucket',1,['I I',' I '],{I:'iron_ingot'});R('shears',1,[' I','I '],{I:'iron_ingot'});R('compass',1,[' I ','IDI',' I '],{I:'iron_ingot',D:'dust'});R('clock',1,[' G ','GDG',' G '],{G:'gold_ingot',D:'dust'});
+R('map',1,['PPP','PCP','PPP'],{P:'paper',C:'compass'});R('fishing_rod',1,['  S',' ST','S T'],{S:'stick',T:'string'});R('shield',1,['PIP','PPP',' P '],{P:'planks',I:'iron_ingot'});R('crossbow',1,['SIS','TFT',' S '],{S:'stick',I:'iron_ingot',T:'string',F:'flint'});
+R('golden_apple',1,['GGG','GAG','GGG'],{G:'gold_ingot',A:'apple'});RS_('cookie',8,['wheat','sugar','wheat']);RS_('pie',1,['pumpkin','sugar','egg']);R('cake',1,['MMM','SES','WWW'],{M:'milk_bucket',S:'sugar',E:'egg',W:'wheat'},{ret:['bucket',3]});
+RS_('sugar',1,['sugar_cane']);R('paper',3,['CCC'],{C:'sugar_cane'});RS_('book',1,['paper','paper','paper','leather']);R('bookshelf',1,['PPP','BBB','PPP'],{P:'planks',B:'book'});R('enchant',1,[' B ','DOD','OOO'],{B:'book',D:'diamond',O:'obsidian'});
+RS_('bone_meal',3,['bone']);RS_('leather',1,['rabbit_hide','rabbit_hide','rabbit_hide','rabbit_hide']);
+{const ar=REC.find(r=>r.out==='arrow');if(ar)ar.key.F=['flint','cobble']}
 function recSize(r){if(r.list)return r.list.length<=4?2:3;return Math.max(r.pat.length,Math.max(...r.pat.map(s=>s.length)))}
 function keyOk(want,k){return Array.isArray(want)?want.includes(k):want===k}
 function matchGrid(g,n){// g: n*n 배열 of {k}|null
