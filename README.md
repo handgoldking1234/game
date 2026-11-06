@@ -38,4 +38,4 @@ GitHub Pages로 공개하려면: 저장소 Settings → Pages → Branch `main` 
 1. Supabase(iux-cloud) → **SQL Editor**에서 `supabase/analytics.sql` 전체를 실행해요.
 2. **Authentication → Users → Add user**로 관리자 계정(이메일·비밀번호)을 만들어요.
 3. SQL Editor에서 `insert into public.mw_admins(email) values ('관리자 이메일');` 실행.
-4. `https://iuxgame.vercel.app/admin.html`에서 로그인해요.
+4. `https://game.iux.kr/admin.html`에서 로그인해요.
