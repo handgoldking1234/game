@@ -127,6 +127,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .lk.pop{transform:scale(1.18)}
 .wm .pl b{color:#111;font-weight:700}
 .wm .hot{background:#fff1e6;color:#ea580c;border-radius:4px;padding:1px 6px;font-weight:700}
+.wm .lock{background:#eef2ff;color:#4338ca;border-radius:4px;padding:1px 6px;font-weight:700}
 .sort{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 18px;justify-content:center}
 .sort button{border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;color:#374151}
 .sort button[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
@@ -336,7 +337,7 @@ var st={tab:'all',q:'',learn:'',more:false,sort:'rec'};try{st.sort=localStorage.
 var STATS={},MYLIKE={};try{MYLIKE=JSON.parse(localStorage.getItem('mw_likes')||'{}')}catch(e){}
 function nf(n){n=n||0;return n>=10000?(Math.round(n/1000)/10)+'만':n.toLocaleString('ko-KR')}
 function meta(g){var s=STATS[g.id]||{},lk=s.likes||0,on=!!(s.mine!=null?s.mine:MYLIKE[g.id]);var hot=(s.plays7||0)>=Math.max(5,TOP7)?'<span class="hot">🔥 인기</span>':'';
- return '<div class="wm"><button type="button" class="lk" data-like="'+g.id+'" aria-pressed="'+on+'" aria-label="'+esc(g.t)+' 좋아요">♥ <b>'+nf(lk)+'</b></button><span class="pl">▶ <b>'+nf(s.plays||0)+'</b>회</span>'+hot+'</div>'}
+ return '<div class="wm"><button type="button" class="lk" data-like="'+g.id+'" aria-pressed="'+on+'" aria-label="'+esc(g.t)+' 좋아요">♥ <b>'+nf(lk)+'</b></button><span class="pl">▶ <b>'+nf(s.plays||0)+'</b>회</span>'+hot+(window.MWT&&MWT.allowed&&!MWT.allowed(g.id)?'<span class="lock" title="'+esc(MWT.hoursText(g.id))+'">'+(MWT.isOff&&MWT.isOff(g.id)?'⛔ 꺼짐':'🔒 쉬는 시간')+'</span>':'')+'</div>'}
 var TOP7=1e9;
 function score(g){var s=STATS[g.id]||{};return (s.plays7||0)*3+(s.plays||0)+(s.likes||0)*8}
 function sorted(list){var L=list.slice(),i0={};GAMES.forEach(function(g,i){i0[g.id]=i});
@@ -346,7 +347,7 @@ function sorted(list){var L=list.slice(),i0={};GAMES.forEach(function(g,i){i0[g.
  if(st.sort==='like')return L.sort(function(a,b){return ((STATS[b.id]||{}).likes||0)-((STATS[a.id]||{}).likes||0)||i0[a.id]-i0[b.id]});
  // 추천: 가장 새 게임 3개 먼저, 그다음 많이 하고 좋아요가 많은 순
  return L.sort(function(a,b){var na=isNew(a),nb=isNew(b);if(na!==nb)return na?-1:1;if(na&&nb)return i0[a.id]-i0[b.id];return score(b)-score(a)||i0[a.id]-i0[b.id]})}
-function loadStats(){if(!window.MWT){setTimeout(loadStats,400);return}MWT.stats().then(function(rows){STATS={};var p7=[];(rows||[]).forEach(function(r){STATS[r.game]={likes:+r.likes,plays:+r.plays,plays7:+r.plays7,mine:r.mine};p7.push(+r.plays7)});p7.sort(function(a,b){return b-a});TOP7=p7.length>3?p7[2]:1e9;render()}).catch(function(){})}
+function loadStats(){if(!window.MWT){setTimeout(loadStats,400);return}MWT.stats().then(function(rows){STATS={};var p7=[];(rows||[]).forEach(function(r){STATS[r.game]={likes:+r.likes,plays:+r.plays,plays7:+r.plays7,mine:r.mine};p7.push(+r.plays7)});p7.sort(function(a,b){return b-a});TOP7=p7.length>3?p7[2]:1e9;render()}).catch(function(){});if(MWT.cfg)MWT.cfg().then(function(){render()})}
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-like]');if(!b)return;e.preventDefault();e.stopPropagation();var id=b.dataset.like,s=STATS[id]||(STATS[id]={likes:0,plays:0,plays7:0});
  var on=b.getAttribute('aria-pressed')!=='true';s.mine=on;s.likes=Math.max(0,(s.likes||0)+(on?1:-1));MYLIKE[id]=on;try{localStorage.setItem('mw_likes',JSON.stringify(MYLIKE))}catch(e){}
  b.setAttribute('aria-pressed',on);b.querySelector('b').textContent=nf(s.likes);b.classList.add('pop');setTimeout(function(){b.classList.remove('pop')},180);

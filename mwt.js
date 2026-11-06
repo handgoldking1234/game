@@ -35,8 +35,58 @@
     send('view');
     document.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a[data-id]'); if (a) send('click', { game: a.dataset.id }) }, true);
   }
+  // 게임 시간 (관리자가 정한 시간대 밖이면 게임을 잠가요 · 한국 시간 기준)
+  var CFG = null, cfgP = null;
+  function kst() { var d = new Date(Date.now() + 9 * 3600e3); return { dow: d.getUTCDay() || 7, m: d.getUTCHours() * 60 + d.getUTCMinutes() } }
+  function mins(s) { var p = String(s || '0:0').split(':'); return (+p[0] || 0) * 60 + (+p[1] || 0) }
+  function rule(c, g) {
+    c = c || {}; var o = (c.games || {})[g] || {}, mode = o.mode || 'all';
+    if (mode === 'free') return null;
+    if (mode === 'off') return { off: true };
+    if (mode === 'own') return { from: o.from, to: o.to, days: o.days || [1, 2, 3, 4, 5, 6, 7] };
+    return c.on ? { from: c.from, to: c.to, days: c.days || [1, 2, 3, 4, 5, 6, 7] } : null;
+  }
+  function allowed(g, c) {
+    var r = rule(c || CFG, g); if (!r) return true; if (r.off) return false;
+    var n = kst(); if (r.days.indexOf(n.dow) < 0) return false;
+    var f = mins(r.from || '00:00'), t = mins(r.to || '24:00'); if (f === t) return true;
+    return f < t ? (n.m >= f && n.m < t) : (n.m >= f || n.m < t);
+  }
+  function ruleText(g) {
+    var r = rule(CFG, g); if (!r) return ''; if (r.off) return '지금은 이 게임을 쉬고 있어요.';
+    var D = ['', '월', '화', '수', '목', '금', '토', '일'], ds = r.days.length === 7 ? '매일' : r.days.map(function (d) { return D[d] }).join('·');
+    return ds + ' ' + (r.from || '00:00') + ' ~ ' + (r.to || '24:00');
+  }
+  function cfg() {
+    if (!cfgP) cfgP = rpc('mw_public_cfg').then(function (c) { CFG = c || {}; return CFG }).catch(function () { CFG = {}; return CFG });
+    return cfgP;
+  }
+  var lockEl = null;
+  function lock() {
+    var adm = false; try { adm = localStorage.getItem('mw_admin') === '1' } catch (e) {}
+    if (!game || adm || !CFG) return;
+    var ok = allowed(game);
+    if (ok) { if (lockEl) { lockEl.remove(); lockEl = null } return }
+    if (lockEl) return;
+    try { document.querySelectorAll('audio,video').forEach(function (a) { a.pause() }) } catch (e) {}
+    try { if (document.pointerLockElement) document.exitPointerLock() } catch (e) {}
+    lockEl = document.createElement('div');
+    lockEl.setAttribute('role', 'alertdialog');
+    lockEl.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(10,12,20,.94);color:#fff;display:flex;align-items:center;justify-content:center;font-family:Pretendard,"Malgun Gothic",sans-serif;text-align:center;padding:20px';
+    var msg = (CFG && CFG.msg) || '지금은 게임 시간이 아니에요. 정해진 시간에 다시 만나요!';
+    lockEl.innerHTML = '<div style="max-width:420px"><div style="font-size:64px">🔒</div><h2 style="margin:10px 0 8px;font-size:24px">쉬는 시간이에요</h2><p style="margin:0 0 6px;line-height:1.6;color:#e5e7eb"></p><p style="margin:0 0 18px;color:#fbbf24;font-weight:800"></p><a href="/" style="display:inline-block;background:#f26b1d;color:#fff;text-decoration:none;font-weight:800;border-radius:12px;padding:12px 22px">🏠 게임 목록으로</a></div>';
+    var ps = lockEl.querySelectorAll('p'); var rr = rule(CFG, game); if (rr && rr.off) { lockEl.querySelector('h2').textContent = '지금은 쉬고 있는 게임이에요'; ps[0].textContent = '관리자가 이 게임을 잠시 꺼 두었어요. 다른 게임을 즐겨 보세요!'; ps[1].textContent = '' } else { ps[0].textContent = msg; ps[1].textContent = '⏰ 게임 시간: ' + ruleText(game) }
+    ['keydown', 'keyup', 'mousedown', 'pointerdown', 'touchstart', 'wheel'].forEach(function (t) { lockEl.addEventListener(t, function (e) { e.stopPropagation() }) });
+    (document.body || document.documentElement).appendChild(lockEl);
+  }
+  if (game) { cfg().then(lock); setInterval(lock, 30000) }
+
   window.MWT = {
     vid: vid,
+    cfg: cfg,
+    allowed: function (g) { return allowed(g) },
+    hoursText: function (g) { return ruleText(g) },
+    isOff: function (g) { var r = rule(CFG, g); return !!(r && r.off) },
     stats: function () { return rpc('mw_game_stats', { p_vid: vid }) },
     like: function (g) { return rpc('mw_toggle_like', { p_game: g, p_vid: vid }).then(function (r) { send(r.liked ? 'like' : 'unlike', { game: g }); return r }) }
   };

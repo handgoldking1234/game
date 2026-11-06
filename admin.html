@@ -47,6 +47,24 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .mute{color:var(--mute)}
 #dash[hidden],#login[hidden]{display:none}
 .loading{opacity:.5;pointer-events:none}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 16px;font-weight:800;cursor:pointer;font-size:14px}
+.tabs button[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
+.frm{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:12px}
+.frm label{display:flex;align-items:center;gap:6px;font-weight:700}
+.frm input[type=time],.frm input[type=text],td input,td select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+td input[type=number]{width:96px;text-align:right}
+.days label{border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-weight:700;cursor:pointer}
+.days input{margin:0}
+.save{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:800;cursor:pointer;font-size:14px}
+.chip{border:1px solid var(--line);background:#f9fafb;border-radius:999px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:12px}
+.ok{color:var(--green);font-weight:800}.no{color:var(--red);font-weight:800}
+.msg{font-weight:700;margin-left:8px}
+.sw{position:relative;display:inline-block;width:46px;height:26px}.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;background:#d1d5db;border-radius:999px;transition:.2s;cursor:pointer}
+.sw i:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw input:checked+i{background:var(--green)}.sw input:checked+i:before{transform:translateX(20px)}
+tr.offrow td{background:#fef2f2}tr.offrow .gm,tr.offrow .gf,tr.offrow .gt{opacity:.4}
 </style>
 </head>
 <body>
@@ -68,6 +86,29 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
  <button class="btn" id="out" type="button">로그아웃</button>
 </header>
 <main id="mainEl">
+ <div class="tabs" id="tabs"><button data-t="st" aria-pressed="true">📊 통계</button><button data-t="op" aria-pressed="false">⚙️ 운영 설정</button></div>
+ <div id="op" hidden>
+  <div class="grid">
+   <div class="card s12"><h3>⏰ 게임 시간 <small>한국 시간 기준 · 정한 시간 밖에는 게임 화면이 잠겨요</small></h3>
+    <div class="frm"><label><input type="checkbox" id="hOn"> 게임 시간 제한 켜기</label>
+     <label>열리는 시간 <input type="time" id="hFrom" value="07:00"></label><label>닫히는 시간 <input type="time" id="hTo" value="22:00"></label>
+     <span class="mute">닫히는 시간이 더 이르면 밤을 넘겨 열려요 (예: 15:00 ~ 09:00)</span></div>
+    <div class="frm days" id="hDays"></div>
+    <div class="frm"><label style="flex:1">잠긴 화면 안내 <input type="text" id="hMsg" style="flex:1;min-width:240px" placeholder="지금은 게임 시간이 아니에요. 정해진 시간에 다시 만나요!"></label></div>
+    <div class="frm"><span class="mute">빠른 설정</span><button class="chip" data-pre="night">🌙 밤에는 쉬기 (매일 07~22시)</button><button class="chip" data-pre="school">🏫 수업 시간 막기 (평일 15시~다음날 9시만)</button><button class="chip" data-pre="after">📚 평일 방과 후만 (15~21시)</button><button class="chip" data-pre="none">🔓 제한 없음</button></div>
+    <h3 style="margin-top:8px">🎮 게임별 켜기·끄기 · 시간 규칙 <small>스위치를 끄면 그 게임은 시간과 상관없이 잠겨요 · “전체 규칙”이면 위 시간을 따라요</small></h3>
+    <div class="frm"><button class="chip" type="button" id="allOn">✅ 모두 켜기</button><button class="chip" type="button" id="allOff">⛔ 모두 끄기</button></div>
+    <div class="tw" style="max-height:none"><table id="tHours"></table></div>
+    <div class="frm" style="margin-top:12px"><button class="save" id="hSave">💾 게임 시간 저장</button><span class="msg" id="hMsgOut"></span></div>
+    <p class="mute" style="margin:0;line-height:1.6">관리자로 로그인한 이 브라우저에서는 잠금 없이 게임을 열 수 있어요(확인용). 이미 게임 중인 화면도 30초 안에 잠겨요.</p>
+   </div>
+   <div class="card s12"><h3>🔢 목록 숫자 조정 <small>게임 목록에 보이는 ▶ 플레이 수 · ♥ 좋아요 수 (통계 화면 숫자는 실제 그대로)</small></h3>
+    <div class="tw" style="max-height:none"><table id="tAdj"></table></div>
+    <div class="frm" style="margin-top:12px"><button class="save" id="aSave">💾 숫자 저장</button><span class="msg" id="aMsgOut"></span></div>
+   </div>
+  </div>
+ </div>
+ <div id="st">
  <div class="kpis" id="kpis"></div>
  <div class="grid">
   <div class="card s8"><h3>📈 날짜별 방문 · 플레이</h3><div class="cv"><canvas id="cDaily"></canvas></div></div>
@@ -84,6 +125,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card s6"><h3>🖥️ 화면 크기</h3><div class="tw" style="max-height:300px"><table id="tScreen"></table></div></div>
   <div class="card s6"><h3>🔢 IP (마지막 자리 가림) <small>학교·기관 단위 접속 파악용</small></h3><div class="tw" style="max-height:300px"><table id="tIp"></table></div></div>
   <div class="card s12"><h3>🧾 최근 기록 <small>최근 120건</small></h3><div class="tw"><table id="tRecent"></table></div></div>
+ </div>
  </div>
  <p class="mute" style="margin-top:16px;line-height:1.6">원래 IP는 저장하지 않고 마지막 자리를 가린 IP와 해시만 남겨요. 방문자는 기기별 익명 ID로 세요(같은 사람이 다른 기기·브라우저로 오면 따로 세져요). 로컬 파일로 연 게임은 집계되지 않아요.</p>
 </main>
@@ -106,9 +148,9 @@ const COLORS=['#f26b1d','#2563eb','#16a34a','#e11d48','#7c3aed','#0891b2','#ca8a
 function chart(id,cfg){if(CH[id])CH[id].destroy();CH[id]=new Chart($(id),cfg)}
 async function boot(){const {data:{session}}=await sb.auth.getSession();if(session)showDash();else showLogin()}
 function showLogin(m){$('login').hidden=false;$('dash').hidden=true;if(m)$('lerr').textContent=m}
-function showDash(){$('login').hidden=true;$('dash').hidden=false;try{DAYS=+localStorage.getItem('mw_adm_days')||7}catch(e){}load()}
+function showDash(){$('login').hidden=true;$('dash').hidden=false;try{localStorage.setItem('mw_admin','1')}catch(e){}try{DAYS=+localStorage.getItem('mw_adm_days')||7}catch(e){}load()}
 $('lf').onsubmit=async e=>{e.preventDefault();$('lerr').textContent='';const {error}=await sb.auth.signInWithPassword({email:$('em').value.trim(),password:$('pw').value});if(error){$('lerr').textContent='로그인 실패: '+(error.message.includes('Invalid')?'이메일이나 비밀번호가 맞지 않아요':error.message);return}showDash()};
-$('out').onclick=async()=>{await sb.auth.signOut();showLogin()};
+$('out').onclick=async()=>{try{localStorage.removeItem('mw_admin')}catch(e){}await sb.auth.signOut();showLogin()};
 $('re').onclick=()=>load();
 document.querySelectorAll('#per [data-d]').forEach(b=>b.onclick=()=>{DAYS=+b.dataset.d;try{localStorage.setItem('mw_adm_days',DAYS)}catch(e){}load()});
 async function load(){document.querySelectorAll('#per [data-d]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.d===DAYS));$('mainEl').classList.add('loading');
@@ -137,6 +179,36 @@ function gamesTable(){const rows=(DATA.games||[]).map(r=>Object.assign({},r,{nam
   $('tGames').querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;gSort={k,d:gSort.k===k?-gSort.d:(k==='name'?1:-1)};gamesTable()})}
 $('csv').onclick=()=>{if(!DATA)return;const rows=[['game','name','plays','players','avg_sec','total_min','clicks','likes']].concat((DATA.games||[]).map(r=>[r.game,GN[r.game]||r.game,r.plays,r.players,r.avg_sec,r.total_min,r.clicks,r.likes]));
   const b=new Blob(['﻿'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='민왕게임월드_게임통계_'+new Date().toISOString().slice(0,10)+'.csv';a.click()};
+/* ===== 운영 설정 ===== */
+let OP=null;const DN=['','월','화','수','목','금','토','일'];
+document.querySelectorAll('#tabs [data-t]').forEach(b=>b.onclick=()=>{const t=b.dataset.t;document.querySelectorAll('#tabs [data-t]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('st').hidden=t!=='st';$('op').hidden=t!=='op';$('per').style.visibility=t==='st'?'visible':'hidden';if(t==='op')loadOp()});
+$('hDays').innerHTML='<span class="mute">열리는 요일</span>'+[1,2,3,4,5,6,7].map(d=>`<label><input type="checkbox" value="${d}" checked> ${DN[d]}</label>`).join('');
+function gameIds(){const s=new Set(Object.keys(GN));((OP&&OP.games)||[]).forEach(r=>s.add(r.game));return [...s]}
+async function loadOp(){$('op').classList.add('loading');const {data,error}=await sb.rpc('mw_admin_cfg');$('op').classList.remove('loading');
+  if(error){$('op').querySelector('.grid').insertAdjacentHTML('afterbegin',`<div class="note s12" id="opErr">운영 설정을 불러오지 못했어요: ${esc(error.message)}<br>Supabase SQL Editor에서 <b>supabase/controls.sql</b>을 먼저 실행해 주세요.</div>`);return}
+  const e=$('opErr');if(e)e.remove();OP=data||{};fillHours(OP.hours||{});fillAdj()}
+function fillHours(h){$('hOn').checked=!!h.on;$('hFrom').value=h.from||'07:00';$('hTo').value=h.to||'22:00';$('hMsg').value=h.msg||'';const ds=h.days||[1,2,3,4,5,6,7];
+  $('hDays').querySelectorAll('input').forEach(i=>i.checked=ds.includes(+i.value));const G=h.games||{};
+  $('tHours').innerHTML='<tr><th>켜기</th><th>게임</th><th>규칙</th><th>열리는 시간</th><th>닫히는 시간</th><th>요일</th></tr>'+gameIds().map(id=>{const o=G[id]||{},isOff=o.mode==='off',m=isOff?(o.prev||'all'):(o.mode||'all'),od=o.days||[1,2,3,4,5,6,7];
+   return `<tr data-g="${esc(id)}"><td><label class="sw" title="게임 켜기/끄기"><input type="checkbox" class="gon"${isOff?'':' checked'}><i></i></label></td><td>${esc(GN[id]||id)}</td><td><select class="gm">${[['all','전체 규칙'],['free','🔓 시간 제한 없음'],['own','⏰ 따로 정하기']].map(([v,l])=>`<option value="${v}"${v===m?' selected':''}>${l}</option>`).join('')}</select></td><td><input type="time" class="gf" value="${esc(o.from||'15:00')}"></td><td><input type="time" class="gt" value="${esc(o.to||'21:00')}"></td><td class="gd">${[1,2,3,4,5,6,7].map(d=>`<label style="margin-right:4px"><input type="checkbox" value="${d}"${od.includes(d)?' checked':''}>${DN[d]}</label>`).join('')}</td></tr>`}).join('');
+  $('tHours').querySelectorAll('tr[data-g]').forEach(tr=>{const f=()=>{const on=tr.querySelector('.gon').checked,own=on&&tr.querySelector('.gm').value==='own';tr.classList.toggle('offrow',!on);tr.querySelector('.gm').disabled=!on;tr.querySelectorAll('.gf,.gt,.gd input').forEach(i=>i.disabled=!own)};tr.querySelector('.gm').onchange=f;tr.querySelector('.gon').onchange=f;f()})}
+function setAll(v){$('tHours').querySelectorAll('tr[data-g]').forEach(tr=>{const c=tr.querySelector('.gon');c.checked=v;c.onchange()});$('hMsgOut').textContent='아직 저장 안 됨 — 저장 버튼을 눌러 주세요'}
+$('allOn').onclick=()=>setAll(true);$('allOff').onclick=()=>setAll(false);
+function readHours(){const h={on:$('hOn').checked,from:$('hFrom').value||'00:00',to:$('hTo').value||'24:00',days:[...$('hDays').querySelectorAll('input:checked')].map(i=>+i.value),msg:$('hMsg').value.trim(),games:{}};
+  $('tHours').querySelectorAll('tr[data-g]').forEach(tr=>{const m=tr.querySelector('.gm').value;if(!tr.querySelector('.gon').checked){const o={mode:'off',prev:m};if(m==='own'){o.from=tr.querySelector('.gf').value;o.to=tr.querySelector('.gt').value;o.days=[...tr.querySelectorAll('.gd input:checked')].map(i=>+i.value)}h.games[tr.dataset.g]=o;return}if(m==='all')return;const o={mode:m};if(m==='own'){o.from=tr.querySelector('.gf').value;o.to=tr.querySelector('.gt').value;o.days=[...tr.querySelectorAll('.gd input:checked')].map(i=>+i.value)}h.games[tr.dataset.g]=o});return h}
+document.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{const p=b.dataset.pre,set=(on,f,t,d)=>{$('hOn').checked=on;$('hFrom').value=f;$('hTo').value=t;$('hDays').querySelectorAll('input').forEach(i=>i.checked=d.includes(+i.value))};
+  if(p==='night')set(true,'07:00','22:00',[1,2,3,4,5,6,7]);if(p==='school')set(true,'15:00','09:00',[1,2,3,4,5,6,7]);if(p==='none')set(false,'07:00','22:00',[1,2,3,4,5,6,7]);
+  if(p==='after')set(true,'15:00','21:00',[1,2,3,4,5]);$('hMsgOut').textContent='아직 저장 안 됨 — 저장 버튼을 눌러 주세요'});
+$('hSave').onclick=async()=>{const h=readHours();if(h.on&&!h.days.length){$('hMsgOut').innerHTML='<span class="no">요일을 하나 이상 골라 주세요</span>';return}
+  const {error}=await sb.rpc('mw_admin_set',{p_k:'hours',p_v:h});$('hMsgOut').innerHTML=error?`<span class="no">저장 실패: ${esc(error.message)}</span>`:`<span class="ok">✔ 저장했어요 (${new Date().toLocaleTimeString('ko-KR')})</span>`;if(!error)OP.hours=h};
+function fillAdj(){const M={};((OP&&OP.games)||[]).forEach(r=>M[r.game]=r);
+  $('tAdj').innerHTML='<tr><th>게임</th><th class="n">실제 플레이</th><th class="n">보이는 플레이</th><th class="n">실제 좋아요</th><th class="n">보이는 좋아요</th><th></th></tr>'+gameIds().map(id=>{const r=M[id]||{plays:0,likes:0,plays_add:0,likes_add:0};
+   return `<tr data-g="${esc(id)}" data-p="${+r.plays}" data-l="${+r.likes}"><td>${esc(GN[id]||id)}</td><td class="n mute">${nf(r.plays)}</td><td class="n"><input type="number" min="0" class="sp" value="${Math.max(0,+r.plays+(+r.plays_add))}"></td><td class="n mute">${nf(r.likes)}</td><td class="n"><input type="number" min="0" class="sl" value="${Math.max(0,+r.likes+(+r.likes_add))}"></td><td><button class="chip rs" type="button">실제로 되돌리기</button></td></tr>`}).join('');
+  $('tAdj').querySelectorAll('.rs').forEach(b=>b.onclick=()=>{const tr=b.closest('tr');tr.querySelector('.sp').value=tr.dataset.p;tr.querySelector('.sl').value=tr.dataset.l})}
+$('aSave').onclick=async()=>{const M={};((OP&&OP.games)||[]).forEach(r=>M[r.game]=r);let n=0,err=null;
+  for(const tr of $('tAdj').querySelectorAll('tr[data-g]')){const id=tr.dataset.g,pa=Math.max(0,+tr.querySelector('.sp').value||0)-(+tr.dataset.p),la=Math.max(0,+tr.querySelector('.sl').value||0)-(+tr.dataset.l),o=M[id]||{plays_add:0,likes_add:0};
+    if(pa===+o.plays_add&&la===+o.likes_add)continue;const {error}=await sb.rpc('mw_admin_adjust',{p_game:id,p_plays:pa,p_likes:la});if(error){err=error;break}n++}
+  $('aMsgOut').innerHTML=err?`<span class="no">저장 실패: ${esc(err.message)}</span>`:`<span class="ok">✔ ${n}개 게임 저장했어요</span>`;if(!err)loadOp()};
 boot();
 </script>
 </body>
