@@ -17,7 +17,17 @@ header .sp{flex:1}
 .per button,.btn{border:1px solid #374151;background:#1f2937;color:#e5e7eb;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:13px}
 .per button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
 .btn.lt{background:#fff;color:var(--ink);border-color:var(--line)}
-main{max-width:1320px;margin:0 auto;padding:20px}
+main{flex:1;min-width:0;max-width:1320px;padding:20px}
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 56px)}
+#side{position:sticky;top:56px;width:220px;flex:0 0 220px;height:calc(100vh - 56px);overflow:auto;background:#fff;border-right:1px solid var(--line);padding:14px 10px}
+#side .grp{font-size:11px;font-weight:800;color:var(--mute);letter-spacing:.04em;margin:14px 10px 6px}
+#side .grp:first-child{margin-top:2px}
+#side button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:none;border-radius:10px;padding:9px 12px;font:inherit;font-weight:700;color:#374151;cursor:pointer}
+#side button:hover{background:#f3f4f6}
+#side button[aria-current="true"]{background:#fff1e6;color:#c2410c}
+#side button.sub{font-weight:600;font-size:13px;padding:6px 12px 6px 32px;color:var(--mute)}
+#side button.sub[aria-current="true"]{background:none;color:#c2410c}
+@media(max-width:860px){header{position:static}.layout{display:block}#side{position:sticky;top:0;z-index:4;width:auto;height:auto;display:flex;gap:4px;overflow-x:auto;padding:8px;border-right:0;border-bottom:1px solid var(--line)}#side .grp,#side button.sub{display:none}#side button{width:auto;white-space:nowrap;flex:0 0 auto}}
 .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px}
 .kpi{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--line)}
 .kpi small{color:var(--mute);font-weight:700;font-size:12px;display:block}
@@ -47,9 +57,6 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .mute{color:var(--mute)}
 #dash[hidden],#login[hidden]{display:none}
 .loading{opacity:.5;pointer-events:none}
-.tabs{display:flex;gap:6px;margin-bottom:14px}
-.tabs button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 16px;font-weight:800;cursor:pointer;font-size:14px}
-.tabs button[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
 .frm{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:12px}
 .frm label{display:flex;align-items:center;gap:6px;font-weight:700}
 .frm input[type=time],.frm input[type=text],td input,td select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
@@ -60,6 +67,7 @@ td input[type=number]{width:96px;text-align:right}
 .chip{border:1px solid var(--line);background:#f9fafb;border-radius:999px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:12px}
 .ok{color:var(--green);font-weight:800}.no{color:var(--red);font-weight:800}
 .msg{font-weight:700;margin-left:8px}
+[data-anc]{scroll-margin-top:72px}
 #tDev tr[data-v]{cursor:pointer}#tDev tr[data-v]:hover td{background:#fff7ed}#tDev tr.sel td{background:#ffedd5}
 .dsum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .dsum button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 14px;font-weight:800;cursor:pointer}
@@ -91,8 +99,23 @@ tr.offrow td{background:#fef2f2}tr.offrow .gm,tr.offrow .gf,tr.offrow .gt{opacit
  <button class="btn" id="csv" type="button">⬇ 게임 CSV</button>
  <button class="btn" id="out" type="button">로그아웃</button>
 </header>
+<div class="layout">
+<nav id="side" aria-label="관리자 메뉴">
+ <div class="grp">통계</div>
+ <button data-t="st" data-a="aTop" aria-current="true">📊 대시보드</button>
+ <button class="sub" data-t="st" data-a="aGames">🎮 게임별 선호도</button>
+ <button class="sub" data-t="st" data-a="aTime">🕒 시간대 · 요일</button>
+ <button class="sub" data-t="st" data-a="aEnv">💻 접속 환경</button>
+ <button class="sub" data-t="st" data-a="aGeo">🗺️ 지역 · 들어온 곳</button>
+ <button class="sub" data-t="st" data-a="aIp">🔢 화면 · IP</button>
+ <button class="sub" data-t="st" data-a="aRecent">🧾 최근 기록</button>
+ <div class="grp">방문자</div>
+ <button data-t="dv">📱 기기별 기록</button>
+ <div class="grp">운영 설정</div>
+ <button data-t="op" data-sec="opHours">⏰ 게임 시간 · 켜기/끄기</button>
+ <button data-t="op" data-sec="opAdj">🔢 목록 숫자 조정</button>
+</nav>
 <main id="mainEl">
- <div class="tabs" id="tabs"><button data-t="st" aria-pressed="true">📊 통계</button><button data-t="dv" aria-pressed="false">📱 기기별 기록</button><button data-t="op" aria-pressed="false">⚙️ 운영 설정</button></div>
  <div id="dv" hidden>
   <div class="grid">
    <div class="card s12"><h3>📱 기기별 접근 기록 <small>위쪽 기간 버튼으로 기간을 골라요 · 줄을 누르면 그 기기의 기록이 나와요</small></h3>
@@ -105,7 +128,7 @@ tr.offrow td{background:#fef2f2}tr.offrow .gm,tr.offrow .gf,tr.offrow .gt{opacit
  </div>
  <div id="op" hidden>
   <div class="grid">
-   <div class="card s12"><h3>⏰ 게임 시간 <small>한국 시간 기준 · 정한 시간 밖에는 게임 화면이 잠겨요</small></h3>
+   <div class="card s12" id="opHours"><h3>⏰ 게임 시간 <small>한국 시간 기준 · 정한 시간 밖에는 게임 화면이 잠겨요</small></h3>
     <div class="frm"><label><input type="checkbox" id="hOn"> 게임 시간 제한 켜기</label>
      <label>열리는 시간 <input type="time" id="hFrom" value="07:00"></label><label>닫히는 시간 <input type="time" id="hTo" value="22:00"></label>
      <span class="mute">닫히는 시간이 더 이르면 밤을 넘겨 열려요 (예: 15:00 ~ 09:00)</span></div>
@@ -118,33 +141,34 @@ tr.offrow td{background:#fef2f2}tr.offrow .gm,tr.offrow .gf,tr.offrow .gt{opacit
     <div class="frm" style="margin-top:12px"><button class="save" id="hSave">💾 게임 시간 저장</button><span class="msg" id="hMsgOut"></span></div>
     <p class="mute" style="margin:0;line-height:1.6">관리자로 로그인한 이 브라우저에서는 잠금 없이 게임을 열 수 있어요(확인용). 이미 게임 중인 화면도 30초 안에 잠겨요.</p>
    </div>
-   <div class="card s12"><h3>🔢 목록 숫자 조정 <small>게임 목록에 보이는 ▶ 플레이 수 · ♥ 좋아요 수 (통계 화면 숫자는 실제 그대로)</small></h3>
+   <div class="card s12" id="opAdj"><h3>🔢 목록 숫자 조정 <small>게임 목록에 보이는 ▶ 플레이 수 · ♥ 좋아요 수 (통계 화면 숫자는 실제 그대로)</small></h3>
     <div class="tw" style="max-height:none"><table id="tAdj"></table></div>
     <div class="frm" style="margin-top:12px"><button class="save" id="aSave">💾 숫자 저장</button><span class="msg" id="aMsgOut"></span></div>
    </div>
   </div>
  </div>
  <div id="st">
- <div class="kpis" id="kpis"></div>
+ <div class="kpis" id="kpis" data-anc="aTop"></div>
  <div class="grid">
   <div class="card s8"><h3>📈 날짜별 방문 · 플레이</h3><div class="cv"><canvas id="cDaily"></canvas></div></div>
   <div class="card s4"><h3>📱 기기 종류 <small>방문자 기준</small></h3><div class="cv"><canvas id="cDev"></canvas></div></div>
-  <div class="card s12"><h3>🎮 게임별 선호도 <small>머리글을 눌러 정렬 · 인기 점수 = 플레이 + 좋아요×8</small></h3><div class="tw"><table id="tGames"></table></div></div>
-  <div class="card s6"><h3>🕒 시간대별 이용 <small>한국 시간</small></h3><div class="cv sm"><canvas id="cHour"></canvas></div></div>
+  <div data-anc="aGames" class="card s12"><h3>🎮 게임별 선호도 <small>머리글을 눌러 정렬 · 인기 점수 = 플레이 + 좋아요×8</small></h3><div class="tw"><table id="tGames"></table></div></div>
+  <div data-anc="aTime" class="card s6"><h3>🕒 시간대별 이용 <small>한국 시간</small></h3><div class="cv sm"><canvas id="cHour"></canvas></div></div>
   <div class="card s6"><h3>📅 요일별 이용</h3><div class="cv sm"><canvas id="cWeek"></canvas></div></div>
-  <div class="card s4"><h3>💻 운영체제</h3><div class="cv sm"><canvas id="cOs"></canvas></div></div>
+  <div data-anc="aEnv" class="card s4"><h3>💻 운영체제</h3><div class="cv sm"><canvas id="cOs"></canvas></div></div>
   <div class="card s4"><h3>🌐 브라우저</h3><div class="cv sm"><canvas id="cBr"></canvas></div></div>
-  <div class="card s4"><h3>🗺️ 나라</h3><div class="tw" style="max-height:220px"><table id="tCountry"></table></div></div>
+  <div data-anc="aGeo" class="card s4"><h3>🗺️ 나라</h3><div class="tw" style="max-height:220px"><table id="tCountry"></table></div></div>
   <div class="card s4"><h3>📍 지역 (시·도)</h3><div class="tw"><table id="tRegion"></table></div></div>
   <div class="card s4"><h3>🏙️ 도시</h3><div class="tw"><table id="tCity"></table></div></div>
   <div class="card s4"><h3>🔗 들어온 곳</h3><div class="tw"><table id="tRef"></table></div></div>
-  <div class="card s6"><h3>🖥️ 화면 크기</h3><div class="tw" style="max-height:300px"><table id="tScreen"></table></div></div>
+  <div data-anc="aIp" class="card s6"><h3>🖥️ 화면 크기</h3><div class="tw" style="max-height:300px"><table id="tScreen"></table></div></div>
   <div class="card s6"><h3>🔢 IP (마지막 자리 가림) <small>학교·기관 단위 접속 파악용</small></h3><div class="tw" style="max-height:300px"><table id="tIp"></table></div></div>
-  <div class="card s12"><h3>🧾 최근 기록 <small>최근 120건</small></h3><div class="tw"><table id="tRecent"></table></div></div>
+  <div data-anc="aRecent" class="card s12"><h3>🧾 최근 기록 <small>최근 120건</small></h3><div class="tw"><table id="tRecent"></table></div></div>
  </div>
  </div>
  <p class="mute" style="margin-top:16px;line-height:1.6">원래 IP는 저장하지 않고 마지막 자리를 가린 IP와 해시만 남겨요. 방문자는 기기별 익명 ID로 세요(같은 사람이 다른 기기·브라우저로 오면 따로 세져요). 로컬 파일로 연 게임은 집계되지 않아요.</p>
 </main>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
@@ -164,7 +188,7 @@ const COLORS=['#f26b1d','#2563eb','#16a34a','#e11d48','#7c3aed','#0891b2','#ca8a
 function chart(id,cfg){if(CH[id])CH[id].destroy();CH[id]=new Chart($(id),cfg)}
 async function boot(){const {data:{session}}=await sb.auth.getSession();if(session)showDash();else showLogin()}
 function showLogin(m){$('login').hidden=false;$('dash').hidden=true;if(m)$('lerr').textContent=m}
-function showDash(){$('login').hidden=true;$('dash').hidden=false;try{localStorage.setItem('mw_admin','1')}catch(e){}try{DAYS=+localStorage.getItem('mw_adm_days')||7}catch(e){}load()}
+function showDash(){$('login').hidden=true;$('dash').hidden=false;try{localStorage.setItem('mw_admin','1')}catch(e){}try{DAYS=+localStorage.getItem('mw_adm_days')||7}catch(e){}load();try{const i=+localStorage.getItem('mw_adm_menu');const b=document.querySelectorAll('#side button')[i];if(i>0&&b&&!b.classList.contains('sub'))setTimeout(()=>go(b),0)}catch(e){}}
 $('lf').onsubmit=async e=>{e.preventDefault();$('lerr').textContent='';const {error}=await sb.auth.signInWithPassword({email:$('em').value.trim(),password:$('pw').value});if(error){$('lerr').textContent='로그인 실패: '+(error.message.includes('Invalid')?'이메일이나 비밀번호가 맞지 않아요':error.message);return}showDash()};
 $('out').onclick=async()=>{try{localStorage.removeItem('mw_admin')}catch(e){}await sb.auth.signOut();showLogin()};
 $('re').onclick=()=>{load();if(TAB==='dv')loadDev();if(TAB==='op')loadOp()};
@@ -178,7 +202,7 @@ function kv(id,rows,label,fmt){const tot=rows.reduce((a,r)=>a+(+r.n||0),0)||1;$(
 function pie(id,rows,fmt){chart(id,{type:'doughnut',data:{labels:rows.map(r=>fmt?fmt(r.k):r.k),datasets:[{data:rows.map(r=>r.n),backgroundColor:COLORS,borderWidth:0}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:12}}},cutout:'58%'}})}
 function render(){const D=DATA,T=D.totals||{};const per={1:'오늘',7:'최근 7일',30:'최근 30일',90:'최근 90일',0:'전체'}[DAYS];
   const K=[['방문자',T.visitors,'기기 기준'],['신규 방문자',T.new_visitors,T.visitors?Math.round(T.new_visitors/T.visitors*100)+'%':''],['세션',T.sessions,'탭 단위'],['페이지뷰',T.views,'사이트 첫 화면'],['게임 플레이',T.plays,'게임 시작 수'],['평균 플레이',dur(T.avg_play_sec),'한 번 할 때'],['총 플레이',nf(T.total_play_min)+'분',''],['다른 IP',T.ips,'가린 IP 기준'],['좋아요',T.likes,'누적 '+nf(T.likes_all)]];
-  $('kpis').innerHTML=K.map(([a,b,c])=>`<div class="kpi"><small>${a} · ${per}</small><b>${typeof b==='number'?nf(b):b}</b><span>${c||''}</span></div>`).join('');
+  $('kpis').innerHTML=K.map(([a,b,c])=>`<div class="kpi"><small>${a} · ${per}</small><b>${b==null?'0':typeof b==='number'?nf(b):b}</b><span>${c||''}</span></div>`).join('');
   const dl=D.daily||[];chart('cDaily',{type:'line',data:{labels:dl.map(r=>r.d.slice(5)),datasets:[{label:'방문자',data:dl.map(r=>r.visitors),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.12)',fill:true,tension:.3},{label:'게임 플레이',data:dl.map(r=>r.plays),borderColor:'#f26b1d',tension:.3},{label:'페이지뷰',data:dl.map(r=>r.views),borderColor:'#16a34a',tension:.3,borderDash:[4,4]}]},options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
   pie('cDev',D.dev||[],k=>DEVN[k]||k);pie('cOs',D.os||[]);pie('cBr',D.br||[]);
   const hr=Array(24).fill(0);(D.hourly||[]).forEach(r=>hr[r.h]=r.n);chart('cHour',{type:'bar',data:{labels:hr.map((_,i)=>i+'시'),datasets:[{label:'이용',data:hr,backgroundColor:hr.map((_,i)=>i>=9&&i<=15?'#f26b1d':'#93c5fd')}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
@@ -197,7 +221,12 @@ $('csv').onclick=()=>{if(!DATA)return;const rows=[['game','name','plays','player
   const b=new Blob(['﻿'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='민왕게임월드_게임통계_'+new Date().toISOString().slice(0,10)+'.csv';a.click()};
 /* ===== 운영 설정 ===== */
 let OP=null,TAB='st',DEV=[],DFIL='all';const DN=['','월','화','수','목','금','토','일'];
-document.querySelectorAll('#tabs [data-t]').forEach(b=>b.onclick=()=>{const t=b.dataset.t;document.querySelectorAll('#tabs [data-t]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('st').hidden=t!=='st';$('op').hidden=t!=='op';$('dv').hidden=t!=='dv';$('per').style.visibility=t==='op'?'hidden':'visible';TAB=t;if(t==='op')loadOp();if(t==='dv')loadDev()});
+function go(b){const t=b.dataset.t;document.querySelectorAll('#side button').forEach(x=>x.setAttribute('aria-current',x===b||(x.dataset.t===t&&!x.classList.contains('sub')&&b.classList.contains('sub')&&t==='st'&&x.dataset.a==='aTop')));
+  $('st').hidden=t!=='st';$('op').hidden=t!=='op';$('dv').hidden=t!=='dv';$('per').style.visibility=t==='op'?'hidden':'visible';TAB=t;
+  if(t==='op'){['opHours','opAdj'].forEach(id=>$(id).hidden=id!==b.dataset.sec);loadOp()}if(t==='dv')loadDev();
+  const a=b.dataset.a,el=a&&document.querySelector('[data-anc="'+a+'"]');if(el&&a!=='aTop')el.scrollIntoView({behavior:'smooth',block:'start'});else window.scrollTo({top:0,behavior:'smooth'});
+  try{localStorage.setItem('mw_adm_menu',[...document.querySelectorAll('#side button')].indexOf(b))}catch(e){}}
+document.querySelectorAll('#side button').forEach(b=>b.onclick=()=>go(b));
 $('hDays').innerHTML='<span class="mute">열리는 요일</span>'+[1,2,3,4,5,6,7].map(d=>`<label><input type="checkbox" value="${d}" checked> ${DN[d]}</label>`).join('');
 function gameIds(){const s=new Set(Object.keys(GN));((OP&&OP.games)||[]).forEach(r=>s.add(r.game));return [...s]}
 async function loadOp(){$('op').classList.add('loading');const {data,error}=await sb.rpc('mw_admin_cfg');$('op').classList.remove('loading');
