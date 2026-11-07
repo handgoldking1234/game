@@ -39,3 +39,6 @@ GitHub Pages로 공개하려면: 저장소 Settings → Pages → Branch `main` 
 2. **Authentication → Users → Add user**로 관리자 계정(이메일·비밀번호)을 만들어요.
 3. SQL Editor에서 `insert into public.mw_admins(email) values ('관리자 이메일');` 실행.
 4. `https://game.iux.kr/admin.html`에서 로그인해요.
+
+## 이어서 작업하기
+결정사항·코드 지도·수정 방법은 [CLAUDE.md](CLAUDE.md), 전체 프로젝트 목록은 [IUX 프로젝트 목록](https://github.com/handgoldking1234/iux-app/blob/main/docs/PROJECTS.md)에 있습니다.
