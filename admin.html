@@ -35,7 +35,13 @@ main{flex:1;min-width:0;max-width:1320px;padding:20px}
 .kpi span{font-size:12px;color:var(--mute)}
 .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
-.card h3{margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.card h3{margin:0 0 10px;font-size:14px;display:flex;justify-content:flex-start;gap:6px;align-items:center}
+.card h3>small,.card h3>.cats{margin-left:auto}
+.ic{width:1.15em;height:1.15em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em}
+.card h3 .ic{color:var(--acc)}
+button .ic,.chip .ic{margin-right:4px}#side button .ic{margin-right:0;width:18px;height:18px}#side button.sub .ic{width:15px;height:15px}
+td .ic{margin-right:4px;color:var(--mute)}.lk .ic{color:#ef4444;fill:#ef4444;margin:0}
+h1 .ic{margin-right:6px;color:var(--acc)}
 .card h3 small{color:var(--mute);font-weight:600}
 .s12{grid-column:span 12}.s8{grid-column:span 8}.s6{grid-column:span 6}.s4{grid-column:span 4}
 @media(max-width:980px){.s8,.s6,.s4{grid-column:span 12}}
@@ -87,8 +93,9 @@ tr.offrow td{background:#fef2f2}tr.offrow .gm,tr.offrow .gf,tr.offrow .gt{opacit
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><!-- Lucide icons (ISC) --><symbol id="i-alarm-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2" /><path d="M5 3 2 6" /><path d="m22 6-3-3" /><path d="M6.38 18.7 4 21" /><path d="M17.64 18.67 20 21" /></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m4.9 4.9 14.2 14.2" /></symbol><symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 7v14" /><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" /></symbol><symbol id="i-building-2" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" /></symbol><symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol><symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></symbol><symbol id="i-gamepad-2" viewBox="0 0 24 24"><line x1="6" x2="10" y1="11" y2="11" /><line x1="8" x2="8" y1="9" y2="13" /><line x1="15" x2="15.01" y1="12" y2="12" /><line x1="18" x2="18.01" y1="10" y2="10" /><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" /></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></symbol><symbol id="i-hash" viewBox="0 0 24 24"><line x1="4" x2="20" y1="9" y2="9" /><line x1="4" x2="20" y1="15" y2="15" /><line x1="10" x2="8" y1="3" y2="21" /><line x1="16" x2="14" y1="3" y2="21" /></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></symbol><symbol id="i-laptop" viewBox="0 0 24 24"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16" /></symbol><symbol id="i-layout-dashboard" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></symbol><symbol id="i-lock-open" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 9.9-1" /></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /><path d="M15 5.764v15" /><path d="M9 3.236v15" /></symbol><symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></symbol><symbol id="i-monitor" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2" /><line x1="8" x2="16" y1="21" y2="21" /><line x1="12" x2="12" y1="17" y2="21" /></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></symbol><symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /><path d="M12 17.5v-11" /></symbol><symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></symbol><symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></symbol><symbol id="i-school" viewBox="0 0 24 24"><path d="M14 22v-4a2 2 0 1 0-4 0v4" /><path d="m18 10 3.447 1.724a1 1 0 0 1 .553.894V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7.382a1 1 0 0 1 .553-.894L6 10" /><path d="M18 5v17" /><path d="m4 6 7.106-3.553a2 2 0 0 1 1.788 0L20 6" /><path d="M6 5v17" /><circle cx="12" cy="9" r="2" /></symbol><symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2" /><path d="M12 18h.01" /></symbol><symbol id="i-tablet" viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2" ry="2" /><line x1="12" x2="12.01" y1="18" y2="18" /></symbol><symbol id="i-trending-up" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></symbol></svg>
 <section id="login">
- <h1>🔒 관리자 로그인</h1>
+ <h1><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>관리자 로그인</h1>
  <p>민왕게임월드 이용 통계는 관리자만 볼 수 있어요. Supabase에 등록한 관리자 계정으로 로그인하세요.</p>
  <form id="lf"><input id="em" type="email" placeholder="이메일" autocomplete="username" required><input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" required><button type="submit">로그인</button></form>
  <div class="err" id="lerr"></div>
@@ -100,75 +107,75 @@ tr.offrow td{background:#fef2f2}tr.offrow .gm,tr.offrow .gf,tr.offrow .gt{opacit
  <div class="per" id="per"><button data-d="1">오늘</button><button data-d="7">7일</button><button data-d="30">30일</button><button data-d="90">90일</button><button data-d="0">전체</button></div>
  <div class="sp"></div>
  <span id="upd" class="mute" style="color:#9ca3af;font-size:12px"></span>
- <button class="btn" id="re" type="button">↻ 새로고침</button>
- <button class="btn" id="csv" type="button">⬇ 게임 CSV</button>
+ <button class="btn" id="re" type="button"><svg class="ic" aria-hidden="true"><use href="#i-refresh-cw"/></svg>새로고침</button>
+ <button class="btn" id="csv" type="button"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>게임 CSV</button>
  <button class="btn" id="out" type="button">로그아웃</button>
 </header>
 <div class="layout">
 <nav id="side" aria-label="관리자 메뉴">
  <div class="grp">통계</div>
- <button data-t="st" data-a="aTop" aria-current="true">📊 대시보드</button>
- <button class="sub" data-t="st" data-a="aGames">🎮 게임별 선호도</button>
- <button class="sub" data-t="st" data-a="aTime">🕒 시간대 · 요일</button>
- <button class="sub" data-t="st" data-a="aEnv">💻 접속 환경</button>
- <button class="sub" data-t="st" data-a="aGeo">🗺️ 지역 · 들어온 곳</button>
- <button class="sub" data-t="st" data-a="aIp">🔢 화면 · IP</button>
- <button class="sub" data-t="st" data-a="aRecent">🧾 최근 기록</button>
+ <button data-t="st" data-a="aTop" aria-current="true"><svg class="ic" aria-hidden="true"><use href="#i-layout-dashboard"/></svg>대시보드</button>
+ <button class="sub" data-t="st" data-a="aGames"><svg class="ic" aria-hidden="true"><use href="#i-gamepad-2"/></svg>게임별 선호도</button>
+ <button class="sub" data-t="st" data-a="aTime"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>시간대 · 요일</button>
+ <button class="sub" data-t="st" data-a="aEnv"><svg class="ic" aria-hidden="true"><use href="#i-laptop"/></svg>접속 환경</button>
+ <button class="sub" data-t="st" data-a="aGeo"><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>지역 · 들어온 곳</button>
+ <button class="sub" data-t="st" data-a="aIp"><svg class="ic" aria-hidden="true"><use href="#i-monitor"/></svg>화면 · IP</button>
+ <button class="sub" data-t="st" data-a="aRecent"><svg class="ic" aria-hidden="true"><use href="#i-receipt"/></svg>최근 기록</button>
  <div class="grp">방문자</div>
- <button data-t="dv">📱 기기별 기록</button>
+ <button data-t="dv"><svg class="ic" aria-hidden="true"><use href="#i-smartphone"/></svg>기기별 기록</button>
  <div class="grp">운영 설정</div>
- <button data-t="op" data-sec="opHours">⏰ 게임 시간 · 켜기/끄기</button>
- <button data-t="op" data-sec="opAdj">🔢 목록 숫자 조정</button>
+ <button data-t="op" data-sec="opHours"><svg class="ic" aria-hidden="true"><use href="#i-alarm-clock"/></svg>게임 시간 · 켜기/끄기</button>
+ <button data-t="op" data-sec="opAdj"><svg class="ic" aria-hidden="true"><use href="#i-hash"/></svg>목록 숫자 조정</button>
 </nav>
 <main id="mainEl">
  <div id="dv" hidden>
   <div class="grid">
-   <div class="card s12"><h3>📱 기기별 접근 기록 <small>위쪽 기간 버튼으로 기간을 골라요 · 줄을 누르면 그 기기의 기록이 나와요</small></h3>
+   <div class="card s12"><h3><svg class="ic" aria-hidden="true"><use href="#i-smartphone"/></svg>기기별 접근 기록 <small>위쪽 기간 버튼으로 기간을 골라요 · 줄을 누르면 그 기기의 기록이 나와요</small></h3>
     <div class="dsum" id="dSum"></div>
-    <div class="frm"><input type="text" id="dQ" placeholder="🔍 방문자 ID 앞자리 · IP · 지역으로 찾기" style="flex:1;min-width:240px"><button class="chip" id="dGo" type="button">찾기</button><button class="chip" id="dCsv" type="button">⬇ CSV</button><span class="mute" id="dCnt"></span></div>
+    <div class="frm"><input type="text" id="dQ" placeholder="방문자 ID 앞자리 · IP · 지역으로 찾기" style="flex:1;min-width:240px"><button class="chip" id="dGo" type="button">찾기</button><button class="chip" id="dCsv" type="button"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>CSV</button><span class="mute" id="dCnt"></span></div>
     <div class="tw" style="max-height:520px"><table id="tDev"></table></div>
    </div>
-   <div class="card s12" id="dDetail" hidden><h3 id="dTitle">🧾 기기 기록</h3><div class="kpis" id="dKpi" style="margin-bottom:10px"></div><div class="tw" style="max-height:480px"><table id="tDevLog"></table></div><p class="mute" id="dUa" style="word-break:break-all;margin:10px 0 0;font-size:12px"></p></div>
+   <div class="card s12" id="dDetail" hidden><h3 id="dTitle"><svg class="ic" aria-hidden="true"><use href="#i-receipt"/></svg>기기 기록</h3><div class="kpis" id="dKpi" style="margin-bottom:10px"></div><div class="tw" style="max-height:480px"><table id="tDevLog"></table></div><p class="mute" id="dUa" style="word-break:break-all;margin:10px 0 0;font-size:12px"></p></div>
   </div>
  </div>
  <div id="op" hidden>
   <div class="grid">
-   <div class="card s12" id="opHours"><h3>⏰ 게임 시간 <small>한국 시간 기준 · 정한 시간 밖에는 게임 화면이 잠겨요</small></h3>
+   <div class="card s12" id="opHours"><h3><svg class="ic" aria-hidden="true"><use href="#i-alarm-clock"/></svg>게임 시간 <small>한국 시간 기준 · 정한 시간 밖에는 게임 화면이 잠겨요</small></h3>
     <div class="frm"><label><input type="checkbox" id="hOn"> 게임 시간 제한 켜기</label>
      <label>열리는 시간 <input type="time" id="hFrom" value="07:00"></label><label>닫히는 시간 <input type="time" id="hTo" value="22:00"></label>
      <span class="mute">닫히는 시간이 더 이르면 밤을 넘겨 열려요 (예: 15:00 ~ 09:00)</span></div>
     <div class="frm days" id="hDays"></div>
     <div class="frm"><label style="flex:1">잠긴 화면 안내 <input type="text" id="hMsg" style="flex:1;min-width:240px" placeholder="지금은 게임 시간이 아니에요. 정해진 시간에 다시 만나요!"></label></div>
-    <div class="frm"><span class="mute">빠른 설정</span><button class="chip" data-pre="night">🌙 밤에는 쉬기 (매일 07~22시)</button><button class="chip" data-pre="school">🏫 수업 시간 막기 (평일 15시~다음날 9시만)</button><button class="chip" data-pre="after">📚 평일 방과 후만 (15~21시)</button><button class="chip" data-pre="none">🔓 제한 없음</button></div>
-    <h3 style="margin-top:8px">🎮 게임별 켜기·끄기 · 시간 규칙 <small>스위치를 끄면 그 게임은 시간과 상관없이 잠겨요 · “전체 규칙”이면 위 시간을 따라요</small></h3>
-    <div class="frm"><button class="chip" type="button" id="allOn">✅ 모두 켜기</button><button class="chip" type="button" id="allOff">⛔ 모두 끄기</button></div>
+    <div class="frm"><span class="mute">빠른 설정</span><button class="chip" data-pre="night"><svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>밤에는 쉬기 (매일 07~22시)</button><button class="chip" data-pre="school"><svg class="ic" aria-hidden="true"><use href="#i-school"/></svg>수업 시간 막기 (평일 15시~다음날 9시만)</button><button class="chip" data-pre="after"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg>평일 방과 후만 (15~21시)</button><button class="chip" data-pre="none"><svg class="ic" aria-hidden="true"><use href="#i-lock-open"/></svg>제한 없음</button></div>
+    <h3 style="margin-top:8px"><svg class="ic" aria-hidden="true"><use href="#i-gamepad-2"/></svg>게임별 켜기·끄기 · 시간 규칙 <small>스위치를 끄면 그 게임은 시간과 상관없이 잠겨요 · “전체 규칙”이면 위 시간을 따라요</small></h3>
+    <div class="frm"><button class="chip" type="button" id="allOn"><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg>모두 켜기</button><button class="chip" type="button" id="allOff"><svg class="ic" aria-hidden="true"><use href="#i-ban"/></svg>모두 끄기</button></div>
     <div class="tw" style="max-height:none"><table id="tHours"></table></div>
-    <div class="frm" style="margin-top:12px"><button class="save" id="hSave">💾 게임 시간 저장</button><span class="msg" id="hMsgOut"></span></div>
+    <div class="frm" style="margin-top:12px"><button class="save" id="hSave"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>게임 시간 저장</button><span class="msg" id="hMsgOut"></span></div>
     <p class="mute" style="margin:0;line-height:1.6">관리자로 로그인한 이 브라우저에서는 잠금 없이 게임을 열 수 있어요(확인용). 이미 게임 중인 화면도 30초 안에 잠겨요.</p>
    </div>
-   <div class="card s12" id="opAdj"><h3>🔢 목록 숫자 조정 <small>게임 목록에 보이는 ▶ 플레이 수 · ♥ 좋아요 수 (통계 화면 숫자는 실제 그대로)</small></h3>
+   <div class="card s12" id="opAdj"><h3><svg class="ic" aria-hidden="true"><use href="#i-hash"/></svg>목록 숫자 조정 <small>게임 목록에 보이는 ▶ 플레이 수 · 좋아요 수 (통계 화면 숫자는 실제 그대로)</small></h3>
     <div class="tw" style="max-height:none"><table id="tAdj"></table></div>
-    <div class="frm" style="margin-top:12px"><button class="save" id="aSave">💾 숫자 저장</button><span class="msg" id="aMsgOut"></span></div>
+    <div class="frm" style="margin-top:12px"><button class="save" id="aSave"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>숫자 저장</button><span class="msg" id="aMsgOut"></span></div>
    </div>
   </div>
  </div>
  <div id="st">
  <div class="kpis" id="kpis" data-anc="aTop"></div>
  <div class="grid">
-  <div class="card s8"><h3>📈 날짜별 방문 · 플레이</h3><div class="cv"><canvas id="cDaily"></canvas></div></div>
-  <div class="card s4"><h3>📱 기기 종류 <small>방문자 기준</small></h3><div class="cv"><canvas id="cDev"></canvas></div></div>
-  <div data-anc="aGames" class="card s12"><h3>🎮 게임별 선호도 <small>머리글을 눌러 정렬 · 인기 점수 = 플레이 + 좋아요×8</small></h3><div class="tw"><table id="tGames"></table></div></div>
-  <div data-anc="aTime" class="card s6"><h3>🕒 시간대별 이용 <small>한국 시간</small></h3><div class="cv sm"><canvas id="cHour"></canvas></div></div>
-  <div class="card s6"><h3>📅 요일별 이용</h3><div class="cv sm"><canvas id="cWeek"></canvas></div></div>
-  <div data-anc="aEnv" class="card s4"><h3>💻 운영체제</h3><div class="cv sm"><canvas id="cOs"></canvas></div></div>
-  <div class="card s4"><h3>🌐 브라우저</h3><div class="cv sm"><canvas id="cBr"></canvas></div></div>
-  <div data-anc="aGeo" class="card s4"><h3>🗺️ 나라</h3><div class="tw" style="max-height:220px"><table id="tCountry"></table></div></div>
-  <div class="card s4"><h3>📍 지역 (시·도)</h3><div class="tw"><table id="tRegion"></table></div></div>
-  <div class="card s4"><h3>🏙️ 도시</h3><div class="tw"><table id="tCity"></table></div></div>
-  <div class="card s4"><h3>🔗 들어온 곳</h3><div class="tw"><table id="tRef"></table></div></div>
-  <div data-anc="aIp" class="card s6"><h3>🖥️ 화면 크기 <span class="cats" id="cScreen"></span></h3><div class="tw" style="max-height:300px"><table id="tScreen"></table></div></div>
-  <div class="card s6"><h3>🔢 IP (마지막 자리 가림) <small>학교·기관 단위 접속 파악용</small></h3><div class="tw" style="max-height:300px"><table id="tIp"></table></div></div>
-  <div data-anc="aRecent" class="card s12"><h3>🧾 최근 기록 <small id="rCnt">최근 120건</small></h3><div class="frm" style="margin-bottom:8px"><span class="cats" id="cRecent"></span><select id="rGame" class="rsel"><option value="">🎮 모든 게임</option></select><select id="rDev" class="rsel"><option value="">📱 모든 기기</option></select></div><div class="tw"><table id="tRecent"></table></div></div>
+  <div class="card s8"><h3><svg class="ic" aria-hidden="true"><use href="#i-trending-up"/></svg>날짜별 방문 · 플레이</h3><div class="cv"><canvas id="cDaily"></canvas></div></div>
+  <div class="card s4"><h3><svg class="ic" aria-hidden="true"><use href="#i-smartphone"/></svg>기기 종류 <small>방문자 기준</small></h3><div class="cv"><canvas id="cDev"></canvas></div></div>
+  <div data-anc="aGames" class="card s12"><h3><svg class="ic" aria-hidden="true"><use href="#i-gamepad-2"/></svg>게임별 선호도 <small>머리글을 눌러 정렬 · 인기 점수 = 플레이 + 좋아요×8</small></h3><div class="tw"><table id="tGames"></table></div></div>
+  <div data-anc="aTime" class="card s6"><h3><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>시간대별 이용 <small>한국 시간</small></h3><div class="cv sm"><canvas id="cHour"></canvas></div></div>
+  <div class="card s6"><h3><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>요일별 이용</h3><div class="cv sm"><canvas id="cWeek"></canvas></div></div>
+  <div data-anc="aEnv" class="card s4"><h3><svg class="ic" aria-hidden="true"><use href="#i-laptop"/></svg>운영체제</h3><div class="cv sm"><canvas id="cOs"></canvas></div></div>
+  <div class="card s4"><h3><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg>브라우저</h3><div class="cv sm"><canvas id="cBr"></canvas></div></div>
+  <div data-anc="aGeo" class="card s4"><h3><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>나라</h3><div class="tw" style="max-height:220px"><table id="tCountry"></table></div></div>
+  <div class="card s4"><h3><svg class="ic" aria-hidden="true"><use href="#i-map-pin"/></svg>지역 (시·도)</h3><div class="tw"><table id="tRegion"></table></div></div>
+  <div class="card s4"><h3><svg class="ic" aria-hidden="true"><use href="#i-building-2"/></svg>도시</h3><div class="tw"><table id="tCity"></table></div></div>
+  <div class="card s4"><h3><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg>들어온 곳</h3><div class="tw"><table id="tRef"></table></div></div>
+  <div data-anc="aIp" class="card s6"><h3><svg class="ic" aria-hidden="true"><use href="#i-monitor"/></svg>화면 크기 <span class="cats" id="cScreen"></span></h3><div class="tw" style="max-height:300px"><table id="tScreen"></table></div></div>
+  <div class="card s6"><h3><svg class="ic" aria-hidden="true"><use href="#i-hash"/></svg>IP (마지막 자리 가림) <small>학교·기관 단위 접속 파악용</small></h3><div class="tw" style="max-height:300px"><table id="tIp"></table></div></div>
+  <div data-anc="aRecent" class="card s12"><h3><svg class="ic" aria-hidden="true"><use href="#i-receipt"/></svg>최근 기록 <small id="rCnt">최근 120건</small></h3><div class="frm" style="margin-bottom:8px"><span class="cats" id="cRecent"></span><select id="rGame" class="rsel"><option value="">모든 게임</option></select><select id="rDev" class="rsel"><option value="">모든 기기</option></select></div><div class="tw"><table id="tRecent"></table></div></div>
  </div>
  </div>
  <p class="mute" style="margin-top:16px;line-height:1.6">원래 IP는 저장하지 않고 마지막 자리를 가린 IP와 해시만 남겨요. 방문자는 기기별 익명 ID로 세요(같은 사람이 다른 기기·브라우저로 오면 따로 세져요). 로컬 파일로 연 게임은 집계되지 않아요.</p>
@@ -182,9 +189,9 @@ tr.offrow td{background:#fef2f2}tr.offrow .gm,tr.offrow .gf,tr.offrow .gt{opacit
 const SB_URL='https://flrdiplgoeyuvffwxvhq.supabase.co',SB_KEY='sb_publishable_2ksFf_0qhrfq513RhbyEdA_dmGoJNb5';
 const $=id=>document.getElementById(id);
 const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-const GN={pangpang:'💥 웨더팡팡',garden:'🌱 날씨 정원',kart:'🏁 날씨 카트 레이스',wrivals:'🌪️ 날씨 라이벌즈',wisland:'🏝️ 날씨 생존 섬',dad:'👨 엄격한 에너지 아빠',hospital:'🐾 한밤의 동물병원','backrooms':'🚪 백룸 방탈출','backrooms-pc':'🚪 백룸 방탈출 PC',brawl:'💎 에너지 브롤',blocks:'⛏️ 에너지 블록 마을',park:'🎡 한밤의 에너지 공원',keycap:'⌨️ 키캡 타워',forest:'🌲 에너지 숲의 밤',rivals:'🔫 에너지 라이벌즈',spy:'🕵️ 탄소 스파이',town:'🏘️ 에너지 마을 시장',hero:'🦸 에너지 히어로',front:'🏭 에너지 전선',jump:'🦘 점프',wing:'✈️ 탄소 제로 비행단',world:'🗡️ 에너지 월드'};
+const GN={pangpang:'웨더팡팡',garden:'날씨 정원',kart:'날씨 카트 레이스',wrivals:'날씨 라이벌즈',wisland:'날씨 생존 섬',dad:'엄격한 에너지 아빠',hospital:'한밤의 동물병원','backrooms':'백룸 방탈출','backrooms-pc':'백룸 방탈출 PC',brawl:'에너지 브롤',blocks:'에너지 블록 마을',park:'한밤의 에너지 공원',keycap:'키캡 타워',forest:'에너지 숲의 밤',rivals:'에너지 라이벌즈',spy:'탄소 스파이',town:'에너지 마을 시장',hero:'에너지 히어로',front:'에너지 전선',jump:'점프',wing:'탄소 제로 비행단',world:'에너지 월드'};
 const EVN={view:'방문',play:'게임 시작',hb:'플레이 중',end:'게임 끝',click:'목록 클릭',like:'좋아요',unlike:'좋아요 취소'};
-const DEVN={mobile:'📱 휴대폰',tablet:'📲 태블릿',desktop:'🖥️ PC',chromebook:'💻 크롬북','?':'알 수 없음'};
+const DEVN={mobile:'휴대폰',tablet:'태블릿',desktop:'PC',chromebook:'크롬북','?':'알 수 없음'};
 const nf=n=>(+n||0).toLocaleString('ko-KR');
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dur=s=>{s=+s||0;if(s<60)return s+'초';const m=Math.floor(s/60);return m<60?m+'분 '+(s%60)+'초':Math.floor(m/60)+'시간 '+(m%60)+'분'};
@@ -217,12 +224,12 @@ function render(){const D=DATA,T=D.totals||{};const per={1:'오늘',7:'최근 7�
   gamesTable();
   REC=D.recent||[];renderRecent()}
 function renderRecentRows(rows){
-  $('tRecent').innerHTML='<tr><th>시간</th><th>종류</th><th>게임</th><th>기기</th><th>OS</th><th>브라우저</th><th>지역</th><th>IP</th><th>방문자</th><th class="n">플레이</th></tr>'+((rows).map(r=>`<tr><td>${new Date(r.ts).toLocaleString('ko-KR')}</td><td><span class="pill ev-${esc(r.ev)}">${esc(EVN[r.ev]||r.ev)}</span></td><td>${esc(GN[r.game]||r.game||'첫 화면')}</td><td>${esc(DEVN[r.dev]||r.dev||'')}</td><td>${esc(r.os||'')}</td><td>${esc(r.br||'')}</td><td>${esc([r.region,r.city].filter(Boolean).join(' '))}</td><td>${esc(r.ip_mask||'')}</td><td class="mute">${esc(r.vid||'')}</td><td class="n">${r.dur?dur(r.dur):''}</td></tr>`).join('')||'<tr><td colspan="10" class="mute">이 카테고리에 맞는 기록이 없어요</td></tr>')}
+  $('tRecent').innerHTML='<tr><th>시간</th><th>종류</th><th>게임</th><th>기기</th><th>OS</th><th>브라우저</th><th>지역</th><th>IP</th><th>방문자</th><th class="n">플레이</th></tr>'+((rows).map(r=>`<tr><td>${new Date(r.ts).toLocaleString('ko-KR')}</td><td><span class="pill ev-${esc(r.ev)}">${esc(EVN[r.ev]||r.ev)}</span></td><td>${esc(GN[r.game]||r.game||'첫 화면')}</td><td>${DIC[r.dev]?ICO(DIC[r.dev]):''}${esc(DEVN[r.dev]||r.dev||'')}</td><td>${esc(r.os||'')}</td><td>${esc(r.br||'')}</td><td>${esc([r.region,r.city].filter(Boolean).join(' '))}</td><td>${esc(r.ip_mask||'')}</td><td class="mute">${esc(r.vid||'')}</td><td class="n">${r.dur?dur(r.dur):''}</td></tr>`).join('')||'<tr><td colspan="10" class="mute">이 카테고리에 맞는 기록이 없어요</td></tr>')}
 function gamesTable(){const rows=(DATA.games||[]).map(r=>Object.assign({},r,{name:GN[r.game]||r.game,score:(+r.plays)+(+r.likes)*8}));
   const max=Math.max(1,...rows.map(r=>+r.plays));
   rows.sort((a,b)=>{const k=gSort.k;const x=a[k],y=b[k];return (typeof x==='string'?x.localeCompare(y):(+x)-(+y))*gSort.d});
   const H=[['name','게임'],['plays','플레이'],['players','플레이한 기기'],['avg_sec','평균 시간'],['total_min','총 시간(분)'],['clicks','목록 클릭'],['likes','좋아요'],['score','인기 점수']];
-  $('tGames').innerHTML='<tr><th>#</th>'+H.map(([k,l])=>`<th class="${k==='name'?'':'n'}" data-k="${k}">${l}${gSort.k===k?(gSort.d<0?' ▼':' ▲'):''}</th>`).join('')+'</tr>'+(rows.map((r,i)=>`<tr><td class="mute">${i+1}</td><td>${esc(r.name)}<div class="bar"><i style="width:${(r.plays/max*100).toFixed(1)}%"></i></div></td><td class="n">${nf(r.plays)}</td><td class="n">${nf(r.players)}</td><td class="n">${dur(r.avg_sec)}</td><td class="n">${nf(r.total_min)}</td><td class="n">${nf(r.clicks)}</td><td class="n">❤️ ${nf(r.likes)}</td><td class="n"><b>${nf(r.score)}</b></td></tr>`).join('')||'<tr><td colspan="9" class="mute">아직 기록이 없어요</td></tr>');
+  $('tGames').innerHTML='<tr><th>#</th>'+H.map(([k,l])=>`<th class="${k==='name'?'':'n'}" data-k="${k}">${l}${gSort.k===k?(gSort.d<0?' ▼':' ▲'):''}</th>`).join('')+'</tr>'+(rows.map((r,i)=>`<tr><td class="mute">${i+1}</td><td>${esc(r.name)}<div class="bar"><i style="width:${(r.plays/max*100).toFixed(1)}%"></i></div></td><td class="n">${nf(r.plays)}</td><td class="n">${nf(r.players)}</td><td class="n">${dur(r.avg_sec)}</td><td class="n">${nf(r.total_min)}</td><td class="n">${nf(r.clicks)}</td><td class="n"><span class="lk"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg></span> ${nf(r.likes)}</td><td class="n"><b>${nf(r.score)}</b></td></tr>`).join('')||'<tr><td colspan="9" class="mute">아직 기록이 없어요</td></tr>');
   $('tGames').querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;gSort={k,d:gSort.k===k?-gSort.d:(k==='name'?1:-1)};gamesTable()})}
 $('csv').onclick=()=>{if(!DATA)return;const rows=[['game','name','plays','players','avg_sec','total_min','clicks','likes']].concat((DATA.games||[]).map(r=>[r.game,GN[r.game]||r.game,r.plays,r.players,r.avg_sec,r.total_min,r.clicks,r.likes]));
   const b=new Blob(['﻿'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='민왕게임월드_게임통계_'+new Date().toISOString().slice(0,10)+'.csv';a.click()};
@@ -242,7 +249,7 @@ async function loadOp(){$('op').classList.add('loading');const {data,error}=awai
 function fillHours(h){$('hOn').checked=!!h.on;$('hFrom').value=h.from||'07:00';$('hTo').value=h.to||'22:00';$('hMsg').value=h.msg||'';const ds=h.days||[1,2,3,4,5,6,7];
   $('hDays').querySelectorAll('input').forEach(i=>i.checked=ds.includes(+i.value));const G=h.games||{};
   $('tHours').innerHTML='<tr><th>켜기</th><th>게임</th><th>규칙</th><th>열리는 시간</th><th>닫히는 시간</th><th>요일</th></tr>'+gameIds().map(id=>{const o=G[id]||{},isOff=o.mode==='off',m=isOff?(o.prev||'all'):(o.mode||'all'),od=o.days||[1,2,3,4,5,6,7];
-   return `<tr data-g="${esc(id)}"><td><label class="sw" title="게임 켜기/끄기"><input type="checkbox" class="gon"${isOff?'':' checked'}><i></i></label></td><td>${esc(GN[id]||id)}</td><td><select class="gm">${[['all','전체 규칙'],['free','🔓 시간 제한 없음'],['own','⏰ 따로 정하기']].map(([v,l])=>`<option value="${v}"${v===m?' selected':''}>${l}</option>`).join('')}</select></td><td><input type="time" class="gf" value="${esc(o.from||'15:00')}"></td><td><input type="time" class="gt" value="${esc(o.to||'21:00')}"></td><td class="gd">${[1,2,3,4,5,6,7].map(d=>`<label style="margin-right:4px"><input type="checkbox" value="${d}"${od.includes(d)?' checked':''}>${DN[d]}</label>`).join('')}</td></tr>`}).join('');
+   return `<tr data-g="${esc(id)}"><td><label class="sw" title="게임 켜기/끄기"><input type="checkbox" class="gon"${isOff?'':' checked'}><i></i></label></td><td>${esc(GN[id]||id)}</td><td><select class="gm">${[['all','전체 규칙'],['free','시간 제한 없음'],['own','따로 정하기']].map(([v,l])=>`<option value="${v}"${v===m?' selected':''}>${l}</option>`).join('')}</select></td><td><input type="time" class="gf" value="${esc(o.from||'15:00')}"></td><td><input type="time" class="gt" value="${esc(o.to||'21:00')}"></td><td class="gd">${[1,2,3,4,5,6,7].map(d=>`<label style="margin-right:4px"><input type="checkbox" value="${d}"${od.includes(d)?' checked':''}>${DN[d]}</label>`).join('')}</td></tr>`}).join('');
   $('tHours').querySelectorAll('tr[data-g]').forEach(tr=>{const f=()=>{const on=tr.querySelector('.gon').checked,own=on&&tr.querySelector('.gm').value==='own';tr.classList.toggle('offrow',!on);tr.querySelector('.gm').disabled=!on;tr.querySelectorAll('.gf,.gt,.gd input').forEach(i=>i.disabled=!own)};tr.querySelector('.gm').onchange=f;tr.querySelector('.gon').onchange=f;f()})}
 function setAll(v){$('tHours').querySelectorAll('tr[data-g]').forEach(tr=>{const c=tr.querySelector('.gon');c.checked=v;c.onchange()});$('hMsgOut').textContent='아직 저장 안 됨 — 저장 버튼을 눌러 주세요'}
 $('allOn').onclick=()=>setAll(true);$('allOff').onclick=()=>setAll(false);
@@ -252,7 +259,7 @@ document.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{const p=b.data
   if(p==='night')set(true,'07:00','22:00',[1,2,3,4,5,6,7]);if(p==='school')set(true,'15:00','09:00',[1,2,3,4,5,6,7]);if(p==='none')set(false,'07:00','22:00',[1,2,3,4,5,6,7]);
   if(p==='after')set(true,'15:00','21:00',[1,2,3,4,5]);$('hMsgOut').textContent='아직 저장 안 됨 — 저장 버튼을 눌러 주세요'});
 $('hSave').onclick=async()=>{const h=readHours();if(h.on&&!h.days.length){$('hMsgOut').innerHTML='<span class="no">요일을 하나 이상 골라 주세요</span>';return}
-  const {error}=await sb.rpc('mw_admin_set',{p_k:'hours',p_v:h});$('hMsgOut').innerHTML=error?`<span class="no">저장 실패: ${esc(error.message)}</span>`:`<span class="ok">✔ 저장했어요 (${new Date().toLocaleTimeString('ko-KR')})</span>`;if(!error)OP.hours=h};
+  const {error}=await sb.rpc('mw_admin_set',{p_k:'hours',p_v:h});$('hMsgOut').innerHTML=error?`<span class="no">저장 실패: ${esc(error.message)}</span>`:`<span class="ok"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> 저장했어요 (${new Date().toLocaleTimeString('ko-KR')})</span>`;if(!error)OP.hours=h};
 function fillAdj(){const M={};((OP&&OP.games)||[]).forEach(r=>M[r.game]=r);
   $('tAdj').innerHTML='<tr><th>게임</th><th class="n">실제 플레이</th><th class="n">보이는 플레이</th><th class="n">실제 좋아요</th><th class="n">보이는 좋아요</th><th></th></tr>'+gameIds().map(id=>{const r=M[id]||{plays:0,likes:0,plays_add:0,likes_add:0};
    return `<tr data-g="${esc(id)}" data-p="${+r.plays}" data-l="${+r.likes}"><td>${esc(GN[id]||id)}</td><td class="n mute">${nf(r.plays)}</td><td class="n"><input type="number" min="0" class="sp" value="${Math.max(0,+r.plays+(+r.plays_add))}"></td><td class="n mute">${nf(r.likes)}</td><td class="n"><input type="number" min="0" class="sl" value="${Math.max(0,+r.likes+(+r.likes_add))}"></td><td><button class="chip rs" type="button">실제로 되돌리기</button></td></tr>`}).join('');
@@ -260,7 +267,7 @@ function fillAdj(){const M={};((OP&&OP.games)||[]).forEach(r=>M[r.game]=r);
 $('aSave').onclick=async()=>{const M={};((OP&&OP.games)||[]).forEach(r=>M[r.game]=r);let n=0,err=null;
   for(const tr of $('tAdj').querySelectorAll('tr[data-g]')){const id=tr.dataset.g,pa=Math.max(0,+tr.querySelector('.sp').value||0)-(+tr.dataset.p),la=Math.max(0,+tr.querySelector('.sl').value||0)-(+tr.dataset.l),o=M[id]||{plays_add:0,likes_add:0};
     if(pa===+o.plays_add&&la===+o.likes_add)continue;const {error}=await sb.rpc('mw_admin_adjust',{p_game:id,p_plays:pa,p_likes:la});if(error){err=error;break}n++}
-  $('aMsgOut').innerHTML=err?`<span class="no">저장 실패: ${esc(err.message)}</span>`:`<span class="ok">✔ ${n}개 게임 저장했어요</span>`;if(!err)loadOp()};
+  $('aMsgOut').innerHTML=err?`<span class="no">저장 실패: ${esc(err.message)}</span>`:`<span class="ok"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> ${n}개 게임 저장했어요</span>`;if(!err)loadOp()};
 /* ===== 기기별 기록 ===== */
 const ago=t=>{const s=(Date.now()-new Date(t))/1000;if(s<60)return '방금';if(s<3600)return Math.floor(s/60)+'분 전';if(s<86400)return Math.floor(s/3600)+'시간 전';return Math.floor(s/86400)+'일 전'};
 const dt=t=>t?new Date(t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
@@ -268,13 +275,13 @@ async function loadDev(){$('dv').classList.add('loading');const {data,error}=awa
   if(error){$('tDev').innerHTML=`<tr><td class="note">기기 기록을 불러오지 못했어요: ${esc(error.message)}<br>Supabase SQL Editor에서 <b>supabase/devices.sql</b>을 먼저 실행해 주세요.</td></tr>`;return}
   DEV=data||[];renderDev()}
 function renderDev(){const c={all:DEV.length};DEV.forEach(r=>{const k=r.dev||'?';c[k]=(c[k]||0)+1});
-  $('dSum').innerHTML=[['all','전체'],['mobile',DEVN.mobile],['tablet',DEVN.tablet],['desktop',DEVN.desktop],['chromebook',DEVN.chromebook]].map(([k,l])=>`<button data-f="${k}" aria-pressed="${DFIL===k}">${l}<b>${nf(c[k]||0)}</b></button>`).join('');
+  $('dSum').innerHTML=[['all','전체'],['mobile',DEVN.mobile],['tablet',DEVN.tablet],['desktop',DEVN.desktop],['chromebook',DEVN.chromebook]].map(([k,l])=>`<button data-f="${k}" aria-pressed="${DFIL===k}">${DIC[k]?ICO(DIC[k]):''}${l}<b>${nf(c[k]||0)}</b></button>`).join('');
   $('dSum').querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{DFIL=b.dataset.f;renderDev()});
   const rows=DEV.filter(r=>DFIL==='all'||(r.dev||'?')===DFIL);$('dCnt').textContent=rows.length+'대'+(DEV.length>=300?' (최근 300대까지)':'');
   $('tDev').innerHTML='<tr><th>기기</th><th>방문자 ID</th><th>마지막 접속</th><th>처음 방문</th><th class="n">세션</th><th class="n">방문</th><th class="n">플레이</th><th class="n">플레이 시간</th><th>자주 한 게임</th><th>지역</th><th>IP</th><th>화면</th></tr>'+
-   (rows.map(r=>{const isNew=r.first_ever&&new Date(r.first_ever)>=new Date(r.first_in)-1000;return `<tr data-v="${esc(r.vid)}"><td>${esc(DEVN[r.dev]||r.dev||'')} <span class="mute">${esc(r.os||'')} · ${esc(r.br||'')}</span></td><td>${esc((r.vid||'').slice(0,8))}${isNew?'<span class="new">NEW</span>':''}</td><td title="${esc(new Date(r.last).toLocaleString('ko-KR'))}">${ago(r.last)}</td><td>${dt(r.first_ever)}</td><td class="n">${nf(r.sessions)}</td><td class="n">${nf(r.views)}</td><td class="n">${nf(r.plays)}</td><td class="n">${r.play_sec?dur(r.play_sec):''}</td><td>${esc((r.top||'').split(',').filter(Boolean).map(g=>GN[g]||g).join(', '))}</td><td>${esc(r.place||'')}</td><td>${esc(r.ip||'')}${r.ips>1?` <span class="mute">외 ${r.ips-1}</span>`:''}</td><td class="mute">${esc(r.scr||'')}</td></tr>`}).join('')||'<tr><td colspan="12" class="mute">이 기간에 들어온 기기가 없어요</td></tr>');
+   (rows.map(r=>{const isNew=r.first_ever&&new Date(r.first_ever)>=new Date(r.first_in)-1000;return `<tr data-v="${esc(r.vid)}"><td>${DIC[r.dev]?ICO(DIC[r.dev]):''}${esc(DEVN[r.dev]||r.dev||'')} <span class="mute">${esc(r.os||'')} · ${esc(r.br||'')}</span></td><td>${esc((r.vid||'').slice(0,8))}${isNew?'<span class="new">NEW</span>':''}</td><td title="${esc(new Date(r.last).toLocaleString('ko-KR'))}">${ago(r.last)}</td><td>${dt(r.first_ever)}</td><td class="n">${nf(r.sessions)}</td><td class="n">${nf(r.views)}</td><td class="n">${nf(r.plays)}</td><td class="n">${r.play_sec?dur(r.play_sec):''}</td><td>${esc((r.top||'').split(',').filter(Boolean).map(g=>GN[g]||g).join(', '))}</td><td>${esc(r.place||'')}</td><td>${esc(r.ip||'')}${r.ips>1?` <span class="mute">외 ${r.ips-1}</span>`:''}</td><td class="mute">${esc(r.scr||'')}</td></tr>`}).join('')||'<tr><td colspan="12" class="mute">이 기간에 들어온 기기가 없어요</td></tr>');
   $('tDev').querySelectorAll('tr[data-v]').forEach(tr=>tr.onclick=()=>{$('tDev').querySelectorAll('tr.sel').forEach(x=>x.classList.remove('sel'));tr.classList.add('sel');devDetail(tr.dataset.v)})}
-async function devDetail(v){const r=DEV.find(x=>x.vid===v)||{};$('dDetail').hidden=false;$('dTitle').textContent='🧾 '+(DEVN[r.dev]||'기기')+' '+(r.os||'')+' · '+(r.br||'')+' — '+v.slice(0,8);$('tDevLog').innerHTML='<tr><td class="mute">불러오는 중…</td></tr>';
+async function devDetail(v){const r=DEV.find(x=>x.vid===v)||{};$('dDetail').hidden=false;$('dTitle').innerHTML=ICO('receipt')+esc((DEVN[r.dev]||'기기')+' '+(r.os||'')+' · '+(r.br||'')+' — '+v.slice(0,8));$('tDevLog').innerHTML='<tr><td class="mute">불러오는 중…</td></tr>';
   $('dKpi').innerHTML=[['처음 방문',dt(r.first_ever)],['마지막 접속',ago(r.last)],['세션',nf(r.sessions)],['게임 플레이',nf(r.plays)],['플레이 시간',r.play_sec?dur(r.play_sec):'0초'],['IP',(r.ip||'')+(r.ips>1?' 외 '+(r.ips-1):'')]].map(([a,b])=>`<div class="kpi"><small>${a}</small><b style="font-size:18px">${esc(b)}</b></div>`).join('');
   const {data,error}=await sb.rpc('mw_admin_device',{p_vid:v});if(error){$('tDevLog').innerHTML=`<tr><td class="no">${esc(error.message)}</td></tr>`;return}
   const L=data||[];$('dUa').textContent=L[0]&&L[0].ua?'브라우저 정보: '+L[0].ua:'';
@@ -286,8 +293,10 @@ $('dCsv').onclick=()=>{const rows=[['vid','dev','os','br','first_ever','last','s
 /* ===== 카테고리 필터 ===== */
 let SCR=[],REC=[],SCAT='all',RCAT='all';
 const scrCat=k=>{const w=parseInt(String(k).split('×')[0],10)||0,h=parseInt(String(k).split('×')[1],10)||0,m=Math.min(w,h);if(!w)return 'etc';if(m<600)return 'phone';if(h>w&&m<1100)return 'tablet';return 'pc'};
-const SCN={all:'전체',phone:'📱 휴대폰',tablet:'📲 태블릿',pc:'🖥️ PC·노트북',etc:'기타'};
-function chips(el,cats,cur,counts,on){el.innerHTML=cats.filter(k=>k==='all'||counts[k]).map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===cur}">${SCN[k]||EVN[k]||k}<b>${nf(counts[k]||0)}</b></button>`).join('');el.querySelectorAll('button').forEach(b=>b.onclick=()=>on(b.dataset.k))}
+const DIC={mobile:'smartphone',phone:'smartphone',tablet:'tablet',desktop:'monitor',pc:'monitor',chromebook:'laptop'};
+const ICO=n=>'<svg class="ic" aria-hidden="true"><use href="#i-'+n+'"/></svg>';
+const SCN={all:'전체',phone:'휴대폰',tablet:'태블릿',pc:'PC·노트북',etc:'기타'};
+function chips(el,cats,cur,counts,on){el.innerHTML=cats.filter(k=>k==='all'||counts[k]).map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===cur}">${DIC[k]?ICO(DIC[k]):''}${SCN[k]||EVN[k]||k}<b>${nf(counts[k]||0)}</b></button>`).join('');el.querySelectorAll('button').forEach(b=>b.onclick=()=>on(b.dataset.k))}
 function renderScreen(){const c={all:0};SCR.forEach(r=>{const k=scrCat(r.k);c[k]=(c[k]||0)+(+r.n||0);c.all+=(+r.n||0)});
   chips($('cScreen'),['all','phone','tablet','pc','etc'],SCAT,c,k=>{SCAT=k;renderScreen()});
   kv('tScreen',SCR.filter(r=>SCAT==='all'||scrCat(r.k)===SCAT),'화면 (가로×세로)')}
@@ -296,8 +305,8 @@ function renderRecent(){const g=$('rGame').value,d=$('rDev').value;
   const base=REC.filter(r=>(!g||(g==='_home'?!r.game:r.game===g))&&(!d||r.dev===d));const c={all:base.length};base.forEach(r=>{const k=r.ev==='unlike'?'like':r.ev;c[k]=(c[k]||0)+1});
   chips($('cRecent'),RG.map(x=>x[0]),RCAT,c,k=>{RCAT=k;renderRecent()});
   const games=[...new Set(REC.map(r=>r.game).filter(Boolean))],devs=[...new Set(REC.map(r=>r.dev).filter(Boolean))];
-  const gs=$('rGame'),ds=$('rDev');gs.innerHTML='<option value="">🎮 모든 게임</option><option value="_home">🏠 첫 화면</option>'+games.map(x=>`<option value="${esc(x)}">${esc(GN[x]||x)}</option>`).join('');gs.value=g;
-  ds.innerHTML='<option value="">📱 모든 기기</option>'+devs.map(x=>`<option value="${esc(x)}">${esc(DEVN[x]||x)}</option>`).join('');ds.value=d;
+  const gs=$('rGame'),ds=$('rDev');gs.innerHTML='<option value="">모든 게임</option><option value="_home">첫 화면</option>'+games.map(x=>`<option value="${esc(x)}">${esc(GN[x]||x)}</option>`).join('');gs.value=g;
+  ds.innerHTML='<option value="">모든 기기</option>'+devs.map(x=>`<option value="${esc(x)}">${esc(DEVN[x]||x)}</option>`).join('');ds.value=d;
   const rows=base.filter(r=>RCAT==='all'||(RCAT==='like'?(r.ev==='like'||r.ev==='unlike'):r.ev===RCAT));
   $('rCnt').textContent=(rows.length===REC.length?'':rows.length+'건 / ')+'최근 '+REC.length+'건';renderRecentRows(rows)}
 $('rGame').onchange=renderRecent;$('rDev').onchange=renderRecent;
