@@ -60,6 +60,12 @@ td input[type=number]{width:96px;text-align:right}
 .chip{border:1px solid var(--line);background:#f9fafb;border-radius:999px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:12px}
 .ok{color:var(--green);font-weight:800}.no{color:var(--red);font-weight:800}
 .msg{font-weight:700;margin-left:8px}
+#tDev tr[data-v]{cursor:pointer}#tDev tr[data-v]:hover td{background:#fff7ed}#tDev tr.sel td{background:#ffedd5}
+.dsum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.dsum button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 14px;font-weight:800;cursor:pointer}
+.dsum button[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
+.dsum b{font-size:18px;margin-left:4px}
+.new{background:#dcfce7;color:#166534;border-radius:4px;padding:0 5px;font-size:11px;font-weight:800;margin-left:4px}
 .sw{position:relative;display:inline-block;width:46px;height:26px}.sw input{opacity:0;width:0;height:0}
 .sw i{position:absolute;inset:0;background:#d1d5db;border-radius:999px;transition:.2s;cursor:pointer}
 .sw i:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
@@ -86,7 +92,17 @@ tr.offrow td{background:#fef2f2}tr.offrow .gm,tr.offrow .gf,tr.offrow .gt{opacit
  <button class="btn" id="out" type="button">로그아웃</button>
 </header>
 <main id="mainEl">
- <div class="tabs" id="tabs"><button data-t="st" aria-pressed="true">📊 통계</button><button data-t="op" aria-pressed="false">⚙️ 운영 설정</button></div>
+ <div class="tabs" id="tabs"><button data-t="st" aria-pressed="true">📊 통계</button><button data-t="dv" aria-pressed="false">📱 기기별 기록</button><button data-t="op" aria-pressed="false">⚙️ 운영 설정</button></div>
+ <div id="dv" hidden>
+  <div class="grid">
+   <div class="card s12"><h3>📱 기기별 접근 기록 <small>위쪽 기간 버튼으로 기간을 골라요 · 줄을 누르면 그 기기의 기록이 나와요</small></h3>
+    <div class="dsum" id="dSum"></div>
+    <div class="frm"><input type="text" id="dQ" placeholder="🔍 방문자 ID 앞자리 · IP · 지역으로 찾기" style="flex:1;min-width:240px"><button class="chip" id="dGo" type="button">찾기</button><button class="chip" id="dCsv" type="button">⬇ CSV</button><span class="mute" id="dCnt"></span></div>
+    <div class="tw" style="max-height:520px"><table id="tDev"></table></div>
+   </div>
+   <div class="card s12" id="dDetail" hidden><h3 id="dTitle">🧾 기기 기록</h3><div class="kpis" id="dKpi" style="margin-bottom:10px"></div><div class="tw" style="max-height:480px"><table id="tDevLog"></table></div><p class="mute" id="dUa" style="word-break:break-all;margin:10px 0 0;font-size:12px"></p></div>
+  </div>
+ </div>
  <div id="op" hidden>
   <div class="grid">
    <div class="card s12"><h3>⏰ 게임 시간 <small>한국 시간 기준 · 정한 시간 밖에는 게임 화면이 잠겨요</small></h3>
@@ -151,8 +167,8 @@ function showLogin(m){$('login').hidden=false;$('dash').hidden=true;if(m)$('lerr
 function showDash(){$('login').hidden=true;$('dash').hidden=false;try{localStorage.setItem('mw_admin','1')}catch(e){}try{DAYS=+localStorage.getItem('mw_adm_days')||7}catch(e){}load()}
 $('lf').onsubmit=async e=>{e.preventDefault();$('lerr').textContent='';const {error}=await sb.auth.signInWithPassword({email:$('em').value.trim(),password:$('pw').value});if(error){$('lerr').textContent='로그인 실패: '+(error.message.includes('Invalid')?'이메일이나 비밀번호가 맞지 않아요':error.message);return}showDash()};
 $('out').onclick=async()=>{try{localStorage.removeItem('mw_admin')}catch(e){}await sb.auth.signOut();showLogin()};
-$('re').onclick=()=>load();
-document.querySelectorAll('#per [data-d]').forEach(b=>b.onclick=()=>{DAYS=+b.dataset.d;try{localStorage.setItem('mw_adm_days',DAYS)}catch(e){}load()});
+$('re').onclick=()=>{load();if(TAB==='dv')loadDev();if(TAB==='op')loadOp()};
+document.querySelectorAll('#per [data-d]').forEach(b=>b.onclick=()=>{DAYS=+b.dataset.d;try{localStorage.setItem('mw_adm_days',DAYS)}catch(e){}load();if(TAB==='dv')loadDev()});
 async function load(){document.querySelectorAll('#per [data-d]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.d===DAYS));$('mainEl').classList.add('loading');
   const {data,error}=await sb.rpc('mw_admin_stats',{p_days:DAYS});$('mainEl').classList.remove('loading');
   if(error){if(/not admin/.test(error.message)){await sb.auth.signOut();showLogin('관리자 목록(mw_admins)에 없는 계정이에요. Supabase에서 이메일을 등록해 주세요.');return}
@@ -180,8 +196,8 @@ function gamesTable(){const rows=(DATA.games||[]).map(r=>Object.assign({},r,{nam
 $('csv').onclick=()=>{if(!DATA)return;const rows=[['game','name','plays','players','avg_sec','total_min','clicks','likes']].concat((DATA.games||[]).map(r=>[r.game,GN[r.game]||r.game,r.plays,r.players,r.avg_sec,r.total_min,r.clicks,r.likes]));
   const b=new Blob(['﻿'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='민왕게임월드_게임통계_'+new Date().toISOString().slice(0,10)+'.csv';a.click()};
 /* ===== 운영 설정 ===== */
-let OP=null;const DN=['','월','화','수','목','금','토','일'];
-document.querySelectorAll('#tabs [data-t]').forEach(b=>b.onclick=()=>{const t=b.dataset.t;document.querySelectorAll('#tabs [data-t]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('st').hidden=t!=='st';$('op').hidden=t!=='op';$('per').style.visibility=t==='st'?'visible':'hidden';if(t==='op')loadOp()});
+let OP=null,TAB='st',DEV=[],DFIL='all';const DN=['','월','화','수','목','금','토','일'];
+document.querySelectorAll('#tabs [data-t]').forEach(b=>b.onclick=()=>{const t=b.dataset.t;document.querySelectorAll('#tabs [data-t]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('st').hidden=t!=='st';$('op').hidden=t!=='op';$('dv').hidden=t!=='dv';$('per').style.visibility=t==='op'?'hidden':'visible';TAB=t;if(t==='op')loadOp();if(t==='dv')loadDev()});
 $('hDays').innerHTML='<span class="mute">열리는 요일</span>'+[1,2,3,4,5,6,7].map(d=>`<label><input type="checkbox" value="${d}" checked> ${DN[d]}</label>`).join('');
 function gameIds(){const s=new Set(Object.keys(GN));((OP&&OP.games)||[]).forEach(r=>s.add(r.game));return [...s]}
 async function loadOp(){$('op').classList.add('loading');const {data,error}=await sb.rpc('mw_admin_cfg');$('op').classList.remove('loading');
@@ -209,6 +225,28 @@ $('aSave').onclick=async()=>{const M={};((OP&&OP.games)||[]).forEach(r=>M[r.game
   for(const tr of $('tAdj').querySelectorAll('tr[data-g]')){const id=tr.dataset.g,pa=Math.max(0,+tr.querySelector('.sp').value||0)-(+tr.dataset.p),la=Math.max(0,+tr.querySelector('.sl').value||0)-(+tr.dataset.l),o=M[id]||{plays_add:0,likes_add:0};
     if(pa===+o.plays_add&&la===+o.likes_add)continue;const {error}=await sb.rpc('mw_admin_adjust',{p_game:id,p_plays:pa,p_likes:la});if(error){err=error;break}n++}
   $('aMsgOut').innerHTML=err?`<span class="no">저장 실패: ${esc(err.message)}</span>`:`<span class="ok">✔ ${n}개 게임 저장했어요</span>`;if(!err)loadOp()};
+/* ===== 기기별 기록 ===== */
+const ago=t=>{const s=(Date.now()-new Date(t))/1000;if(s<60)return '방금';if(s<3600)return Math.floor(s/60)+'분 전';if(s<86400)return Math.floor(s/3600)+'시간 전';return Math.floor(s/86400)+'일 전'};
+const dt=t=>t?new Date(t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+async function loadDev(){$('dv').classList.add('loading');const {data,error}=await sb.rpc('mw_admin_devices',{p_days:DAYS,p_q:$('dQ').value.trim()||null});$('dv').classList.remove('loading');
+  if(error){$('tDev').innerHTML=`<tr><td class="note">기기 기록을 불러오지 못했어요: ${esc(error.message)}<br>Supabase SQL Editor에서 <b>supabase/devices.sql</b>을 먼저 실행해 주세요.</td></tr>`;return}
+  DEV=data||[];renderDev()}
+function renderDev(){const c={all:DEV.length};DEV.forEach(r=>{const k=r.dev||'?';c[k]=(c[k]||0)+1});
+  $('dSum').innerHTML=[['all','전체'],['mobile',DEVN.mobile],['tablet',DEVN.tablet],['desktop',DEVN.desktop],['chromebook',DEVN.chromebook]].map(([k,l])=>`<button data-f="${k}" aria-pressed="${DFIL===k}">${l}<b>${nf(c[k]||0)}</b></button>`).join('');
+  $('dSum').querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{DFIL=b.dataset.f;renderDev()});
+  const rows=DEV.filter(r=>DFIL==='all'||(r.dev||'?')===DFIL);$('dCnt').textContent=rows.length+'대'+(DEV.length>=300?' (최근 300대까지)':'');
+  $('tDev').innerHTML='<tr><th>기기</th><th>방문자 ID</th><th>마지막 접속</th><th>처음 방문</th><th class="n">세션</th><th class="n">방문</th><th class="n">플레이</th><th class="n">플레이 시간</th><th>자주 한 게임</th><th>지역</th><th>IP</th><th>화면</th></tr>'+
+   (rows.map(r=>{const isNew=r.first_ever&&new Date(r.first_ever)>=new Date(r.first_in)-1000;return `<tr data-v="${esc(r.vid)}"><td>${esc(DEVN[r.dev]||r.dev||'')} <span class="mute">${esc(r.os||'')} · ${esc(r.br||'')}</span></td><td>${esc((r.vid||'').slice(0,8))}${isNew?'<span class="new">NEW</span>':''}</td><td title="${esc(new Date(r.last).toLocaleString('ko-KR'))}">${ago(r.last)}</td><td>${dt(r.first_ever)}</td><td class="n">${nf(r.sessions)}</td><td class="n">${nf(r.views)}</td><td class="n">${nf(r.plays)}</td><td class="n">${r.play_sec?dur(r.play_sec):''}</td><td>${esc((r.top||'').split(',').filter(Boolean).map(g=>GN[g]||g).join(', '))}</td><td>${esc(r.place||'')}</td><td>${esc(r.ip||'')}${r.ips>1?` <span class="mute">외 ${r.ips-1}</span>`:''}</td><td class="mute">${esc(r.scr||'')}</td></tr>`}).join('')||'<tr><td colspan="12" class="mute">이 기간에 들어온 기기가 없어요</td></tr>');
+  $('tDev').querySelectorAll('tr[data-v]').forEach(tr=>tr.onclick=()=>{$('tDev').querySelectorAll('tr.sel').forEach(x=>x.classList.remove('sel'));tr.classList.add('sel');devDetail(tr.dataset.v)})}
+async function devDetail(v){const r=DEV.find(x=>x.vid===v)||{};$('dDetail').hidden=false;$('dTitle').textContent='🧾 '+(DEVN[r.dev]||'기기')+' '+(r.os||'')+' · '+(r.br||'')+' — '+v.slice(0,8);$('tDevLog').innerHTML='<tr><td class="mute">불러오는 중…</td></tr>';
+  $('dKpi').innerHTML=[['처음 방문',dt(r.first_ever)],['마지막 접속',ago(r.last)],['세션',nf(r.sessions)],['게임 플레이',nf(r.plays)],['플레이 시간',r.play_sec?dur(r.play_sec):'0초'],['IP',(r.ip||'')+(r.ips>1?' 외 '+(r.ips-1):'')]].map(([a,b])=>`<div class="kpi"><small>${a}</small><b style="font-size:18px">${esc(b)}</b></div>`).join('');
+  const {data,error}=await sb.rpc('mw_admin_device',{p_vid:v});if(error){$('tDevLog').innerHTML=`<tr><td class="no">${esc(error.message)}</td></tr>`;return}
+  const L=data||[];$('dUa').textContent=L[0]&&L[0].ua?'브라우저 정보: '+L[0].ua:'';
+  $('tDevLog').innerHTML='<tr><th>시간</th><th>종류</th><th>게임</th><th class="n">플레이</th><th>세션</th><th>지역</th><th>IP</th><th>들어온 곳</th></tr>'+(L.map(e=>`<tr><td>${new Date(e.ts).toLocaleString('ko-KR')}</td><td><span class="pill ev-${esc(e.ev)}">${esc(EVN[e.ev]||e.ev)}</span></td><td>${esc(GN[e.game]||e.game||'첫 화면')}</td><td class="n">${e.dur?dur(e.dur):''}</td><td class="mute">${esc((e.sid||'').slice(0,6))}</td><td>${esc([e.region,e.city].filter(Boolean).join(' '))}</td><td>${esc(e.ip_mask||'')}</td><td class="mute">${esc(e.ref||'')}</td></tr>`).join('')||'<tr><td class="mute">기록이 없어요</td></tr>');
+  $('dDetail').scrollIntoView({behavior:'smooth',block:'start'})}
+$('dGo').onclick=()=>loadDev();$('dQ').onkeydown=e=>{if(e.key==='Enter')loadDev()};
+$('dCsv').onclick=()=>{const rows=[['vid','dev','os','br','first_ever','last','sessions','views','plays','play_sec','top_games','place','ip','screen']].concat(DEV.map(r=>[r.vid,r.dev,r.os,r.br,r.first_ever,r.last,r.sessions,r.views,r.plays,r.play_sec,r.top,r.place,r.ip,r.scr]));
+  const b=new Blob(['﻿'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='민왕게임월드_기기별기록_'+new Date().toISOString().slice(0,10)+'.csv';a.click()};
 boot();
 </script>
 </body>
