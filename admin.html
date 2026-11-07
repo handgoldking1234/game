@@ -67,6 +67,11 @@ td input[type=number]{width:96px;text-align:right}
 .chip{border:1px solid var(--line);background:#f9fafb;border-radius:999px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:12px}
 .ok{color:var(--green);font-weight:800}.no{color:var(--red);font-weight:800}
 .msg{font-weight:700;margin-left:8px}
+.cats{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:auto;font-weight:400}
+.cats button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer;color:#374151}
+.cats button b{margin-left:3px;color:var(--mute);font-weight:800}
+.cats button[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}.cats button[aria-pressed="true"] b{color:#fdba74}
+.rsel{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
 [data-anc]{scroll-margin-top:72px}
 #tDev tr[data-v]{cursor:pointer}#tDev tr[data-v]:hover td{background:#fff7ed}#tDev tr.sel td{background:#ffedd5}
 .dsum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
@@ -161,9 +166,9 @@ tr.offrow td{background:#fef2f2}tr.offrow .gm,tr.offrow .gf,tr.offrow .gt{opacit
   <div class="card s4"><h3>📍 지역 (시·도)</h3><div class="tw"><table id="tRegion"></table></div></div>
   <div class="card s4"><h3>🏙️ 도시</h3><div class="tw"><table id="tCity"></table></div></div>
   <div class="card s4"><h3>🔗 들어온 곳</h3><div class="tw"><table id="tRef"></table></div></div>
-  <div data-anc="aIp" class="card s6"><h3>🖥️ 화면 크기</h3><div class="tw" style="max-height:300px"><table id="tScreen"></table></div></div>
+  <div data-anc="aIp" class="card s6"><h3>🖥️ 화면 크기 <span class="cats" id="cScreen"></span></h3><div class="tw" style="max-height:300px"><table id="tScreen"></table></div></div>
   <div class="card s6"><h3>🔢 IP (마지막 자리 가림) <small>학교·기관 단위 접속 파악용</small></h3><div class="tw" style="max-height:300px"><table id="tIp"></table></div></div>
-  <div data-anc="aRecent" class="card s12"><h3>🧾 최근 기록 <small>최근 120건</small></h3><div class="tw"><table id="tRecent"></table></div></div>
+  <div data-anc="aRecent" class="card s12"><h3>🧾 최근 기록 <small id="rCnt">최근 120건</small></h3><div class="frm" style="margin-bottom:8px"><span class="cats" id="cRecent"></span><select id="rGame" class="rsel"><option value="">🎮 모든 게임</option></select><select id="rDev" class="rsel"><option value="">📱 모든 기기</option></select></div><div class="tw"><table id="tRecent"></table></div></div>
  </div>
  </div>
  <p class="mute" style="margin-top:16px;line-height:1.6">원래 IP는 저장하지 않고 마지막 자리를 가린 IP와 해시만 남겨요. 방문자는 기기별 익명 ID로 세요(같은 사람이 다른 기기·브라우저로 오면 따로 세져요). 로컬 파일로 연 게임은 집계되지 않아요.</p>
@@ -207,10 +212,12 @@ function render(){const D=DATA,T=D.totals||{};const per={1:'오늘',7:'최근 7�
   pie('cDev',D.dev||[],k=>DEVN[k]||k);pie('cOs',D.os||[]);pie('cBr',D.br||[]);
   const hr=Array(24).fill(0);(D.hourly||[]).forEach(r=>hr[r.h]=r.n);chart('cHour',{type:'bar',data:{labels:hr.map((_,i)=>i+'시'),datasets:[{label:'이용',data:hr,backgroundColor:hr.map((_,i)=>i>=9&&i<=15?'#f26b1d':'#93c5fd')}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
   const wk=Array(7).fill(0);(D.weekday||[]).forEach(r=>wk[r.w-1]=r.n);chart('cWeek',{type:'bar',data:{labels:['월','화','수','목','금','토','일'],datasets:[{label:'이용',data:wk,backgroundColor:'#7c3aed'}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
-  kv('tCountry',D.country||[],'나라');kv('tRegion',D.region||[],'지역');kv('tCity',D.city||[],'도시');kv('tRef',D.ref||[],'들어온 곳');kv('tScreen',D.screen||[],'화면 (가로×세로)');
+  kv('tCountry',D.country||[],'나라');kv('tRegion',D.region||[],'지역');kv('tCity',D.city||[],'도시');kv('tRef',D.ref||[],'들어온 곳');SCR=D.screen||[];renderScreen();
   $('tIp').innerHTML='<tr><th>IP</th><th class="n">기록</th><th class="n">기기</th><th>도시</th><th>마지막</th></tr>'+((D.ips||[]).map(r=>`<tr><td>${esc(r.k)}</td><td class="n">${nf(r.n)}</td><td class="n">${nf(r.devices)}</td><td>${esc(r.city||'')}</td><td>${new Date(r.last).toLocaleString('ko-KR')}</td></tr>`).join('')||'<tr><td colspan="5" class="mute">아직 기록이 없어요</td></tr>');
   gamesTable();
-  $('tRecent').innerHTML='<tr><th>시간</th><th>종류</th><th>게임</th><th>기기</th><th>OS</th><th>브라우저</th><th>지역</th><th>IP</th><th>방문자</th><th class="n">플레이</th></tr>'+((D.recent||[]).map(r=>`<tr><td>${new Date(r.ts).toLocaleString('ko-KR')}</td><td><span class="pill ev-${esc(r.ev)}">${esc(EVN[r.ev]||r.ev)}</span></td><td>${esc(GN[r.game]||r.game||'첫 화면')}</td><td>${esc(DEVN[r.dev]||r.dev||'')}</td><td>${esc(r.os||'')}</td><td>${esc(r.br||'')}</td><td>${esc([r.region,r.city].filter(Boolean).join(' '))}</td><td>${esc(r.ip_mask||'')}</td><td class="mute">${esc(r.vid||'')}</td><td class="n">${r.dur?dur(r.dur):''}</td></tr>`).join('')||'<tr><td colspan="10" class="mute">아직 기록이 없어요</td></tr>')}
+  REC=D.recent||[];renderRecent()}
+function renderRecentRows(rows){
+  $('tRecent').innerHTML='<tr><th>시간</th><th>종류</th><th>게임</th><th>기기</th><th>OS</th><th>브라우저</th><th>지역</th><th>IP</th><th>방문자</th><th class="n">플레이</th></tr>'+((rows).map(r=>`<tr><td>${new Date(r.ts).toLocaleString('ko-KR')}</td><td><span class="pill ev-${esc(r.ev)}">${esc(EVN[r.ev]||r.ev)}</span></td><td>${esc(GN[r.game]||r.game||'첫 화면')}</td><td>${esc(DEVN[r.dev]||r.dev||'')}</td><td>${esc(r.os||'')}</td><td>${esc(r.br||'')}</td><td>${esc([r.region,r.city].filter(Boolean).join(' '))}</td><td>${esc(r.ip_mask||'')}</td><td class="mute">${esc(r.vid||'')}</td><td class="n">${r.dur?dur(r.dur):''}</td></tr>`).join('')||'<tr><td colspan="10" class="mute">이 카테고리에 맞는 기록이 없어요</td></tr>')}
 function gamesTable(){const rows=(DATA.games||[]).map(r=>Object.assign({},r,{name:GN[r.game]||r.game,score:(+r.plays)+(+r.likes)*8}));
   const max=Math.max(1,...rows.map(r=>+r.plays));
   rows.sort((a,b)=>{const k=gSort.k;const x=a[k],y=b[k];return (typeof x==='string'?x.localeCompare(y):(+x)-(+y))*gSort.d});
@@ -276,6 +283,24 @@ async function devDetail(v){const r=DEV.find(x=>x.vid===v)||{};$('dDetail').hidd
 $('dGo').onclick=()=>loadDev();$('dQ').onkeydown=e=>{if(e.key==='Enter')loadDev()};
 $('dCsv').onclick=()=>{const rows=[['vid','dev','os','br','first_ever','last','sessions','views','plays','play_sec','top_games','place','ip','screen']].concat(DEV.map(r=>[r.vid,r.dev,r.os,r.br,r.first_ever,r.last,r.sessions,r.views,r.plays,r.play_sec,r.top,r.place,r.ip,r.scr]));
   const b=new Blob(['﻿'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='민왕게임월드_기기별기록_'+new Date().toISOString().slice(0,10)+'.csv';a.click()};
+/* ===== 카테고리 필터 ===== */
+let SCR=[],REC=[],SCAT='all',RCAT='all';
+const scrCat=k=>{const w=parseInt(String(k).split('×')[0],10)||0,h=parseInt(String(k).split('×')[1],10)||0,m=Math.min(w,h);if(!w)return 'etc';if(m<600)return 'phone';if(h>w&&m<1100)return 'tablet';return 'pc'};
+const SCN={all:'전체',phone:'📱 휴대폰',tablet:'📲 태블릿',pc:'🖥️ PC·노트북',etc:'기타'};
+function chips(el,cats,cur,counts,on){el.innerHTML=cats.filter(k=>k==='all'||counts[k]).map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===cur}">${SCN[k]||EVN[k]||k}<b>${nf(counts[k]||0)}</b></button>`).join('');el.querySelectorAll('button').forEach(b=>b.onclick=()=>on(b.dataset.k))}
+function renderScreen(){const c={all:0};SCR.forEach(r=>{const k=scrCat(r.k);c[k]=(c[k]||0)+(+r.n||0);c.all+=(+r.n||0)});
+  chips($('cScreen'),['all','phone','tablet','pc','etc'],SCAT,c,k=>{SCAT=k;renderScreen()});
+  kv('tScreen',SCR.filter(r=>SCAT==='all'||scrCat(r.k)===SCAT),'화면 (가로×세로)')}
+const RG=[['all','전체'],['view','방문'],['play','게임 시작'],['hb','플레이 중'],['end','게임 끝'],['click','목록 클릭'],['like','좋아요']];
+function renderRecent(){const g=$('rGame').value,d=$('rDev').value;
+  const base=REC.filter(r=>(!g||(g==='_home'?!r.game:r.game===g))&&(!d||r.dev===d));const c={all:base.length};base.forEach(r=>{const k=r.ev==='unlike'?'like':r.ev;c[k]=(c[k]||0)+1});
+  chips($('cRecent'),RG.map(x=>x[0]),RCAT,c,k=>{RCAT=k;renderRecent()});
+  const games=[...new Set(REC.map(r=>r.game).filter(Boolean))],devs=[...new Set(REC.map(r=>r.dev).filter(Boolean))];
+  const gs=$('rGame'),ds=$('rDev');gs.innerHTML='<option value="">🎮 모든 게임</option><option value="_home">🏠 첫 화면</option>'+games.map(x=>`<option value="${esc(x)}">${esc(GN[x]||x)}</option>`).join('');gs.value=g;
+  ds.innerHTML='<option value="">📱 모든 기기</option>'+devs.map(x=>`<option value="${esc(x)}">${esc(DEVN[x]||x)}</option>`).join('');ds.value=d;
+  const rows=base.filter(r=>RCAT==='all'||(RCAT==='like'?(r.ev==='like'||r.ev==='unlike'):r.ev===RCAT));
+  $('rCnt').textContent=(rows.length===REC.length?'':rows.length+'건 / ')+'최근 '+REC.length+'건';renderRecentRows(rows)}
+$('rGame').onchange=renderRecent;$('rDev').onchange=renderRecent;
 boot();
 </script>
 </body>
