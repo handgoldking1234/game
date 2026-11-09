@@ -4067,7 +4067,7 @@ const BWY=24;let BW=null;
 function bwSetup(){openCard(`<div class="hd"><h2>🛏️ 베드워즈</h2><button class="x" type="button" data-x aria-label="닫기">✕</button></div>
   <div class="note info">하늘에 뜬 섬에서 팀끼리 겨뤄요. 내 <b>침대</b>가 있으면 쓰러져도 다시 살아나요. 상대 침대를 부수고 마지막까지 남으면 승리! 섬의 생성기에서 철·금이 나오고, 상점 주민에게 양털·무기·TNT를 사요.</div>
   <label style="display:flex;gap:8px;align-items:center">봇 팀 수 <select id="bwN"><option value="1">1팀 (1:1)</option><option value="2">2팀</option><option value="3" selected>3팀 (4팀 경기)</option></select></label>
-  <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bwSD" checked> 12분 뒤 서든 데스 (모든 침대가 부서지고 위더가 나와요)</label>
+  <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bwSD" checked> 12분 뒤 서든 데스 (엔더 드래곤이 나타나요)</label>
   <div class="row"><button class="btn go" type="button" id="bwGo">▶ 시작</button><button class="btn" type="button" id="bwBack">◀ 처음 화면</button></div><small>베드워즈 경기는 저장되지 않아요 (본 세계는 그대로예요). 함께 하기 방에서 방장이 시작하면 친구도 같은 경기장에 들어와요.</small>`,true,()=>{$('bwGo').onclick=()=>startMode4('bw',{bots:+$('bwN').value,sd:$('bwSD').checked});$('bwBack').onclick=lobby;ov.querySelector('[data-x]').onclick=lobby})}
 function bwIslands(n){const C={x:VC.x,z:VC.z};const all=[['red',C.x-40,C.z],['blue',C.x+40,C.z],['green',C.x,C.z-40],['yellow',C.x,C.z+40]];return all.slice(0,n+1)}
 function bwBuild(){BW={teams:{},t:0,feed:[],over:0,sd:GAME4.sd,gens:[]};const L=bwIslands(GAME4.bots??3);const S_=(x,y,z,v)=>setRaw(x,y,z,v);
@@ -4128,7 +4128,7 @@ function bwTick(dt){if(!BW)return;BW.t+=dt;const auth=isAuth();T=DAY*.25;
     if(g.t==='dia'&&g.i>=(BW.t>180?20:30)){g.i=0;makeDrop('diamond',1,g.x,g.y,g.z,[0,1,0])}if(g.t==='em'&&g.i>=(BW.t>300?40:60)){g.i=0;makeDrop('emerald',1,g.x,g.y,g.z,[0,1,0])}}
     for(const m of MOBS)if(m.t==='bwbot'&&m.y<BWY-12){m.hp=-1}
     if(BW.t>600&&!BW.bedsGone){BW.bedsGone=1;for(const k in BW.teams){const b=BW.teams[k].bed;if(get(...b)===25)setBlock(...b,0)}netAll4({t:'toast4',m:'⏰ 10분! 모든 침대가 부서졌어요',c:'bad'})}
-    if(BW.sd&&BW.t>720&&!BW.sdOn){BW.sdOn=1;spawnWither(VC.x+.5,BWY+4,VC.z+.5);netAll4({t:'toast4',m:'⚡ 서든 데스! 가운데에 위더가 나타났어요',c:'bad'})}}
+    if(BW.sd&&BW.t>720&&!BW.sdOn){BW.sdOn=1;if(typeof bwDragon==='function'&&MOBT.bwdragon)bwDragon();else{spawnWither(VC.x+.5,BWY+4,VC.z+.5);netAll4({t:'toast4',m:'⚡ 서든 데스! 가운데에 위더가 나타났어요',c:'bad'})}}}
   if(P.y<BWY-14&&!S.dead&&!BW.elim)hurtMe(99,'공허');
   const my=BW.teams[BW.my];if(my&&my.up.haste)S.eff.haste=2;if(my&&my.up.heal&&Math.hypot(P.x-my.c[0],P.z-my.c[1])<8){S.hT=(S.hT||0)+dt;if(S.hT>2){S.hT=0;S.hp=Math.min(20,S.hp+1)}}
   for(const k in BW.teams){const t=BW.teams[k];if(t.up.trap&&!t.trapUsed){for(const e of bwEnemies(k))if(Math.hypot(e.x-t.c[0],e.z-t.c[1])<9){t.trapUsed=1;if(e.m)e.m.slowT=8;else if(e.p.id==='me')S.eff.slow=8;netAll4({t:'toast4',m:`🔔 ${TEAMC[k][0]} 팀 기지에 적이 들어왔어요!`,c:'bad'});break}}}
@@ -4356,8 +4356,9 @@ function mobBullet(sx,sy,sz,tx,ty,tz,o){const d=Math.hypot(tx-sx,ty-sy,tz-sz)||1
   const g=new THREE.Mesh(new THREE.BoxGeometry(.1,.1,.1),new THREE.MeshBasicMaterial({color:o.col||0xffd84a}));g.position.set(sx,sy,sz);scene.add(g);MB10.push(Object.assign({g,x:sx,y:sy,z:sz,v,life:1.6},o));
   if(!o.vis&&NET.on&&NET.host)netSend({t:'mb10',a:[+sx.toFixed(2),+sy.toFixed(2),+sz.toFixed(2),+v[0].toFixed(2),+v[1].toFixed(2),+v[2].toFixed(2)],c:o.col||0xffd84a});audio();noise(.04,.07,o.big?900:2200)}
 function mbStep(dt){for(let i=MB10.length-1;i>=0;i--){const a=MB10[i];a.life-=dt;const nx=a.x+a.v[0]*dt,ny=a.y+a.v[1]*dt,nz=a.z+a.v[2]*dt;let hit=a.life<=0||SOLID(get(Math.floor(nx),Math.floor(ny),Math.floor(nz)));
-  if(!hit&&!a.vis&&isAuth()){if(a.tp==='p'){for(const p of allPlayers()){if(a.tid&&p.id!==a.tid)continue;if(Math.abs(p.x-nx)<.4&&Math.abs(p.z-nz)<.4&&ny>p.y&&ny<p.y+1.85){mobHits(p,a.dmg,a.src||{t:'villager',x:a.x,z:a.z});hit=true;break}}}
-    else{for(const m of MOBS){if(m.id===a.own)continue;const T=MOBT[m.t];if(a.hostOnly&&!(T.kind==='hostile'||m.raid))continue;if(a.tid!=null&&m.id!==a.tid&&!a.hostOnly)continue;if(Math.abs(m.x-nx)<T.w/2+.1&&Math.abs(m.z-nz)<T.w/2+.1&&ny>m.y&&ny<m.y+T.h){hitMob(m,a.dmg,null,a.x,a.z,.4);hit=true;break}}}}
+  if(!hit&&!a.vis&&isAuth()){const o={x:a.x,y:a.y,z:a.z},L=Math.hypot(nx-a.x,ny-a.y,nz-a.z)||1e-6,d={x:(nx-a.x)/L,y:(ny-a.y)/L,z:(nz-a.z)/L};
+    if(a.tp==='p'){for(const p of allPlayers()){if(a.tid&&p.id!==a.tid)continue;const t=rayAABB(o,d,p.x-.35,p.y,p.z-.35,p.x+.35,p.y+1.85,p.z+.35);if(t!=null&&t<=L){mobHits(p,a.dmg,a.src||{t:'villager',x:a.x,z:a.z});hit=true;break}}}
+    else{let bm=null,bt=L;for(const m of MOBS){if(m.id===a.own||m.hp<=0)continue;const T=MOBT[m.t];if(a.hostOnly&&!(T.kind==='hostile'||m.raid))continue;if(a.tid!=null&&m.id!==a.tid&&!a.hostOnly)continue;const w=T.w/2+.1;const t=rayAABB(o,d,m.x-w,m.y,m.z-w,m.x+w,m.y+T.h,m.z+w);if(t!=null&&t<=bt){bt=t;bm=m}}if(bm){hitMob(bm,a.dmg,null,a.x,a.z,.4);hit=true}}}
   a.x=nx;a.y=ny;a.z=nz;a.g.position.set(nx,ny,nz);if(hit){scene.remove(a.g);a.g.geometry.dispose();MB10.splice(i,1);if(Math.random()<.5)puff(nx,ny,nz,0xffffff,new THREE.Vector3(0,1,0),.25,.4)}}}
 // 총을 드는 몹: 모드가 켜지면 모두 (탈것·보스 빼고)
 const MILPROF=['smith','mason','butcher'];
@@ -4393,8 +4394,9 @@ const _ai10=mobAIExt;mobAIExt=function(m,T,dt,PL){
   // 2) 지키는 몹: 철골렘·늑대·자경대·눈 골렘 → 적대 몹을 쏴요
   const defender=T.kind==='golem'||m.t==='wolf'&&m.own||gv>=4;
   if(defender){let best=null,bd=gv>=4?18:14;const cx=gv>=4?VC.x:m.x,cz=gv>=4?VC.z:m.z;for(const o of MOBS){const OT=MOBT[o.t];if(!(OT.kind==='hostile'||o.raid)||o.hp<=0||regOf(o.x)!==regOf(m.x))continue;const d=Math.hypot(o.x-m.x,o.z-m.z);if(d<bd&&(gv<4||Math.hypot(o.x-cx,o.z-cz)<30)){bd=d;best=o}}
-    if(best){m.yaw=Math.atan2(best.x-m.x,best.z-m.z);m.gunT=(m.gunT??.4)-dt;if(m.gunT<=0){m.gunT=gv>=4?rnd(.7,1.1):T.kind==='golem'?.35:.9;mobBullet(m.x,m.y+T.h*.62,m.z,best.x,best.y+MOBT[best.t].h*.55,best.z,{tp:'m',hostOnly:1,dmg:gv>=4?3:2,own:m.id,col:gv>=4?0xffe070:0xffb040});stat('militia_shot')}
-      if(gv>=4||T.kind==='golem')return [0,0,0];}}
+    if(best){m.yaw=Math.atan2(best.x-m.x,best.z-m.z);m.gunT=(m.gunT??.4)-dt;const sx=m.x,sy=m.y+T.h*.62,sz=m.z;const BS=30,tt=Math.hypot(best.x-sx,best.z-sz)/BS;const tx=best.x+(best.evx||0)*tt,ty=best.y+MOBT[best.t].h*.55,tz=best.z+(best.evz||0)*tt;const los=clearLine(sx,sy,sz,tx,ty,tz);
+      if(m.gunT<=0&&los){m.gunT=gv>=4?rnd(.6,.9):T.kind==='golem'?.35:.9;mobBullet(sx,sy,sz,tx,ty,tz,{tp:'m',hostOnly:1,dmg:gv>=4?3:2,own:m.id,col:gv>=4?0xffe070:0xffb040,sp:BS,spread:gv>=4?.012:.03});stat('militia_shot')}
+      if(!los&&(gv>=4||T.kind==='golem')){m.sideT=(m.sideT||0)+dt;const s=Math.floor(m.sideT/1.5)%2?1:-1;return [(best.z-m.z)*s,-(best.x-m.x)*s,T.sp]}if(gv>=4||T.kind==='golem')return [0,0,0];}}
   // 3) 적대 몹: 보면 쏴요 (기존 처리)
   if(T.kind==='hostile')return _ai10(m,T,dt,PL);
   // 4) 평화로운 몹: 총은 들고 있지만 안 쏴요
@@ -4487,6 +4489,10 @@ const _r4f10=r4Frame;r4Frame=function(dt,t){_r4f10(dt,t);if(!started)return;gren
 
 // 안전망: 한 프레임에서 오류가 나도 게임이 멈추지 않게 (오류는 window.__ferr에 남겨요)
 window.__ferr=[];const _frame10=frame;frame=function(n){try{_frame10(n)}catch(e){if(window.__ferr.length<20)window.__ferr.push(String(e&&e.stack||e).slice(0,300));console.error(e);requestAnimationFrame(frame)}};
+
+function clearLine(ax,ay,az,bx,by,bz){const L=Math.hypot(bx-ax,by-ay,bz-az);for(let t=.6;t<L-.4;t+=.4){const k=t/L;const id=get(Math.floor(ax+(bx-ax)*k),Math.floor(ay+(by-ay)*k),Math.floor(az+(bz-az)*k));if(SOLID(id)&&!(B[id]&&B[id].cut))return false}return true}
+// 몹이 얼마나 빨리 움직이는지 (앞질러 겨누기용)
+const _r4f10v=r4Frame;r4Frame=function(dt,t){_r4f10v(dt,t);if(!started||dt<=0)return;for(const m of MOBS){if(m.lx!=null){const k=Math.min(1,dt*6);m.evx=(m.evx||0)+((m.x-m.lx)/dt-(m.evx||0))*k;m.evz=(m.evz||0)+((m.z-m.lz)/dt-(m.evz||0))*k}m.lx=m.x;m.lz=m.z}};
 /* ===================== 🪓 5차: 변명자 · 파괴수 · 환술사 · 알레이 · 📯 약탈(습격) ===================== */
 Object.assign(MOBT,{
   vindicator:{n:'변명자',hp:24,sp:2.2,kind:'hostile',dmg:5,w:.6,h:1.95,sight:20,drops:[['emerald',0,1]]},
@@ -5031,10 +5037,10 @@ addEventListener('keydown',e=>{const m=P.riding&&MOBS.find(q=>q.id===P.riding);i
 const _rs11=rideStep;rideStep=function(dt){const m=MOBS.find(q=>q.id===P.riding);if(!m||!m.t.startsWith('sv_'))return _rs11(dt);spaceRide(m,dt)};
 function spaceRide(m,dt){if(m.dead||m.hp<=0){dismount(true);return}if(keys.ShiftLeft||keys.ShiftRight||sneakBtn){if(sneakBtn)sneakBtn=false;dismount();VHUD.style.display='none';return}
   const k=m.t.slice(3),V=VT[k];const [mx,mz,f]=moveInput();m.vx=m.vx||0;m.vz=m.vz||0;m.vy=m.vy||0;let sp=V.sp;const emp=m.empT>0;if(m.fuel==null)m.fuel=90;
-  const moving=Math.hypot(mx,mz)>.1||(V.fly&&(keys.Space||keys.ControlLeft));if(moving&&!S.creative)m.fuel=Math.max(0,m.fuel-dt);if(m.fuel<=0||emp||m.siege)sp=0;
-  if(k==='jet'){const d=lookDir();const thr=f>0?1:f<0?.25:.5;if(m.fuel>0&&!emp){m.vx+=(d.x*sp*thr-m.vx)*Math.min(1,dt*2);m.vz+=(d.z*sp*thr-m.vz)*Math.min(1,dt*2);m.vy+=(d.y*sp*thr+(keys.Space?6:0)-(keys.ControlLeft?6:0)-m.vy)*Math.min(1,dt*2)}else m.vy-=10*dt}
+  const moving=Math.hypot(mx,mz)>.1||(V.fly&&(keys.Space||keys.ControlLeft||P.tUp||P.tDn));if(moving&&!S.creative)m.fuel=Math.max(0,m.fuel-dt);if(m.fuel<=0||emp||m.siege)sp=0;
+  if(k==='jet'){const d=lookDir();const thr=f>0?1:f<0?.25:.5;if(m.fuel>0&&!emp){m.vx+=(d.x*sp*thr-m.vx)*Math.min(1,dt*2);m.vz+=(d.z*sp*thr-m.vz)*Math.min(1,dt*2);m.vy+=(d.y*sp*thr+((keys.Space||P.tUp)?6:0)-((keys.ControlLeft||P.tDn)?6:0)-m.vy)*Math.min(1,dt*2)}else m.vy-=10*dt}
   else{const acc=V.fly?3:6;m.vx+=(mx*sp-m.vx)*Math.min(1,acc*dt);m.vz+=(mz*sp-m.vz)*Math.min(1,acc*dt);
-    if(V.fly){const up=(keys.Space||jumpBtn)?1:keys.ControlLeft?-1:0;m.vy+=(up*sp*.7-m.vy)*Math.min(1,dt*3);if(m.fuel<=0||emp)m.vy=-4}
+    if(V.fly){const up=(keys.Space||jumpBtn||P.tUp)?1:(keys.ControlLeft||P.tDn)?-1:0;m.vy+=(up*sp*.7-m.vy)*Math.min(1,dt*3);if(m.fuel<=0||emp)m.vy=-4}
     else if(V.hov){const gy=groundY(m.x,m.z,m.y+1.5);const ty=gy+V.hov;m.vy=(ty-m.y)*8;if(keys.Space&&m.ground!==false&&Math.abs(m.y-ty)<.2)m.vy=9}
     else{m.vy-=24*dt}}
   const hw=Math.min(V.w,1),hh=Math.min(V.h,1.8);let nx=m.x+m.vx*dt,nz=m.z+m.vz*dt,ny=m.y+m.vy*dt;
@@ -5046,7 +5052,7 @@ function spaceRide(m,dt){if(m.dead||m.hp<=0){dismount(true);return}if(keys.Shift
   P.x=m.x;P.z=m.z;P.y=m.y+V.seat;P.vx=P.vy=P.vz=0;P.ground=true;P.fallY=P.y;P.sneak=false;
   VFT-=dt;if(VFIRE&&VFT<=0)vehFire(m,k);
   VHUD.style.display='block';VHUD.innerHTML=`${ITEM['v_'+k].n} · ⚡ 연료 ${Math.ceil(m.fuel)}초${m.fuel<=0?' (에너지 셀을 들고 오른쪽 클릭!)':''}${emp?' · ⚡마비!':''}${m.siege?' · 🎯 공성 모드':''}<br><small>${k==='hover'?'R: 지뢰':k==='tank'?'왼쪽 클릭: 포탄 · R: 공성 모드':k==='mech'?'왼쪽 클릭: 쌍발포 · R: 발 구르기':k==='jet'?'왼쪽 클릭: 레이저 · 마우스로 방향':k==='carrier'?'R: 드론 출격 · 스페이스/Ctrl: 위아래':'스페이스/Ctrl: 위아래 · 친구도 함께 타요'} · Shift: 내리기</small>`;
-  if(!isAuth()){m.rpT=(m.rpT||0)-dt;if(m.rpT<=0){m.rpT=.1;netSend({t:'rp',id:m.id,x:+m.x.toFixed(2),y:+m.y.toFixed(2),z:+m.z.toFixed(2),yaw:+m.yaw.toFixed(2)})}}}
+  if(!isAuth()){m.rpT=(m.rpT||0)-dt;if(m.rpT<=0){m.rpT=.1;netSend({t:'rp',id:m.id,x:+m.x.toFixed(2),y:+m.y.toFixed(2),z:+m.z.toFixed(2),yaw:+m.yaw.toFixed(2)})}m.fsT=(m.fsT||0)-dt;if(m.fsT<=0){m.fsT=1;netSend({t:'sp11',id:m.id,k:'fuel',v:+m.fuel.toFixed(1)})}}}
 const _dm11=dismount;dismount=function(q){_dm11(q);VHUD.style.display='none';VFIRE=false};
 // 무기 · 특수 기능
 function eyeHit(maxd){const e=eyePos(),d=lookDir();for(let t=1;t<maxd;t+=.3){const x=e.x+d.x*t,y=e.y+d.y*t,z=e.z+d.z*t;if(SOLID(get(Math.floor(x),Math.floor(y),Math.floor(z))))return {x,y,z};for(const m of MOBS){if(MOBT[m.t].kind==='vehicle')continue;const T=MOBT[m.t];if(Math.abs(m.x-x)<T.w/2&&Math.abs(m.z-z)<T.w/2&&y>m.y&&y<m.y+T.h)return {x,y,z}}}return {x:e.x+d.x*maxd,y:e.y+d.y*maxd,z:e.z+d.z*maxd}}
@@ -5389,6 +5395,345 @@ const _r4f13=r4Frame;r4Frame=function(dt,t){_r4f13(dt,t);if(!started)return;natT
 
 // 병사는 멀리 있어도 사라지지 않아요 (성 수비대)
 const _spl13=spawnLoop;spawnLoop=function(){const L=MOBS.filter(m=>m.keep13&&!m.own);for(const m of L)m.own='nat';try{_spl13()}finally{for(const m of L)if(m.own==='nat')delete m.own}};
+/* ===================== 🛠️ 6차: 화살·총알 건너뛰기 · 탈것 모바일 버튼·연료 · 베드워즈 드래곤·다음 판 ===================== */
+// [약한 총의 원인] 빠른 화살·에너지 공은 한 프레임에 1.3칸 넘게 날아가는데, 맞았는지를 '도착한 점'에서만 봤어요.
+//  몹 몸통(폭 0.8칸)을 그 사이에 건너뛰어 버려서, 피해가 들어간 줄 알았던 1.5는 사실 좀비가 햇빛에 탄 값이었어요.
+//  → 지나간 길 전체로 맞았는지 보고, 맞았으면 화살을 그 자리로 옮겨 원래 처리(피해·물약·폭발)가 그대로 돌아요.
+const _ua12=updArrows;updArrows=function(dt){for(const a of ARROWS){if(a.stuck||a.life<=0)continue;const K=PKIND[a.kind]||PKIND.arrow;const v=[a.v[0],a.v[1]-K.g*dt,a.v[2]];const L=Math.hypot(v[0],v[1],v[2])*dt;if(L<.6)continue;const o={x:a.x,y:a.y,z:a.z},d={x:v[0]*dt/L,y:v[1]*dt/L,z:v[2]*dt/L};let bt=null;
+  if(a.owner==='me'){for(const m of MOBS){const T=MOBT[m.t];if(m.hp<=0||T.kind==='vehicle')continue;const w=T.w/2+.1;const t=rayAABB(o,d,m.x-w,m.y,m.z-w,m.x+w,m.y+T.h,m.z+w);if(t!=null&&t<=L&&(bt==null||t<bt))bt=t}}
+  else if(a.owner==='mob'&&isAuth()){const r=.45+(K.ball||0)/2;for(const p of allPlayers()){const t=rayAABB(o,d,p.x-r,p.y,p.z-r,p.x+r,p.y+1.85,p.z+r);if(t!=null&&t<=L&&(bt==null||t<bt))bt=t}}
+  if(bt!=null){const hx=o.x+d.x*(bt+.12),hy=o.y+d.y*(bt+.12),hz=o.z+d.z*(bt+.12);a.x=hx-v[0]*dt;a.y=hy-v[1]*dt;a.z=hz-v[2]*dt;a.v[1]=v[1]+K.g*dt}}
+  _ua12(dt)};
+// --- 📱 탈것 버튼 (휴대폰·태블릿) ---
+let VTB=null;function vehButtons(){if(!touchUI)return;const m=P.riding&&MOBS.find(q=>q.id===P.riding);const on=!!(m&&(m.t.startsWith('sv_')||m.t==='wcannon'));
+  if(!VTB&&on){VTB=document.createElement('div');VTB.id='vtb12';VTB.style.cssText='position:fixed;right:10px;bottom:150px;display:grid;grid-template-columns:repeat(2,64px);gap:6px;z-index:8';
+    VTB.innerHTML='<button class="tb" type="button" id="vFire">🔥 발사</button><button class="tb" type="button" id="vSp">⚙️ 특수</button><button class="tb" type="button" id="vUp">⬆️ 위</button><button class="tb" type="button" id="vDn">⬇️ 아래</button><button class="tb" type="button" id="vExit" style="grid-column:span 2">🚪 내리기</button>';document.body.appendChild(VTB);
+    const hold=(id,on_,off_)=>{const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();on_()});for(const ev of ['pointerup','pointercancel','pointerleave'])b.addEventListener(ev,off_)};
+    hold('vFire',()=>VFIRE=true,()=>VFIRE=false);hold('vUp',()=>P.tUp=1,()=>P.tUp=0);hold('vDn',()=>P.tDn=1,()=>P.tDn=0);
+    $('vSp').onclick=()=>{const q=P.riding&&MOBS.find(z=>z.id===P.riding);if(q&&q.t.startsWith('sv_'))vehSpecial(q)};$('vExit').onclick=()=>{VFIRE=false;P.tUp=P.tDn=0;dismount()}}
+  if(VTB){VTB.style.display=on?'grid':'none';if(on){const k=m.t.slice(3),fly=VT[k]&&VT[k].fly;$('vUp').style.visibility=$('vDn').style.visibility=fly?'visible':'hidden';$('vSp').style.visibility=m.t==='wcannon'||k==='drop'||k==='jet'?'hidden':'visible'}}}
+// --- ⚡ 연료: 방장이 기준 (친구가 몰면 1초마다 알려 주고, 방장은 2초마다 모두에게) ---
+let FUELT=0;function fuelSync(dt){if(!NET.on||!NET.host)return;FUELT-=dt;if(FUELT>0)return;FUELT=2;const L=MOBS.filter(m=>m.t.startsWith('sv_')).map(m=>[m.id,+(m.fuel??90).toFixed(1)]);if(L.length)netSend({t:'sp11f',L})}
+const _onNet12a=onNet;onNet=function(d,from){if(d&&typeof d==='object'){
+  if(d.t==='sp11f'){for(const [id,f] of d.L){const m=MOBS.find(q=>q.id===id);if(m&&P.riding!==id)m.fuel=f}return}
+  if(d.t==='bwnext'){bwNextLocal(d);return}
+  if(d.t==='bwdrag'){toast('🐉 서든 데스! 엔더 드래곤이 나타났어요!','bad');audio();tone('sawtooth',120,60,1.2,.1);return}}
+  _onNet12a(d,from)};
+// --- 🐉 베드워즈 서든 데스: 진짜 엔더 드래곤 (경기장을 돌다가 내리꽂아요) ---
+MOBT.bwdragon={n:'엔더 드래곤',hp:220,sp:10,kind:'boss',dmg:6,w:3,h:2.2,fly:1,flyH:1,fire:1,drops:[['dragon_egg',1,1]]};MINFO.bwdragon=['🐉','🛏️ 베드워즈 서든 데스에 나타나는 엔더 드래곤'];
+const _bm12a=buildMob;buildMob=function(m){if(m.t!=='bwdragon')return _bm12a(m);const M=_bm12a(Object.assign({},m,{t:'dragon'}));MOBM[m.id]=M;return M};
+function bwDragon(){if(!isAuth()||!BW)return;const d=spawnMob('bwdragon',VC.x+.5,BWY+18,VC.z+.5,{ang:0,ph:'circle',pt:6});netAll4({t:'bwdrag'});bwFeed('🐉 엔더 드래곤 등장!')}
+const _ai12a=mobAIExt;mobAIExt=function(m,T,dt,PL){if(m.t!=='bwdragon')return _ai12a(m,T,dt,PL);if(!BW)return [0,0,0];m.pt-=dt;
+  const foes=bwEnemies('__none__').filter(e=>e.y>BWY-6);if(m.ph==='circle'){m.ang+=dt*.45;const tx=VC.x+Math.cos(m.ang)*26,tz=VC.z+Math.sin(m.ang)*26;if(m.pt<=0&&foes.length){m.ph='dive';m.tg=pick(foes);m.pt=5}
+      if(Math.random()<dt*.25&&foes.length){const f=pick(foes);const dx=f.x-m.x,dy=f.y+1-m.y,dz=f.z-m.z,l=Math.hypot(dx,dy,dz)||1;const a=fireArrow(m.x,m.y,m.z,[dx/l*13,dy/l*13,dz/l*13],'mob',5,'fire');a.src='dragon'}
+      m.yaw=Math.atan2(tx-m.x,tz-m.z);return [tx-m.x,tz-m.z,T.sp,{x:tx,y:BWY+16,z:tz}]}
+  const g=m.tg&&(m.tg.m?MOBS.includes(m.tg.m)?m.tg.m:null:allPlayers().find(p=>p.id===m.tg.p.id));if(!g||m.pt<=0){m.ph='circle';m.pt=rnd(5,8);return [0,0,0,{x:m.x,y:BWY+16,z:m.z}]}
+  const d=Math.hypot(g.x-m.x,g.y-m.y,g.z-m.z);m.yaw=Math.atan2(g.x-m.x,g.z-m.z);
+  // 지나가는 길의 양털·블록을 부숴요
+  for(let dx=-1;dx<=1;dx++)for(let dy=0;dy<=2;dy++)for(let dz=-1;dz<=1;dz++){const X=Math.floor(m.x)+dx,Y=Math.floor(m.y)+dy,Z=Math.floor(m.z)+dz;const id=get(X,Y,Z);if(id&&id!==25&&B[id].hard<50&&Math.random()<dt*3)setBlock(X,Y,Z,0)}
+  if(d<3&&(m.atk||0)<=0){m.atk=1.5;if(g.t==='bwbot')hitMob(g,6,null,m.x,m.z,3);else{mobHits(g.p||g,6,m);if((g.p||g).id==='me'){P.vy=9;P.vx=(P.x-m.x)*2;P.vz=(P.z-m.z)*2}}m.ph='circle';m.pt=rnd(4,7)}m.atk=(m.atk||0)-dt;
+  return [g.x-m.x,g.z-m.z,T.sp*1.4,{x:g.x,y:g.y+.5,z:g.z}]};
+const _omd12a=onMobDeath;onMobDeath=function(m){_omd12a(m);if(m.t==='bwdragon'&&BW){bwFeed('🐉 엔더 드래곤을 물리쳤어요!');xpFountain(m.x,m.y,m.z)}};
+// --- 🔁 다음 판 (새로 고침 없이) ---
+function bwNextCard(){if(!BW||!BW.over)return;const host=!NET.on||NET.host;openCard(`<div style="text-align:center;display:grid;gap:8px"><h1>🏁 경기 끝</h1><p>${BW.winner?TEAMC[BW.winner][0]+' 팀 승리!':''}</p>${host?'<div class="row" style="justify-content:center"><button class="btn go" type="button" id="bwNx">🔁 다음 판</button><button class="btn" type="button" onclick="location.reload()">처음 화면</button></div><small>20초 뒤 다음 판이 저절로 시작돼요</small>':'<p>방장이 다음 판을 시작하면 바로 함께 해요 (구경하던 친구도 다시 참가!)</p>'}</div>`,true,()=>{if($('bwNx'))$('bwNx').onclick=()=>bwNext()})}
+function bwNext(){if(!BW||!(!NET.on||NET.host))return;const pteam=Object.assign({},BW.pteam||{});const o={bots:GAME4.bots,sd:GAME4.sd,round:(GAME4.round||1)+1};bwNextLocal(o);BW.pteam=pteam;
+  for(const id in pteam){if(!NET.players[id]){delete BW.pteam[id];continue}const tm=pteam[id],T_=BW.teams[tm];const bot=T_.members.find(x=>MOBS.some(m=>m.id===x&&m.t==='bwbot'));if(bot!=null){MOBS=MOBS.filter(m=>m.id!==bot);T_.members=T_.members.filter(x=>x!==bot)}T_.members.push(id)}
+  if(NET.on){netSend(Object.assign({t:'bwnext'},o));setTimeout(()=>{netAll({t:'bwteam',pt:BW.pteam});for(const id in BW.pteam)netTo(id,{t:'bwme',tm:BW.pteam[id],spec:0,up:{}})},1500)}stat('bw_next')}
+function bwNextLocal(o){closeCard();for(const m of MOBS){m.silent=1;m.hp=-1}MOBS=[];for(const id in MOBM){scene.remove(MOBM[id].g);delete MOBM[id]}const keepP=BW&&BW.pteam;clearWorld4();GAME4={mode:'bw',bots:o.bots,sd:o.sd,t:0,round:o.round||2};bwBuild();calcTopAll();scanLights();genScan();buildAll();
+  S=freshS();P.flying=false;S.creative=false;BW.elim=0;BW.over=0;BW.sentOver=0;if(!NET.on||NET.host)bwStartPlayer();else{BW.my=BW.my||'blue';bwSpawnAt(BW.my)}renderHot();renderVitals();toast(`🔁 ${GAME4.round}번째 판 시작!`,'good')}
+let BWOVT=0;const _bwt12=bwTick;bwTick=function(dt){if(!BW)return;
+  // 친구 화면: 팀이 살아 있는지는 방장이 알려 준 값만 써요 (2초 동안 '탈락'으로 깜빡이던 문제)
+  if(NET.on&&!NET.host)for(const k in BW.teams){const t=BW.teams[k];if(!t._fx12){t._fx12=1;let v=!!t.alive;Object.defineProperty(t,'alive',{get(){return this.rAlive!=null?!!this.rAlive:v},set(x){v=x},configurable:true})}}
+  const was=BW.over;_bwt12(dt);if(BW.over&&!was){const al=Object.keys(BW.teams).filter(k=>BW.teams[k].alive);BW.winner=al[0]||null;BWOVT=20;setTimeout(bwNextCard,1600)}
+  if(BW.over&&(!NET.on||NET.host)&&BWOVT>0){BWOVT-=dt;if(BWOVT<=0)bwNext()}};
+const _onNet12b=onNet;onNet=function(d,from){if(d&&d.t==='bwover'&&BW&&!NET.host){_onNet12b(d,from);BW.winner=d.w;setTimeout(bwNextCard,300);return}_onNet12b(d,from)};
+const _r4f12a=r4Frame;r4Frame=function(dt,t){_r4f12a(dt,t);if(!started)return;vehButtons();fuelSync(dt)};
+/* ===================== 🧱 6차: 꾸밈 블록이 진짜로 움직여요 (베틀 깃발 · 대장장이 · 화살 작업대 · 액자 · 그림 · 피스톤) ===================== */
+const BLK12=()=>MODS4.blk12||(MODS4.blk12={ban:{},frm:{},pnt:{},pis:{}});
+const pkey=(x,y,z)=>x+','+y+','+z;
+function blkSync(op){netAll4(Object.assign({t:'blk12'},op))}
+// --- 🚩 깃발 (베틀에서 무늬) ---
+tile('banner_i',p=>{for(let y=0;y<16;y++)p(3,y,'#6a4a2a');for(let y=1;y<12;y++)for(let x=4;x<13;x++)p(x,y,(x+y)%5?'#eee':'#ddd')});
+const BANB=NB('banner','깃발',['banner_i','banner_i','banner_i'],{cut:true,solid:false,hard:1,tool:'axe',shape:()=>[7/16,0,7/16,9/16,1,9/16]});IT('banner','🚩 깃발',{b:BANB,stack:16,tile:'banner_i',desc:'베틀에서 무늬를 넣어요. 꽂으면 펄럭여요!'});R('banner',1,['WWW','WWW',' S '],{W:'wool',S:'stick'});
+let LASTBAN=null;const _pou12=placeOrUse;placeOrUse=function(){const s=held();LASTBAN=s&&s.k==='banner'?(s.e&&s.e.fl)||{bg:7,fg:0,pat:0,emb:7}:null;const p=s&&s.k==='painting';PAINTPEND=p;return _pou12()};
+// --- 블록이 놓이고 부서질 때 ---
+let PAINTPEND=false,PIS12=false;
+const _obc12=onBlockChanged;onBlockChanged=function(x,y,z,old,v,remote){_obc12(x,y,z,old,v,remote);const k=pkey(x,y,z),D=BLK12();
+  if(remote)return;
+  if(v===BANB&&LASTBAN){blkSync({op:'ban',k,f:LASTBAN});LASTBAN=null}
+  if(old===BANB&&v!==BANB&&D.ban[k])blkSync({op:'ban',k,f:null});
+  if(old===FRAME&&v!==FRAME&&D.frm[k]){const f=D.frm[k];if(f.k&&isAuth())makeDrop(f.k,1,x+.5,y+.5,z+.5);blkSync({op:'frm',k,f:null})}
+  if(v===PAINT&&PAINTPEND){PAINTPEND=false;paintPlace(x,y,z)}
+  if(old===PAINT&&v!==PAINT&&D.pnt[k])blkSync({op:'pnt',k,f:null});
+  if((v===PISTON||v===STICKY)&&!PIS12){const d=lookDir();const ax=[[Math.abs(d.x),0],[Math.abs(d.y),1],[Math.abs(d.z),2]].sort((a,b)=>b[0]-a[0])[0][1];const f=ax===0?(d.x>0?0:1):ax===1?(d.y>0?2:3):(d.z>0?4:5);blkSync({op:'pis',k,f:{f,ext:0}})}
+  if((old===PISTON||old===STICKY)&&v!==old&&!PIS12){const P_=D.pis[k];if(P_&&P_.ext){const [dx,dy,dz]=PDIR[P_.f];if(get(x+dx,y+dy,z+dz)===PHEAD)setBlock(x+dx,y+dy,z+dz,0)}blkSync({op:'pis',k,f:null})}};
+// --- 베틀: 깃발 무늬 고르기 ---
+let LOOMD={bg:0,fg:7,pat:1,emb:0};
+function loomCard(){const s=held();if(!s||(s.k!=='banner'&&!/^wool/.test(s.k))){toast('🚩 깃발을 들고 베틀을 오른쪽 클릭해요 (양털 6 + 막대기)');return}
+  openCard(`<div class="hd"><h2>🧵 베틀 · 깃발 무늬</h2><button class="x" type="button" data-x aria-label="닫기">✕</button></div><div class="note info">실을 엮어 천을 짜고 무늬를 넣어요. 색을 고르고 짜기!</div>
+   <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><canvas id="lPrev" width="96" height="64" style="width:144px;height:96px;border:3px solid #333;image-rendering:pixelated"></canvas><div style="display:grid;gap:4px;font-size:12px">
+   <div>바탕 ${NCOL.map((c,i)=>`<button type="button" data-lbg="${i}" aria-label="바탕 ${i}" style="width:20px;height:20px;border:2px solid #333;background:${c}"></button>`).join('')}</div><div>무늬 ${NCOL.map((c,i)=>`<button type="button" data-lfg="${i}" aria-label="무늬 ${i}" style="width:20px;height:20px;border:2px solid #333;background:${c}"></button>`).join('')}</div>
+   <label>무늬 <select id="lPat">${NPAT.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('')}</select></label><label>문양 <select id="lEmb">${NEMB.map((p,i)=>`<option value="${i}">${p[1]} ${p[0]}</option>`).join('')}</select></label></div></div>
+   <div class="row"><button class="btn go" type="button" id="lGo">🧵 짜기</button></div>`,true,()=>{const draw=()=>$('lPrev').getContext('2d').drawImage(flagCanvas(LOOMD,96,64),0,0);$('lPat').value=LOOMD.pat;$('lEmb').value=LOOMD.emb;draw();
+   ov.querySelectorAll('[data-lbg]').forEach(b=>b.onclick=()=>{LOOMD.bg=+b.dataset.lbg;draw()});ov.querySelectorAll('[data-lfg]').forEach(b=>b.onclick=()=>{LOOMD.fg=+b.dataset.lfg;draw()});$('lPat').onchange=e=>{LOOMD.pat=+e.target.value;draw()};$('lEmb').onchange=e=>{LOOMD.emb=+e.target.value;draw()};
+   $('lGo').onclick=()=>{const h=held();if(!h)return;if(h.k!=='banner'){if(h.n<6&&!S.creative){toast('양털 6개가 필요해요');return}if(!S.creative){h.n-=6;if(h.n<=0)S.inv[S.sel]=null}addItem('banner',1,undefined,false,{fl:Object.assign({},LOOMD)})}else{h.e=Object.assign({},h.e,{fl:Object.assign({},LOOMD)})}renderHot();sfx('craft');stat('loom');toast('🚩 무늬 깃발을 짰어요!','good');closeCard()}})}
+// --- 대장장이 작업대: 다이아 → 네더라이트 ---
+function smithCard(){const s=held();const up=s&&s.k.startsWith('diamond_')&&ITEM[s.k.replace('diamond_','netherite_')]?s.k.replace('diamond_','netherite_'):null;
+  openCard(`<div class="hd"><h2>⚒️ 대장장이 작업대</h2><button class="x" type="button" data-x aria-label="닫기">✕</button></div><div class="note info">다이아몬드 도구·갑옷을 들고 네더라이트 주괴 1개로 더 단단하게 바꿔요. 마법은 그대로!</div>
+   ${up?`<div class="trade"><span><img alt="" src="${iconURL(s.k)}" style="width:28px;vertical-align:middle;image-rendering:pixelated"> + <img alt="" src="${iconURL('netherite_ingot')}" style="width:24px;vertical-align:middle;image-rendering:pixelated"> ➜ <img alt="" src="${iconURL(up)}" style="width:28px;vertical-align:middle;image-rendering:pixelated"> ${itemName(up)}</span><button class="btn go" type="button" id="smGo" ${S.creative||countItem('netherite_ingot')?'':'disabled'}>업그레이드</button></div>`:'<p>다이아몬드 도구나 갑옷을 손에 들어요.</p>'}`,true,()=>{if($('smGo'))$('smGo').onclick=()=>{const h=held();if(!h||!up)return;if(!S.creative&&!takeItem('netherite_ingot',1))return;h.k=up;if(ITEM[up].dur)h.d=ITEM[up].dur;renderHot();updHeldMesh();sfx('levelup');stat('smith_up');toast(`⚒️ ${itemName(up)}(으)로 업그레이드!`,'good');closeCard()}})}
+// --- 화살 작업대: 물약 화살 만들기 ---
+function fletchCard(){const L=Object.keys(ITEM).filter(k=>k.startsWith('tarrow_'));openCard(`<div class="hd"><h2>🏹 화살 작업대</h2><button class="x" type="button" data-x aria-label="닫기">✕</button></div><div class="note info">화살 8개 + 잔류형 물약 1개 = 물약 화살 8개. 맞은 몹에게 물약 효과!</div>
+  <div style="display:grid;gap:5px;max-height:50vh;overflow:auto">${L.map(k=>{const p=k.slice(7);const ok=S.creative||countItem('arrow')>=8&&countItem('linger_'+p)>=1;return `<div class="trade"><span>🏹×8 + <img alt="" src="${iconURL('linger_'+p)}" style="width:24px;vertical-align:middle;image-rendering:pixelated"> ➜ <img alt="" src="${iconURL(k)}" style="width:26px;vertical-align:middle;image-rendering:pixelated"> ${itemName(k)} ×8</span><button class="btn" type="button" data-fl="${k}" ${ok?'':'disabled'}>만들기</button></div>`}).join('')}</div>`,true,()=>{
+  ov.querySelectorAll('[data-fl]').forEach(b=>b.onclick=()=>{const k=b.dataset.fl,p=k.slice(7);if(!S.creative){if(countItem('arrow')<8||!countItem('linger_'+p))return;takeItem('arrow',8);takeItem('linger_'+p,1)}addItem(k,8);sfx('craft');stat('fletch');fletchCard()})})}
+// --- 🖼️ 액자 ---
+function frameUse(T_){const k=pkey(T_.x,T_.y,T_.z),D=BLK12(),f=D.frm[k];const s=held();
+  if(!f||!f.k){if(!s){toast('🖼️ 넣을 물건을 들고 오른쪽 클릭해요');return}blkSync({op:'frm',k,f:{k:s.k,r:0}});if(!S.creative)useHeld();sfx('place');stat('frame')}
+  else{blkSync({op:'frm',k,f:{k:f.k,r:(f.r+1)%8}});audio();tone('triangle',500,500,.04,.04)}}
+const _ba12=breakAt;breakAt=function(x,y,z){const k=pkey(x,y,z),D=BLK12();if(get(x,y,z)===FRAME&&D.frm[k]&&D.frm[k].k&&!S.creative){makeDrop(D.frm[k].k,1,x+.5,y+.5,z+.5);blkSync({op:'frm',k,f:{k:null,r:0}});return}return _ba12(x,y,z)};
+// --- 🖼️ 그림: 벽 크기에 맞는 무작위 그림 ---
+const ARTS=['노을 바다','풍력 발전소','태양광 들판','밤하늘 별','무지개 마을','설산','푸른 숲','수력 댐'];
+function paintArt(i,w,h){return canvasTex(w*16,h*16,x=>{const W_=w*16,H_=h*16;const sky=[['#ff9a5a','#ffcf7a'],['#8ad0ff','#cfeeff'],['#7ac0ff','#d8f0ff'],['#0a1030','#2a2a60'],['#8ad0ff','#e0f4ff'],['#9ab8e0','#e8f0ff'],['#a8e0ff','#e8fff0'],['#8ac8f0','#d0f0ff']][i%8];const g=x.createLinearGradient(0,0,0,H_);g.addColorStop(0,sky[0]);g.addColorStop(1,sky[1]);x.fillStyle=g;x.fillRect(0,0,W_,H_);
+  const gy=Math.floor(H_*.68);x.fillStyle=['#2a6ab0','#4a9a3a','#6ab040','#1a2a1a','#5ab040','#e8f0f8','#2a7a2a','#3a7ac0'][i%8];x.fillRect(0,gy,W_,H_-gy);
+  if(i%8===0){x.fillStyle='#ffd040';x.beginPath();x.arc(W_*.7,gy,H_*.18,Math.PI,0);x.fill()}
+  if(i%8===1)for(let k=0;k<Math.max(1,w);k++){const cx=W_*(k+.5)/Math.max(1,w);x.fillStyle='#eee';x.fillRect(cx-1,gy-H_*.45,2,H_*.45);for(let a=0;a<3;a++){x.save();x.translate(cx,gy-H_*.45);x.rotate(a*2.09+.3);x.fillRect(-1,0,2,H_*.22);x.restore()}}
+  if(i%8===2)for(let k=0;k<W_;k+=6){x.fillStyle='#1a3a8a';x.fillRect(k,gy+3,5,3);x.fillStyle='#4a7ad8';x.fillRect(k,gy+3,5,1)}
+  if(i%8===3)for(let k=0;k<W_*H_/40;k++){x.fillStyle='#fff';x.fillRect(H4(k,i,1)*W_|0,H4(k,i,2)*gy|0,1,1)}
+  if(i%8===4){['#e53935','#fb8c00','#fdd835','#43a047','#1e88e5','#8e24aa'].forEach((c,j)=>{x.strokeStyle=c;x.lineWidth=2;x.beginPath();x.arc(W_/2,gy,H_*.5-j*2,Math.PI,0);x.stroke()});x.fillStyle='#8a5a2c';for(let k=0;k<3;k++)x.fillRect(W_*(.2+k*.25),gy-6,7,6)}
+  if(i%8===5){x.fillStyle='#8a9ab0';x.beginPath();x.moveTo(0,gy);x.lineTo(W_*.35,H_*.2);x.lineTo(W_*.7,gy);x.fill();x.fillStyle='#fff';x.beginPath();x.moveTo(W_*.27,H_*.35);x.lineTo(W_*.35,H_*.2);x.lineTo(W_*.43,H_*.35);x.fill()}
+  if(i%8===6)for(let k=0;k<W_;k+=7){x.fillStyle='#1a5a1a';x.fillRect(k+2,gy-12,4,12);x.fillStyle='#6a4a2a';x.fillRect(k+3,gy-2,2,3)}
+  if(i%8===7){x.fillStyle='#8a8a8a';x.fillRect(W_*.3,gy-H_*.3,W_*.4,H_*.3);x.fillStyle='#5ab0f0';for(let k=0;k<4;k++)x.fillRect(W_*.32+k*W_*.1,gy-H_*.25,2,H_*.25)}
+  x.strokeStyle='#5a3a1a';x.lineWidth=2;x.strokeRect(1,1,W_-2,H_-2)})}
+function paintPlace(x,y,z){const o=ORI[idx(x,y,z)]&3;const n=FDIR4[o];const tx=-n[2],tz=n[0];const fits=(w,h)=>{for(let a=0;a<w;a++)for(let b=0;b<h;b++){const X=x+tx*a,Y=y+b,Z=z+tz*a;if((a||b)&&get(X,Y,Z))return false;if(!SOLID(get(X-n[0],Y,Z-n[2])))return false}return true};
+  const S_=[[4,3],[4,2],[3,2],[2,2],[2,1],[1,2],[1,1]].filter(([w,h])=>fits(w,h));const pk=S_.slice(0,3);const sz=pk[Math.floor(H4(x+z,y,SEEDW)*pk.length)]||[1,1];blkSync({op:'pnt',k:pkey(x,y,z),f:{w:sz[0],h:sz[1],a:Math.floor(H4(x,z+y,SEEDW+3)*ARTS.length),o}});toast(`🖼️ 「${ARTS[Math.floor(H4(x,z+y,SEEDW+3)*ARTS.length)]}」 (${sz[0]}×${sz[1]})`)}
+// --- 🧱 피스톤 (끈끈이 피스톤) ---
+tile('piston_f',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)p(x,y,(x<2||x>13||y<2||y>13)?'#6a4a2a':(x+y)%4?'#c8a070':'#b08858')});tile('piston_s',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)p(x,y,y<4?'#c8a070':(x+y)%5?'#8a8a8a':'#6a6a6a')});tile('sticky_f',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)p(x,y,(x<2||x>13||y<2||y>13)?'#6a4a2a':(x+y)%3?'#7ac850':'#5aa840')});
+const PISTON=NB('piston','피스톤',['piston_f','piston_s','piston_s'],{hard:1.5,tool:'pick'}),STICKY=NB('sticky_piston','끈끈이 피스톤',['sticky_f','piston_s','piston_s'],{hard:1.5,tool:'pick'}),PHEAD=NB('piston_head','피스톤 머리',['piston_f','piston_f','piston_f'],{hard:1.5,drop:null,noitem:1});
+IT('piston','피스톤',{b:PISTON,desc:'레버·버튼·압력판으로 전기를 주면 앞의 블록을 12개까지 밀어요. 놓을 때 바라보던 방향으로 밀어요.'});IT('sticky_piston','끈끈이 피스톤',{b:STICKY,desc:'밀었던 블록을 다시 당겨 와요.'});
+R('piston',1,['PPP','CIC','CRC'],{P:'planks',C:'cobble',I:'iron_ingot',R:'dust'});RS_('sticky_piston',1,['piston','slimeball']);
+const PDIR=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+const NOPUSH=id=>!id||R4WALL.has(id)||id===BANB||id===PHEAD||id===PISTON||id===STICKY||(B[id]&&(B[id].hard>=50||B[id].cont||B[id].liquid||B[id].key==='obsidian'));
+let PIST=0;function pistonTick(dt){if(!isAuth())return;PIST-=dt;if(PIST>0)return;PIST=.15;const D=BLK12();
+  for(const k in D.pis){const P_=D.pis[k];const [x,y,z]=k.split(',').map(Number);const id=get(x,y,z);if(id!==PISTON&&id!==STICKY){delete D.pis[k];continue}const [dx,dy,dz]=PDIR[P_.f];const pw=powered4(x,y,z);
+    if(pw&&!P_.ext){const chain=[];let ok=true;for(let i=1;i<=13;i++){const q=get(x+dx*i,y+dy*i,z+dz*i);if(!q||(B[q]&&B[q].cross)||q===6)break;if(i>12||NOPUSH(q)){ok=false;break}chain.push(q)}
+      if(ok&&inW(x+dx*(chain.length+1),y+dy*(chain.length+1),z+dz*(chain.length+1))){PIS12=true;try{for(let i=chain.length;i>=1;i--)setBlock(x+dx*(i+1),y+dy*(i+1),z+dz*(i+1),chain[i-1]);setBlock(x+dx,y+dy,z+dz,PHEAD)}finally{PIS12=false}blkSync({op:'pis',k,f:{f:P_.f,ext:1}});audio();tone('square',180,120,.12,.06);stat('piston_push')}}
+    else if(!pw&&P_.ext){PIS12=true;try{if(get(x+dx,y+dy,z+dz)===PHEAD)setBlock(x+dx,y+dy,z+dz,0);if(id===STICKY){const q=get(x+dx*2,y+dy*2,z+dz*2);if(q&&!NOPUSH(q)&&!(B[q]&&B[q].cross)){setBlock(x+dx*2,y+dy*2,z+dz*2,0);setBlock(x+dx,y+dy,z+dz,q)}}}finally{PIS12=false}blkSync({op:'pis',k,f:{f:P_.f,ext:0}});audio();tone('square',120,180,.12,.05)}}}
+// --- 블록 쓰기 (베틀·대장장이·화살·액자) ---
+const _bue12b=blockUseExt;blockUseExt=function(b,T_){if(b.use==='loom'){loomCard();return true}if(b.use==='smith'){smithCard();return true}if(b.use==='fletch'){fletchCard();return true}if(T_.id===FRAME){frameUse(T_);return true}return _bue12b(b,T_)};
+// --- 보이는 것: 깃발 천 · 액자 속 물건 · 그림 ---
+const VIS12={};function visKill(k){const o=VIS12[k];if(o){scene.remove(o);delete VIS12[k]}}
+function visBuild(kind,k,f){visKill(kind+k);if(!f)return;const [x,y,z]=k.split(',').map(Number);const g=new THREE.Group();
+  if(kind==='ban'){const t=new THREE.CanvasTexture(flagCanvas(f,48,32));t.magFilter=THREE.NearestFilter;const pv=new THREE.Group();const m=new THREE.Mesh(new THREE.PlaneGeometry(.75,.5),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));m.position.set(.4,.7,0);pv.add(m);g.add(pv);g.userData.flap=pv;g.position.set(x+.5,y,z+.5)}
+  else if(kind==='frm'){if(!f.k||!ITEM[f.k])return;const it=ITEM[f.k];const o=ORI[idx(x,y,z)]&3,n=FDIR4[o];let m;if(it.b!=null&&!B[it.b].cross&&!it.tile){m=new THREE.Mesh(blockGeo(it.b),entMat(true));m.scale.setScalar(.4)}else{m=new THREE.Mesh(gxExtrude(gxItemTile(it)),handMat);m.scale.setScalar(.6)}g.add(m);m.rotation.z=-f.r*Math.PI/4;g.position.set(x+.5-n[0]*.38,y+.5,z+.5-n[2]*.38);g.rotation.y=Math.atan2(n[0],n[2])}
+  else if(kind==='pnt'){const n=FDIR4[f.o];const tx=-n[2],tz=n[0];const m=new THREE.Mesh(new THREE.PlaneGeometry(f.w,f.h),new THREE.MeshBasicMaterial({map:paintArt(f.a,f.w,f.h)}));g.add(m);g.position.set(x+.5-n[0]*.43+tx*(f.w-1)/2,y+f.h/2,z+.5-n[2]*.43+tz*(f.w-1)/2);g.rotation.y=Math.atan2(n[0],n[2])}
+  else return;scene.add(g);VIS12[kind+k]=g}
+function visAll(){for(const k in VIS12)visKill(k);const D=BLK12();for(const k in D.ban)visBuild('ban',k,D.ban[k]);for(const k in D.frm)visBuild('frm',k,D.frm[k]);for(const k in D.pnt)visBuild('pnt',k,D.pnt[k])}
+const _onNet12c=onNet;onNet=function(d,from){if(d&&d.t==='blk12'){const D=BLK12();const map={ban:'ban',frm:'frm',pnt:'pnt',pis:'pis'}[d.op];if(!map)return;if(d.f)D[map][d.k]=d.f;else delete D[map][d.k];if(map!=='pis')visBuild(map,d.k,d.f);if(NET.host&&from!=='self')netExcept(d,from);return}_onNet12c(d,from)};
+const _aw12=applyWorld;applyWorld=function(d){const r=_aw12(d);setTimeout(visAll,300);return r};
+const _r4f12b=r4Frame;r4Frame=function(dt,t){_r4f12b(dt,t);if(!started)return;pistonTick(dt);for(const k in VIS12){const g=VIS12[k];if(g.userData.flap)g.userData.flap.rotation.y=Math.sin(t*2+g.position.x)*.25}};
+/* ===================== ✨ 6차 그래픽: 최고 품질 물빛 (일렁이는 빛무늬·하늘 반사) · 도구·음식 32×32 아이콘 ===================== */
+// --- 물: 최고에서만 (다른 단계는 그대로라 빠르기 영향 없음) ---
+try{const key='al=mix(uA*.9,.93,fr);}';if(matW.fragmentShader.includes(key)){matW.fragmentShader=matW.fragmentShader.replace(key,`
+#ifdef GX_CAUST
+   {vec2 q=vW.xz*1.25;float w1=sin(q.x*2.1+uTime*1.3+sin(q.y*1.7+uTime))*sin(q.y*2.3-uTime*1.1+sin(q.x*1.5-uTime*.7));float w2=sin((q.x+q.y)*1.6-uTime*.9+sin(q.x*.9+uTime*.5)*1.4);
+    float cs=pow(1.-abs(w1),10.)+pow(1.-abs(w2),14.)*.6;float up=abs(vN.y)>.5?1.:.35;c+=vec3(.55,.8,.85)*cs*.3*uDay*up;
+    vec3 Rv=reflect(-V,Nw);float hz=smoothstep(-.05,.35,Rv.y);c=mix(c,mix(uFog,uSkyC,hz)*(.35+.8*vL.x*uDay),fr*.35*up);}
+#endif
+   `+key)}else console.warn('[6차] 물 셰이더 자리를 못 찾았어요')}catch(e){console.error('[6차] 물 셰이더',e)}
+const _gxs12=gxSet;gxSet=function(q,sv){const r=_gxs12(q,sv);try{const d=Object.assign({},matW.defines||{});if(GX.q>=3)d.GX_CAUST=1;else delete d.GX_CAUST;matW.defines=d;matW.needsUpdate=true}catch(e){console.error('[6차] 물 단계',e)}return r};
+setTimeout(()=>{try{if(GX.q>=3){matW.defines=Object.assign({},matW.defines,{GX_CAUST:1});matW.needsUpdate=true}}catch(e){console.error('[6차] 물 단계',e)}},0);
+// --- 아이콘: 많이 쓰는 도구·음식은 32×32 (테두리 · 빛 · 그늘) ---
+function icon32(k){const it=ITEM[k];if(!it||!it.tile||TILES[it.tile]==null)return null;const t=TILES[it.tile];const s=document.createElement('canvas');s.width=s.height=16;const sx=s.getContext('2d',{willReadFrequently:true});sx.drawImage(ATL,(t%16)*16,Math.floor(t/16)*16,16,16,0,0,16,16);let src;try{src=sx.getImageData(0,0,16,16).data}catch(e){return null}
+  const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d');const img=x.createImageData(32,32),o=img.data;const A=(X,Y)=>X>=0&&Y>=0&&X<16&&Y<16&&src[(Y*16+X)*4+3]>40;
+  for(let y=0;y<32;y++)for(let X=0;X<32;X++){const px=X>>1,py=y>>1,i=(y*32+X)*4;if(A(px,py)){const j=(py*16+px)*4;let r=src[j],g=src[j+1],b=src[j+2];
+      // 2×2 안에서 왼쪽 위는 밝게, 오른쪽 아래는 어둡게 (작은 입체감) · 바깥 가장자리 픽셀은 한 번 더
+      const tl=(X&1)===0&&(y&1)===0,br=(X&1)===1&&(y&1)===1;let k_=tl?1.12:br?.9:1;if(!A(px-1,py)&&(X&1)===0||!A(px,py-1)&&(y&1)===0)k_+=.12;if(!A(px+1,py)&&(X&1)===1||!A(px,py+1)&&(y&1)===1)k_-=.14;
+      o[i]=Math.min(255,r*k_);o[i+1]=Math.min(255,g*k_);o[i+2]=Math.min(255,b*k_);o[i+3]=255}
+    else{let near=false;for(const [a,b] of [[-1,0],[1,0],[0,-1],[0,1]]){const qx=(X+a)>>1,qy=(y+b)>>1;if((X+a)>=0&&(y+b)>=0&&(X+a)<32&&(y+b)<32&&A(qx,qy)){near=true;break}}if(near){o[i]=24;o[i+1]=20;o[i+2]=28;o[i+3]=200}}}
+  x.putImageData(img,0,0);return c.toDataURL()}
+const IC32=k=>{const it=ITEM[k];return !!it&&!it.gun&&!!it.tile&&(it.tool||it.food!=null||it.dur||/^(bow|crossbow|shield|trident|fishing_rod|shears|flint_steel|bucket|water_bucket|lava_bucket|milk_bucket|apple|bread|cake|cookie|golden_apple|carrot|potato|baked_potato|melon_slice|torch)$/.test(k))};
+const _icon12=iconURL;iconURL=function(k){if(!ICON[k]&&IC32(k)){const u=icon32(k);if(u)return ICON[k]=u}return _icon12(k)};
+/* ===================== 🟫 6차: 원블록 같이 하기 (방장의 원블록 섬에 친구가 들어와요) ===================== */
+let OBHOSTOPT=null;
+const _obs12d=obSetup;obSetup=function(){_obs12d();try{const card=ov.querySelector('.card');const n=card&&card.querySelector('.note');if(n)n.textContent=n.textContent.replace('혼자 하기 전용이에요.','친구와 같이 할 수도 있어요 (방장의 원블록 섬을 함께 키워요).');const row=card&&card.querySelector('.row');if(row&&!$('obOn')){const b=document.createElement('button');b.className='btn';b.type='button';b.id='obOn';b.textContent='👥 같이 하기 (방 만들기)';row.appendChild(b);
+  b.onclick=()=>{NET.nick=($('nick')&&$('nick').value.trim())||NET.nick||'나';OBHOSTOPT={load:store.get('save_ob',null)};netStart(true)}}}catch(e){console.error('[원블록]',e)}};
+const _sg12d=startGame;startGame=function(asGuest){if(OBHOSTOPT&&!started&&NET.host){const o=OBHOSTOPT;OBHOSTOPT=null;startMode4('ob',o.load?{load:o.load}:undefined);toast('👥 원블록 방을 만들었어요! 친구에게 방 번호를 알려 주세요','good');return}return _sg12d(asGuest)};
+const _wp12d=worldPack;worldPack=function(){const d=_wp12d();if(GAME4&&GAME4.mode==='ob'&&OB){d.gmode='ob';d.ob=Object.assign({},OB);d.ch=Object.assign({},d.ch);for(const [x,y,z] of [[OB.x,OB.y,OB.z],[OB.x+1,OB.y,OB.z]]){const i=idx(x,y,z);if(d.ch[i]==null&&world[i])d.ch[i]=world[i]}}return d};
+const _aw12d=applyWorld;applyWorld=function(d){if(d&&d.gmode==='ob'){clearWorld4();GAME4={mode:'ob',t:0};OB=Object.assign({},d.ob);for(const k in d.ch||{}){const v=d.ch[k];world[+k]=Array.isArray(v)?v[0]:v;ORI[+k]=Array.isArray(v)?v[1]:0;CHANGES[k]=v}Object.assign(CONT,d.cont||{});if(d.mods){MODS4=Object.assign({},d.mods);applyMods();modsBadge()}T=d.T||T;
+  SPAWN.x=OB.x+.5;SPAWN.y=OB.y+1;SPAWN.z=OB.z+.5;calcTopAll();scanLights();genScan();setTimeout(()=>{if(NET.guest){P.x=OB.x+.5+rnd(-.3,.3);P.y=OB.y+1.1;P.z=OB.z+.5;P.vy=0;P.fallY=P.y;S.creative=false;P.flying=false;toast('🟫 친구의 원블록 섬에 왔어요! 가운데 블록을 함께 캐요','good')}},300);return}return _aw12d(d)};
+// 다음 블록은 방장만 정해요 (손님 화면에서 따로 뽑으면 서로 다른 블록이 돼요)
+const _obn12d=obNext;obNext=function(){if(!isAuth())return;_obn12d();if(NET.on&&OB)netSend({t:'ob12',ob:OB})};
+const _obsv12d=obSave;obSave=function(){if(NET.on&&!NET.host)return;return _obsv12d()};
+const _onNet12d=onNet;onNet=function(d,from){if(d&&d.t==='ob12'){if(!isAuth()&&OB){const ph=OB.ph;Object.assign(OB,d.ob);if(OB.ph!==ph)toast(`🎉 새 단계! ${OBPH[OB.ph][0]} (${OB.ph+1}/10)`,'good')}return}return _onNet12d(d,from)};
+if(window.MWG&&MWG.host){const _mh12d=MWG.host;MWG.host=function(fn){const w=()=>{const o=fn()||{};if(GAME4&&GAME4.mode==='ob'){o.name='🟫 '+(NET.nick||'친구')+'의 원블록';o.info=`원블록 · 같이 하기 · ${o.n||1}명`}return o};return _mh12d(w)}}
+/* ===================== 🚨 6차 긴급 고침: 저장 덮어쓰기 · 모드 · 거인 · 성벽 · 국가 전쟁 ===================== */
+const VER12='v2026.11.09';
+// ---------- 1) 저장 ----------
+// 원인: 창을 닫거나 새로 고칠 때(beforeunload) 처음 버전의 save 함수가 그대로 불려서,
+//       베드워즈·원블록을 하다가 나가면 그 경기장이 "마을 세계" 저장 칸을 덮어썼어요.
+//       → 이어 하기를 하면 텅 빈 경기장 + 모드 꺼짐. 새 세계·모드를 켜도 다음에 또 덮어써졌어요.
+try{removeEventListener('beforeunload',_sv8)}catch(e){console.warn('[6차] beforeunload',e)}
+addEventListener('beforeunload',()=>{try{save()}catch(e){console.error('[저장] 나갈 때 저장 실패',e)}});
+let QUOTA12=0;
+store.set=function(k,v){if(k==='save'&&typeof GAME4!=='undefined'&&GAME4){console.warn('[저장] 베드워즈·원블록 중에는 마을 세계 저장 칸을 건드리지 않아요');return}
+  try{localStorage.setItem('eblk4_'+k,JSON.stringify(v))}catch(e){console.error('[저장 실패]',k,e);if(!QUOTA12){QUOTA12=1;setTimeout(()=>toast('💾 저장을 못 했어요 (저장 공간 부족?) · 메뉴 → 🩺 저장 데이터 점검','bad'),50)}}};
+// 이미 덮어써진 저장 정리 (경기장 씨앗 4242 + 거의 빈 세계)
+let FIXED12='';(function(){try{const raw=localStorage.getItem('eblk4_save');if(!raw)return;let sv;try{sv=JSON.parse(raw)}catch(e){localStorage.setItem('eblk4_save_broken_bak',raw);localStorage.removeItem('eblk4_save');FIXED12='broken';console.error('[저장] 깨진 저장을 백업하고 정리했어요',e);return}
+  if(!sv||typeof sv!=='object'){localStorage.removeItem('eblk4_save');FIXED12='broken';return}
+  if(sv.seed===4242&&Object.keys(sv.ch||{}).length<300&&!Object.keys(sv.gens||{}).length){localStorage.setItem('eblk4_save_arena_bak',raw);localStorage.removeItem('eblk4_save');FIXED12='arena';console.warn('[저장] 베드워즈/원블록 경기장으로 덮어써진 저장을 정리했어요')}
+  if(sv.mods&&typeof sv.mods!=='object'){sv.mods={};localStorage.setItem('eblk4_save',JSON.stringify(sv))}}catch(e){console.error('[저장 점검]',e)}})();
+// 원인: 휴대폰·태블릿·터치 크롬북의 📋 메뉴 버튼은 처음 버전의 menu 함수를 붙잡고 있어서, 나중에 붙인 🧩 모드·🏳️ 나라·🛠️ 크리에이티브·🎨 스킨 버튼이 안 보였어요.
+try{const b=$('tMenu');if(b)b.addEventListener('pointerdown',e=>{e.stopImmediatePropagation();e.preventDefault();try{audio()}catch(_){}if(ov.hidden)menu();else closeCard()},true)}catch(e){console.error('[메뉴 버튼]',e)}
+try{const p=$('panel');if(p)p.onclick=()=>energyCard()}catch(e){}
+// ---------- 2) 확인 창 (브라우저 confirm 대신 · 학교 크롬북에서 막혀 있어도 돼요) ----------
+function askCard(msg,yes,back){openCard(`<div class="hd"><h2>❓ 확인</h2></div><p style="font-size:16px">${msg}</p><div class="row"><button class="btn go" type="button" id="cfYes">✅ 네</button><button class="btn" type="button" id="cfNo">↩️ 아니요</button></div>`,true,()=>{$('cfYes').onclick=()=>{closeCard();yes()};$('cfNo').onclick=()=>{closeCard();if(back)back()}})}
+// ---------- 3) 처음 화면 ----------
+let PENDMOD=null;
+const _lb12=lobby;lobby=function(){_lb12();try{
+  if($('newW'))$('newW').onclick=()=>askCard('저장된 세계를 지우고 <b>새 세계</b>를 만들까요?',()=>{store.del('save');NET.nick=(($('nick')&&$('nick').value)||NET.nick||'').trim().slice(0,10)||'탐험가';store.set('nick',NET.nick);startGame(false)},lobby);
+  const card=ov.querySelector('.card');if(card&&!$('verLbl')){const v=document.createElement('div');v.id='verLbl';v.style.cssText='text-align:center;font-size:11px;color:#777;margin-top:4px';v.textContent='버전 '+VER12;card.appendChild(v)}
+  if(FIXED12&&card&&!$('fixNote')){const n=document.createElement('div');n.id='fixNote';n.className='note info';n.textContent=FIXED12==='arena'?'🧹 베드워즈·원블록 경기장이 마을 세계 저장 칸을 덮어쓴 문제를 고쳤어요. 새 세계를 만들어 주세요 (원블록 저장은 그대로예요).':'🧹 깨진 저장을 정리했어요. 새 세계를 만들어 주세요.';card.insertBefore(n,card.children[1]||null)}
+ }catch(e){console.error('[처음 화면]',e)}};
+const _obs12=obSetup;obSetup=function(){_obs12();const sv=store.get('save_ob',null);if($('obN'))$('obN').onclick=()=>{if(sv)askCard('원블록을 처음부터 다시 할까요?',()=>{store.del('save_ob');startMode4('ob')},obSetup);else startMode4('ob')}};
+// 처음 화면의 🧩 모드: 이어 할 세계의 설정을 보여 주고, 바꾼 것은 시작할 때 그대로 적용해요
+// 원인: 처음 화면에서 켠 모드는 "이어 하기"로 세계를 불러올 때 저장된 설정으로 덮어써져 사라졌어요.
+const _mc12u=modsCard;modsCard=function(){if(!started&&!PENDMOD){const sv=store.get('save',null);MODS4=Object.assign({},sv&&sv.mods||{})}_mc12u();try{const n=ov.querySelector('.note');if(n)n.insertAdjacentHTML('beforeend',started?' <b>켜면 바로 적용돼요.</b>':' <b>여기서 바꾼 것은 이어 하기·새 세계·방 만들기를 누르면 그 세계에 바로 적용돼요.</b>')}catch(e){}};
+let PREVMOD={};const _ms12u=modsSet;modsSet=function(){const before=PREVMOD;_ms12u();if(!started){PENDMOD=Object.assign({},MODS4)}else modHint(before)};
+function modHint(before){const on=k=>MODS4[k]&&!before[k];const L=[];if(on('gun'))L.push('🔫 총: 가방(E) 조합법 책 → 🧩 모드 탭');if(on('giant'))L.push('🧱 거인: 성벽이 생기고 1분쯤 뒤 첫 거인 (모드 창의 🔔 버튼으로 지금 바로)');if(on('nation'))L.push('🏳️ 나라: N 키 또는 메뉴 → 🏳️ 나라');if(on('space'))L.push('🚀 우주: 가방 조합법 책 → 🧩 모드 탭');if(L.length)toast(L.join(' · '),'good');PREVMOD=Object.assign({},MODS4)}
+const _aw12u=applyWorld;applyWorld=function(d){const r=_aw12u(d);if(PENDMOD&&!(NET.on&&!NET.host)){for(const k in PENDMOD)if(!/^(nat|gwall|mtw|blk12)$/.test(k))MODS4[k]=PENDMOD[k];applyMods();modsBadge();setTimeout(()=>toast('🧩 처음 화면에서 고른 모드를 적용했어요','good'),1500)}PENDMOD=null;PREVMOD=Object.assign({},MODS4);return r};
+const _sg12u=startGame;startGame=function(g){const fresh=!g&&!store.get('save',null);if(fresh&&!PENDMOD)MODS4={};const r=_sg12u(g);if(fresh&&PENDMOD){for(const k in PENDMOD)if(!/^(nat|gwall|mtw|blk12)$/.test(k))MODS4[k]=PENDMOD[k];PENDMOD=null;applyMods();modsBadge();save()}PREVMOD=Object.assign({},MODS4);return r};
+// ---------- 4) 메뉴: 버전 · 설정 초기화 · 저장 점검 ----------
+const _mn12u=menu;menu=function(){_mn12u();try{const card=ov.querySelector('.card');if(!card||$('mFix'))return;const d=document.createElement('div');d.className='row';d.innerHTML='<button class="btn" type="button" id="mFix">🩺 문제 해결: 저장 데이터 점검</button><button class="btn" type="button" id="mRst">⚙️ 설정 초기화 (세계는 유지)</button>';card.appendChild(d);
+  const v=document.createElement('div');v.id='verLbl';v.style.cssText='text-align:right;font-size:11px;color:#777';v.textContent='에너지 블록 마을 '+VER12;card.appendChild(v);$('mFix').onclick=saveCheck;$('mRst').onclick=()=>askCard('그래픽·조작·키 설정을 처음 값으로 되돌릴까요? (세계·원블록·별명·스킨은 그대로예요)',settingsReset,menu);
+  if($('mN'))$('mN').onclick=()=>askCard('지금 세계를 지우고 <b>새 세계</b>를 만들까요?',()=>{store.del('save');started=false;location.reload()},menu);
+  if($('mS')&&GAME4)$('mS').textContent='🏠 처음 화면 (마을 세계는 그대로)'}catch(e){console.error('[메뉴]',e)}};
+const KEEP12=/^eblk4_(save|save_ob|nick|skin10|save_arena_bak|save_broken_bak)$/;
+function settingsReset(){const L=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('eblk4_')&&!KEEP12.test(k))L.push(k)}for(const k of L)localStorage.removeItem(k);toast(`⚙️ 설정 ${L.length}개를 처음 값으로 돌렸어요. 다시 불러와요…`,'good');try{save()}catch(e){}setTimeout(()=>location.reload(),900)}
+function saveCheck(){const R=[],fix=[];let tot=0;const keys=[];for(let i=0;i<localStorage.length;i++)keys.push(localStorage.key(i));
+  for(const k of keys){const v=localStorage.getItem(k)||'';tot+=k.length+v.length;if(!k.startsWith('eblk4_'))continue;try{JSON.parse(v)}catch(e){if(k==='eblk4_save'){localStorage.setItem('eblk4_save_broken_bak',v)}localStorage.removeItem(k);fix.push(`깨진 ${k.slice(6)} 정리`)}}
+  const sv=store.get('save',null);if(sv){if(sv.mods&&typeof sv.mods!=='object'){sv.mods={};fix.push('모드 설정 모양 고침')}R.push(`🌍 마을 세계: 씨앗 ${sv.seed} · 바꾼 블록 ${Object.keys(sv.ch||{}).length}개 · 모드 ${Object.keys(sv.mods||{}).filter(k=>sv.mods[k]===1).length}개`);if(sv.seed===4242)R.push('⚠️ 경기장 씨앗(4242) 세계예요 — 베드워즈·원블록이 덮어쓴 저장일 수 있어요')}else R.push('🌍 마을 세계 저장 없음');
+  if(store.get('save_ob',null))R.push('🟫 원블록 저장 있음');let free='?';try{const big='x'.repeat(200000);localStorage.setItem('eblk4__t',big);localStorage.removeItem('eblk4__t');free='OK (20만 글자 더 저장 가능)'}catch(e){free='❌ 꽉 참! 다른 게임 기록을 지우거나 설정 초기화를 해 보세요'}
+  if(started&&!GAME4&&!NET.guest){try{save();R.push('💾 지금 세계 저장: 성공')}catch(e){R.push('💾 지금 세계 저장: 실패 '+e.message)}}
+  const fe=(window.__ferr||[]).length;openCard(`<div class="hd"><h2>🩺 저장 데이터 점검</h2><button class="x" type="button" data-x aria-label="닫기">✕</button></div><div class="note ${fix.length?'info':'good'}">${fix.length?'🛠️ 고친 것: '+fix.join(', '):'✅ 깨진 데이터가 없어요'}</div><ul style="font-size:13px;line-height:1.6">${R.map(x=>`<li>${x}</li>`).join('')}<li>📦 저장 공간 사용: ${(tot/2048).toFixed(0)} KB · ${free}</li><li>🐞 게임 중 오류: ${fe}개${fe?' (콘솔에 기록)':''}</li><li>🏷️ 버전 ${VER12}</li></ul><div class="row"><button class="btn" type="button" id="mdBack2">◀ 메뉴로</button></div>`,true,()=>{$('mdBack2').onclick=menu});console.info('[저장 점검]',R,fix)}
+// ---------- 5) 숨은 오류도 콘솔에 ----------
+let FERRN=0;setInterval(()=>{const L=window.__ferr||[];while(FERRN<L.length)console.error('[프레임 오류]',L[FERRN++])},1000);
+
+// ---------- 6) 🗿 거인 ----------
+// 원인 ①: 플레이어에게서 50칸 넘게 떨어진 적대 몹은 "멀리 간 적"으로 바로 지워졌어요. 거인 물결은 마을 중심에서 64칸 이상 떨어진 곳에서 생겨서
+//         생기자마자 사라졌고, 남은 거인 숫자는 줄지 않아 "거인 접근! 남은 거인 3"만 계속 떠 있었어요.
+// 원인 ②: 72칸 넘게 떨어진 몹은 그리지 않고, 안개(62칸) 때문에 멀리 있는 거인이 안 보였어요.
+// 원인 ③: 언덕·나무를 "벽"으로 여겨 그 자리에서 비틀거리기만 했어요.
+const TREEISH=id=>{const b=B[id];return !!b&&(b.cross||/leaves|log|_stem|snow$/.test(b.key))};
+function surf12(x,z){x=Math.floor(x);z=Math.floor(z);if(x<0||z<0||x>=W||z>=D)return SEA;for(let y=Math.min(H-2,(TOP[x+z*W]||SEA)+1);y>0;y--){const id=get(x,y,z);if(id&&id!==6&&SOLID(id)&&!TREEISH(id))return y+1}return SEA+1}
+const _spl12=spawnLoop;spawnLoop=function(){const L=MOBS.filter(m=>(GVAR[m.t]||m.t==='soldier')&&!m.own);for(const m of L)m.own='k12';try{_spl12()}finally{for(const m of L)if(m.own==='k12')delete m.own}};
+const _mdt12=mobDt;mobDt=function(m,PL,DT){if(GVAR[m.t]||(m.t==='soldier'&&m.march))return DT;return _mdt12(m,PL,DT)};
+function builtAhead(m,T){const fx=Math.sin(m.yaw),fz=Math.cos(m.yaw),hw=Math.floor(T.w/2);for(let s=-hw;s<=hw;s++)for(let y=1;y<4;y++){const X=Math.floor(m.x+fx*(T.w/2+.8)+fz*s),Y=Math.floor(m.y)+y,Z=Math.floor(m.z+fz*(T.w/2+.8)-fx*s);const id=get(X,Y,Z);if(id&&SOLID(id)&&!WEAKB(id)&&CHANGES[idx(X,Y,Z)]!=null)return true}return false}
+const _ai12u=mobAIExt;mobAIExt=function(m,T,dt,PL){if(!GVAR[m.t])return _ai12u(m,T,dt,PL);const wasB=m.blocked;const r=_ai12u(m,T,dt,PL);if(!isAuth())return r;if(m.brT>=.3)m.blocked=builtAhead(m,T);if(r&&m.blocked===false&&(wasB||r[2]===GVAR[m.t].sp*.3)&&!(r[0]===0&&r[1]===0&&r[2]===0)){const G=GVAR[m.t];return [Math.sin(m.yaw),Math.cos(m.yaw),G.sp*(m.wave?1.2:1)]}return r};
+const _mm12u=mobMove;mobMove=function(m,dx,dz,sp,dt){const G=GVAR[m.t];if(!G)return _mm12u(m,dx,dz,sp,dt);const l=Math.hypot(dx,dz);if(l<.01||sp<=0||m.blocked){m.moving=0;return}const T=MOBT[m.t];const nx=m.x+dx/l*sp*dt,nz=m.z+dz/l*sp*dt;
+  if(nx<4||nz<4||nx>OW-4||nz>D-4){m.moving=0;return}const r=T.w*.35;let gy=0;for(const [a,b] of [[0,0],[r,0],[-r,0],[0,r],[0,-r]])gy=Math.max(gy,surf12(nx+a,nz+b));if(gy-m.y>7){m.moving=0;m.yaw+=.6;return}
+  m.x=nx;m.z=nz;m.gy12=gy;m.moving=1;if(G.stomp&&Math.random()<dt*1.5)shake=Math.max(shake,Math.max(0,.5-Math.hypot(P.x-m.x,P.z-m.z)/60))};
+function giantGround(dt){if(!isAuth())return;for(const m of MOBS){if(!GVAR[m.t])continue;const T=MOBT[m.t];if(m.gy12==null){const r=T.w*.35;let gy=0;for(const [a,b] of [[0,0],[r,0],[-r,0],[0,r],[0,-r]])gy=Math.max(gy,surf12(m.x+a,m.z+b));m.gy12=gy}const k=Math.min(1,dt*5);m.y+=(m.gy12-m.y)*k;m.vy=0;m.ground=true}}
+// 거인 물결: 문 바깥 34~46칸, 땅 위에서 (물·나무 위 X)
+giantWave=function(n){const W_=MODS4.gwall;if(!W_)return;GWALL={gx:W_.gx,gz:W_.gz,left:0,t:0};let made=0;for(let i=0;i<n*6&&made<n;i++){if(MOBS.filter(m=>GVAR[m.t]).length>=6)break;const a=Math.PI/2+rnd(-.6,.6),r=W_.r+rnd(30,40);const x=clamp(Math.round(W_.cx+Math.cos(a)*r*.6),6,OW-6),z=clamp(Math.round(W_.cz+Math.sin(a)*r),6,D-6);if(get(x,surf12(x,z)-1,z)===6&&i<n*5)continue;const t=made===0&&n>=3?'g_huge':pick(['g_normal','g_normal','g_runner','g_armor','g_beast']);const m=spawnMob(t,x+.5,surf12(x,z),z+.5,{wave:1});m.wave=1;m.yaw=Math.atan2(W_.gx-x,W_.gz-z);made++}GWALL.left=made;netAll4({t:'gw12',on:1,n:made})};
+let GWT12=0;function giantCount(dt){if(!isAuth()||!GWALL)return;GWT12-=dt;if(GWT12>0)return;GWT12=1;const n=MOBS.filter(m=>GVAR[m.t]&&m.wave&&m.hp>0).length;if(n!==GWALL.left){GWALL.left=n;if(n>0)netAll4({t:'gw12',on:1,n,upd:1})}}
+const _onNet12u=onNet;onNet=function(d,from){if(d&&d.t==='gw12'&&d.upd){GHUD.style.display='block';GHUD.dataset.n=d.n;return}if(d&&d.t==='gw12'&&d.on)GHUD.dataset.n=d.n;return _onNet12u(d,from)};
+// 화면 가장자리 화살표 (거인·적군)
+const EDGE12=document.createElement('div');EDGE12.style.cssText='position:fixed;z-index:6;pointer-events:none;font:900 26px sans-serif;color:#ffd040;text-shadow:0 0 4px #000,0 0 8px #000;display:none;transform:translate(-50%,-50%);text-align:center;line-height:1';document.body.appendChild(EDGE12);
+const ARW=['⬆️','↗️','➡️','↘️','⬇️','↙️','⬅️','↖️'];
+function relDir(x,z){const dx=x-P.x,dz=z-P.z;const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw);const th=Math.atan2(dx*rx+dz*rz,dx*fx+dz*fz);return {th,a:ARW[((Math.round(th/(Math.PI/4))%8)+8)%8],d:Math.round(Math.hypot(dx,dz))}}
+function edgeShow(tgt,label){if(!tgt){EDGE12.style.display='none';return}const r=relDir(tgt.x,tgt.z);if(Math.abs(r.th)<.45&&r.d<60){EDGE12.style.display='none';return}const w=innerWidth,h=innerHeight;const R=Math.min(w,h)*.42;EDGE12.style.left=(w/2+Math.sin(r.th)*R)+'px';EDGE12.style.top=(h/2-Math.cos(r.th)*R*.85)+'px';EDGE12.style.display='block';EDGE12.innerHTML=`<div style="transform:rotate(${r.th}rad)">⬆</div><div style="font-size:12px">${label} ${r.d}m</div>`}
+// 거인 그리기: 멀리서도(200칸) · 안개 속 실루엣
+const _rm12=renderMobs;renderMobs=function(dt,t){_rm12(dt,t);for(const m of MOBS){if(!GVAR[m.t])continue;const M=MOBM[m.id];if(!M||regOf(m.x)!==CUR_R)continue;const far=Math.abs(m.x-camera.position.x)+Math.abs(m.z-camera.position.z);if(far>72&&far<260){M.g.visible=true;M.g.position.set(m.x,m.y,m.z);M.g.rotation.y=m.yaw||0;m.rx=m.x;m.ry=m.y;m.rz=m.z}}};
+const _bm12u=buildMob;buildMob=function(m){const M=_bm12u(m);if(GVAR[m.t]&&M&&M.g)M.g.traverse(o=>{if(o.material)[].concat(o.material).forEach(mt=>{mt.fog=false;mt.needsUpdate=true})});return M};
+let GHT=0;function giantHud(dt){GHT-=dt;if(GHT>0)return;GHT=.25;const L=MOBS.filter(m=>GVAR[m.t]&&m.hp>0&&regOf(m.x)===CUR_R);if(!L.length||!modOn('giant')){if(GHUD.style.display==='block'&&!L.length&&!GWALL)GHUD.style.display='none';if(!NHUD_EDGE)edgeShow(null);return}
+  let best=null,bd=1e9;for(const m of L){const d=Math.hypot(m.x-P.x,m.z-P.z);if(d<bd){bd=d;best=m}}const r=relDir(best.x,best.z);const n=GWALL?GWALL.left:(+GHUD.dataset.n||L.length);
+  if(GHUD.style.display==='block'||bd<120){GHUD.style.display='block';GHUD.textContent=`🔔 거인 접근! 남은 거인 ${Math.max(n,L.filter(m=>m.wave).length)||L.length} · 가장 가까운 거인 ${r.d}m ${r.a}`}edgeShow(best,'🗿')}
+// ---------- 7) 🏰 성벽: 땅을 따라 기초부터 · 높이 일정 · 문 하나 ----------
+// 원인: 성벽 높이를 마을 한가운데 땅 높이에 맞춰서, 그보다 높은 언덕에서는 아예 안 생기고 나무 위에는 조각만 떠 있었어요.
+function wallCols(cx,cz,R_){const L=[];for(let i=-R_;i<=R_;i++){L.push([cx+i,cz-R_]);L.push([cx+i,cz+R_]);if(Math.abs(i)<R_){L.push([cx-R_,cz+i]);L.push([cx+R_,cz+i])}}return L}
+function wallBuild12(repair){if(!isAuth()||GAME4||!VC)return;const R_=24,HH=7,cx=VC.x,cz=VC.z;const ys=wallCols(cx,cz,R_).map(([x,z])=>surf12(x,z)-1).sort((a,b)=>a-b);const gy=ys[ys.length>>1]-1;const topOf=(x,z)=>Math.max(gy+HH,surf12(x,z)-1+4);const SB_=BN.stonebrick||4;const gz=cz+R_;
+  const mine=i=>{const id=world[i];return !id||id===SB_||id===BN.planks||TREEISH(id)||CHANGES[i]==null};let n=0;
+  for(const [x,z] of wallCols(cx,cz,R_)){if(x<2||z<2||x>OW-3||z>D-3)continue;const y0=surf12(x,z)-1;const top=topOf(x,z);let ok=true;for(let y=y0+1;y<=top+3;y++)if(!mine(idx(x,y,z))){ok=false;break}if(!ok)continue;
+    const gate=z===gz&&Math.abs(x-cx)<=1;for(let y=y0+1;y<=top;y++){const v=gate&&y<=y0+4?BN.planks:(y===top&&(x+z)%2?0:SB_);if(world[idx(x,y,z)]!==v)setBlock(x,y,z,v)}
+    for(let y=top+1;y<=top+12&&y<H;y++){const i=idx(x,y,z);if(world[i]===SB_&&CHANGES[i]!=null)setBlock(x,y,z,0)}n++}
+  const cy=topOf(cx,gz);const W0=MODS4.gwall;MODS4.gwall=Object.assign({},W0||{},{cx,cz,r:R_,gx:cx,gz:gz+3,gy,cy,v2:1});
+  if(!W0){const sy=topOf(cx+3,gz);setBlock(cx+3,sy,gz,SB_);setBlock(cx+3,sy+1,gz,STATION);setBlock(cx,cy,gz,SB_);spawnMob('wcannon',cx+.5,cy+1,gz+.5,{})}if(started)save();if(NET.on)netSend({t:'mods4',m:MODS4});if(!repair)toast('🏰 마을에 성벽이 세워졌어요! 남쪽 문 위에 대포와 보급소가 있어요','good');return n}
+wallBuild=function(){if(!isAuth()||MODS4.gwall||GAME4||!VC)return;wallBuild12(false)};
+function wallRepair(){if(modOn('giant')&&MODS4.gwall&&!MODS4.gwall.v2&&isAuth()&&!GAME4){const n=wallBuild12(true);toast(`🏰 언덕을 따라 성벽을 다시 이었어요 (${n}칸)`,'good')}}
+
+// ---------- 8) 🏳️ 국가 전쟁 ----------
+// 원인 ①: 작은 세계·언덕 세계에서는 컴퓨터 나라 성을 놓을 평평한 땅을 못 찾아 나라가 0개 → 전쟁을 걸 상대가 없었어요.
+// 원인 ②: 전쟁을 선포해도 컴퓨터 군대가 (먼 곳의) 성에서 출발해서, 멀리 있는 몹은 4프레임에 한 번만 움직이고
+//         강물 앞에서 멈춰서 몇 분이 지나도 도착하지 못했어요. 내 병사는 나만 따라다녀서 쳐들어갈 방법이 없었어요.
+// 원인 ③: 컴퓨터 나라는 먼저 전쟁을 걸지 않았어요 (외교가 무작위).
+function castleSmall(x,y,z,R_){const SB_=BN.stonebrick||4;for(let dz=-R_;dz<=R_;dz++)for(let dx=-R_;dx<=R_;dx++){const s=surf12(x+dx,z+dz)-1;for(let yy=Math.min(s+1,y);yy<y;yy++)setBlock(x+dx,yy,z+dz,BN.cobble||SB_);setBlock(x+dx,y,z+dz,SB_);for(let yy=y+1;yy<y+8;yy++)if(get(x+dx,yy,z+dz))setBlock(x+dx,yy,z+dz,0)}
+  for(let i=-R_;i<=R_;i++)for(let yy=y+1;yy<=y+3;yy++)for(const [a,b] of [[i,-R_],[i,R_],[-R_,i],[R_,i]]){if(b===R_&&Math.abs(a)<=1&&yy<y+3)continue;setBlock(x+a,yy,z+b,SB_)}for(const [a,b] of [[-R_,-R_],[R_,-R_],[-R_,R_],[R_,R_]])for(let yy=y+4;yy<=y+5;yy++)setBlock(x+a,yy,z+b,SB_);setBlock(x,y+1,z,NFLAG);setBlock(x+2,y+1,z-2,BARR)}
+function aiMore(){const N=natState();if(!isAuth()||GAME4)return;const ai=Object.values(N.L).filter(n=>n.ai);if(ai.length>=2)return;NGEN=1;try{const seed=SEEDW||1;let k=ai.length;const used=Object.values(N.L).flatMap(n=>n.claims.map(c=>[c[0],c[1]])).concat([[VC.x,VC.z]]);
+  for(let t=0;t<400&&k<3;t++){const a=H4(t,seed,21)*6.283,r=55+H4(t,seed,22)*Math.min(130,OW/2-20);const x=Math.round(VC.x+Math.cos(a)*r),z=Math.round(VC.z+Math.sin(a)*r);if(x<12||z<12||x>OW-12||z>D-12)continue;if(used.some(([ux,uz])=>Math.hypot(ux-x,uz-z)<45))continue;const y=surf12(x,z)-1;if(y<SEA||get(x,y,z)===6)continue;let mx=y,mn=y,bad=false;for(let dz=-4;dz<=4&&!bad;dz+=2)for(let dx=-4;dx<=4;dx+=2){const s=surf12(x+dx,z+dz)-1;mx=Math.max(mx,s);mn=Math.min(mn,s);if(get(x+dx,s,z+dz)===6)bad=true}if(bad||mx-mn>(t<200?5:9))continue;
+    for(let dz=-5;dz<=5&&!bad;dz++)for(let dx=-5;dx<=5;dx++)if(CHANGES[idx(x+dx,surf12(x+dx,z+dz)-1,z+dz)]!=null){bad=true;break}if(bad)continue;
+    const id='a'+(Object.keys(N.L).filter(q=>q[0]==='a').length+1);const name=AINAMES.find(nm=>!Object.values(N.L).some(n=>n.name===nm))||('컴퓨터 나라 '+id);const flag={bg:Math.floor(H4(k,seed,30)*9),fg:7,pat:Math.floor(H4(k,seed,31)*6),emb:Math.floor(H4(k,seed,32)*7)};if(flag.fg===flag.bg)flag.fg=8;
+    const yy=Math.max(y,Math.round((mx+mn)/2));castleSmall(x,yy,z,4);N.L[id]={id,name,flag,owner:'ai',ai:1,claims:[[x+.5,z+.5,14]],cap:[x+.5,yy+1,z+.5],rel:{},ws:0};used.push([x,z]);for(let i=0;i<4;i++)spawnMob('soldier',x+.5+rnd(-2,2),yy+1,z+.5+rnd(-2,2),{nat:id,role:['sword','sword','archer','catapult'][i]});k++}}finally{NGEN=0}natSync()}
+const _aig12=aiGen;aiGen=function(){const N=natState();_aig12();if(!N._more12&&isAuth()&&!GAME4&&started){N._more12=1;aiMore()}};
+// 호감도: 국경이 가까우면 ↓, 무역·평화·동맹이면 ↑, 전쟁 선포를 당하면 크게 ↓
+const OP12=(a,b)=>{const N=natState();N.op=N.op||{};N.op[a]=N.op[a]||{};return N.op[a][b]||0};
+const OPADD=(a,b,v)=>{const N=natState();N.op=N.op||{};N.op[a]=N.op[a]||{};N.op[a][b]=clamp((N.op[a][b]||0)+v,-100,100)};
+const opFace=v=>v>=30?'😊':v>=0?'🙂':v>-30?'😐':'😠';
+const _na12=natApply;natApply=function(o,from){const N=natState();const A=N.L[o.a],Bn=N.L[o.b];
+  if(o.op==='tradeDone'){const me=N.my[from];if(me&&N.L[o.b]){OPADD(o.b,me,6);N.L[o.b].tr=(N.L[o.b].tr||0)+1}natSync();return}
+  if(o.op==='march'||o.op==='home'){const me=N.my[from];if(!me||me!==o.a)return;const tg=Bn&&Bn.cap;let n=0;for(const m of MOBS)if(m.t==='soldier'&&m.nat===me&&m.role!=='catapult'){if(o.op==='march'&&tg){m.march=[tg[0],tg[2]];m.attack12=o.b}else{m.march=null;m.attack12=null}n++}natMsg(o.op==='march'?`🚩 ${A.name} 군대 ${n}명이 ${Bn?Bn.name:''} 수도로 출정했어요!`:`🏠 ${A.name} 군대가 돌아와요`,o.op==='march'?'bad':'');natSync();return}
+  if(A&&Bn&&Bn.ai&&N.my[from]===o.a&&(o.op==='ally'||o.op==='peace')){A.rel=A.rel||{};Bn.rel=Bn.rel||{};const op=OP12(Bn.id,A.id);
+    if(o.op==='ally'){if(op>=30&&A.rel[Bn.id]!=='war'){A.rel[Bn.id]=Bn.rel[A.id]='ally';natMsg(`🤝 ${A.name}과(와) ${Bn.name}이(가) 동맹을 맺었어요`,'good')}else natMsg(`😐 ${Bn.name}: "아직은 동맹을 맺기 일러요" (호감도 ${op}, 30 넘으면 좋아요 · 무역해 보세요)`)}
+    else{const win=(A.ws||0)>=(Bn.ws||0);if(op>-20||win){A.rel[Bn.id]=Bn.rel[A.id]='peace';OPADD(Bn.id,A.id,15);natMsg(win?`🕊️ 평화 조약! ${Bn.name}이(가) ${A.name}에게 조공을 바쳐요`:`🕊️ 평화 조약을 맺었어요`,'good');if(win)natTribute(from);Bn.capT=0;A.capT=0;peaceAfter(A,Bn)}else natMsg(`😠 ${Bn.name}: "평화는 싫어요!" (호감도 ${op} · 전쟁 점수를 더 따거나 -20보다 높아야 해요)`,'bad')}
+    natSync();return}
+  if(o.op==='war'&&A&&Bn&&N.my[from]===o.a){OPADD(Bn.id,A.id,-40);for(const n of Object.values(N.L))if(n.ai&&n.id!==Bn.id&&(n.rel||{})[Bn.id]==='ally')OPADD(n.id,A.id,-15)}
+  return _na12(o,from)};
+const _tc12=tradeCard13;tradeCard13=function(bid){_tc12(bid);ov.querySelectorAll('[data-tr]').forEach(b=>b.addEventListener('click',()=>natOp({op:'tradeDone',b:bid})))};
+// 평화가 되면: 나가 있던 병사는 집으로 · 컴퓨터 나라는 3분 동안 다시 전쟁을 걸지 않아요
+function peaceAfter(A,Bn){for(const n of [A,Bn]){n.calm12=180;for(const m of MOBS){if(m.t!=='soldier'||m.nat!==n.id||!n.cap)continue;m.attack12=null;if(Math.hypot(m.x-n.cap[0],m.z-n.cap[2])>16)m.march=[n.cap[0],n.cap[2]];else m.march=null}}}
+// 컴퓨터 나라 군대: 상대 쪽 55칸 앞에서 출발 → 2~3분 안에 반드시 보이게
+function aiArmy(n,o){const N=natState();let tgt=o&&o.cap?[o.cap[0],o.cap[2]]:null;if(!tgt){const ow=o&&allPlayers().find(p=>N.my[p.id]===o.id);if(ow)tgt=[ow.x,ow.z]}if(!tgt||!n.cap)return 0;
+  const cx=n.cap[0],cz=n.cap[2];const d=Math.hypot(cx-tgt[0],cz-tgt[1])||1;const k=Math.min(d,55)/d;let sx=tgt[0]+(cx-tgt[0])*k,sz=tgt[1]+(cz-tgt[1])*k;sx=clamp(sx,8,OW-8);sz=clamp(sz,8,D-8);
+  const roles=['sword','sword','sword','archer','archer','ram'];roles.forEach((r,i)=>{const row=Math.floor(i/3),col=i%3-1;const x=sx+col*1.5,z=sz+row*1.5;const s=spawnMob('soldier',x,surf12(x,z),z,{nat:n.id,role:r,march:[tgt[0],tgt[1]],fx:col,fz:row});s.hp=ROLES[r][2];s.attack12=o.id});natMsg(`🥁 ${n.name} 군대 6명이 다가와요! ⚔️ 적군 접근 중`,'bad');return 6}
+let NT12=0,OPT12=0;function natTick12(dt){if(!modOn('nation')||!started||GAME4||!isAuth())return;const N=natState();
+  for(const n of Object.values(N.L)){if(!n.ai)continue;if(n.armyT!=null&&n.armyT<1e8){n.army12=Math.min(n.army12??8,n.armyT);n.armyT=1e9}}
+  NT12-=dt;if(NT12>0)return;NT12=1;
+  for(const n of Object.values(N.L)){if(!n.ai)continue;for(const oid in (n.rel||{})){if(n.rel[oid]!=='war')continue;const o=N.L[oid];if(!o)continue;n.army12=(n.army12??8)-1;if(n.army12>0)continue;n.army12=100;const army=MOBS.filter(m=>m.t==='soldier'&&m.nat===n.id&&m.march).length;if(army<10)aiArmy(n,o)}}
+  // 수도 없는 플레이어 나라를 노리는 군대는 플레이어를 따라가요
+  for(const m of MOBS){if(m.t!=='soldier'||!m.march||!m.attack12)continue;const o=N.L[m.attack12];if(!o||!atWar(m.nat,o.id)){m.march=null;continue}if(!o.cap){const ow=allPlayers().find(p=>N.my[p.id]===o.id);if(ow)m.march=[ow.x,ow.z]}
+    // 막힘 풀기: 5초 동안 1칸도 못 가면 앞으로 올라서요
+    const mk=m.mk12||(m.mk12={x:m.x,z:m.z,t:0});mk.t+=1;if(Math.hypot(m.x-mk.x,m.z-mk.z)>1.2){mk.x=m.x;mk.z=m.z;mk.t=0}else if(mk.t>=5){mk.t=0;const dx=m.march[0]-m.x,dz=m.march[1]-m.z,l=Math.hypot(dx,dz)||1;const x=m.x+dx/l*1.6,z=m.z+dz/l*1.6;const s=surf12(x,z);if(s-m.y<8){m.x=x;m.z=z;m.y=s}}}
+  // 군대가 수도를 점령 (지키는 병사가 없을 때 25초)
+  for(const n of Object.values(N.L)){if(!n.cap)continue;const att=MOBS.filter(m=>m.t==='soldier'&&m.hp>0&&atWar(m.nat,n.id)&&Math.hypot(m.x-n.cap[0],m.z-n.cap[2])<6);if(!att.length)continue;const def=MOBS.some(m=>m.t==='soldier'&&m.nat===n.id&&m.hp>0&&Math.hypot(m.x-n.cap[0],m.z-n.cap[2])<10)||allPlayers().some(p=>N.my[p.id]===n.id&&!p.dead&&Math.hypot(p.x-n.cap[0],p.z-n.cap[2])<10);if(def)continue;
+    n.capT=Math.min(1,(n.capT||0)+1/25+1/40);if(n.capT>=1){const A=N.L[att[0].nat];n.capT=0;n.rel[A.id]=A.rel[n.id]='peace';A.ws=(A.ws||0)+10;OPADD(n.id,A.id,-10);
+      if(A.ai){natMsg(`😢 ${A.name} 군대가 ${n.name}의 수도를 점령했어요! 항복하고 평화 조약을 맺어요`,'bad')}else{natMsg(`🏳️ ${A.name} 군대가 ${n.name}의 수도를 점령했어요! 항복하고 조공을 바쳐요`,'good');const ow=allPlayers().find(p=>N.my[p.id]===A.id);if(ow)natTribute(ow.id)}
+      peaceAfter(A,n);stat('capital_capture');natSync()}}
+  // 외교: 30초마다 호감도 · 화난 컴퓨터 나라는 먼저 전쟁을 걸어요
+  for(const a of Object.values(N.L))if(a.calm12>0)a.calm12--;OPT12-=1;if(OPT12<=0){OPT12=30;for(const a of Object.values(N.L)){if(!a.ai)continue;for(const b of Object.values(N.L)){if(b===a||b.ai)continue;const near=a.claims.some(([x,z,r])=>b.claims.some(([x2,z2,r2])=>Math.hypot(x-x2,z-z2)<r+r2+40));const rel=(a.rel||{})[b.id];
+      OPADD(a.id,b.id,(near?-6:0)+(rel==='ally'?2:0)+(rel==='peace'&&!near?1:0)+(b.claims.length>3?-2:0));const op=OP12(a.id,b.id);
+      if(op<=-35&&rel!=='war'&&rel!=='ally'&&!((a.calm12||0)>0)){a.rel=a.rel||{};b.rel=b.rel||{};a.rel[b.id]=b.rel[a.id]='war';a.army12=20;natMsg(`⚔️ 🤖 ${a.name}이(가) ${b.name}에게 전쟁을 선포했어요! (국경이 너무 가까워서 화났어요 · 호감도 ${op})`,'bad');stat('war_ai')}}}natSync()}}
+// 병사 길찾기: 강물도 건너고 (헤엄), 행진할 땐 멀리 있어도 제 속도
+const _mm12s=mobMove;mobMove=function(m,dx,dz,sp,dt){if(m.t!=='soldier'||!m.march)return _mm12s(m,dx,dz,sp,dt);const l=Math.hypot(dx,dz);if(l<.01)return _mm12s(m,dx,dz,sp,dt);const nx=m.x+dx/l*sp*dt,nz=m.z+dz/l*sp*dt;
+  if(get(Math.floor(nx),Math.floor(m.y),Math.floor(nz))===6||get(Math.floor(m.x),Math.floor(m.y),Math.floor(m.z))===6){if(!SOLID(get(Math.floor(nx),Math.floor(m.y+.5),Math.floor(nz)))){m.x=nx;m.z=nz}m.vy=Math.max(m.vy||0,1.5);m.yaw=Math.atan2(dx,dz);m.moving=1;return}const c=m.chase;m.chase=1;try{return _mm12s(m,dx,dz,sp,dt)}finally{m.chase=c}};
+// 화면: 적군 접근 표시 · 내 나라 카드에 호감도 · 출정 버튼
+let NHUD_EDGE=false;const _nh12=natHud;natHud=function(){_nh12();const N=natState(),me=myNat();NHUD_EDGE=false;if(!modOn('nation')||!me)return;const foes=MOBS.filter(m=>m.t==='soldier'&&m.hp>0&&atWar(m.nat,me.id)&&regOf(m.x)===CUR_R&&(m.march||Math.hypot(m.x-P.x,m.z-P.z)<40));const mine=MOBS.filter(m=>m.t==='soldier'&&m.nat===me.id&&m.march);
+  let html='';if(foes.length){let best=null,bd=1e9;for(const m of foes){const d=Math.hypot(m.x-P.x,m.z-P.z);if(d<bd){bd=d;best=m}}const r=relDir(best.x,best.z);html+=`<div style="color:#ff8a80">⚔️ 적군 접근 중 · ${foes.length}명 · ${r.d}m ${r.a}</div>`;edgeShow(best,'⚔️');NHUD_EDGE=true}
+  if(mine.length){const c=mine[0];const r=relDir(c.march[0],c.march[1]);html+=`<div style="color:#b9f6ca">🚩 우리 군대 ${mine.length}명 출정 중 · 목표까지 ${Math.round(Math.hypot(c.x-c.march[0],c.z-c.march[1]))}m</div>`}
+  if(html){NHUD13.style.display='block';const old=NHUD13.querySelector('.w12');if(old)old.remove();NHUD13.insertAdjacentHTML('beforeend',`<div class="w12">${html}</div>`)}};
+const _nc12=natCard;natCard=function(){_nc12();const N=natState(),me=myNat();if(!me||!ov.querySelector('[data-nop]')&&!ov.textContent.includes('다른 나라'))return;try{
+  const rows=[...ov.querySelectorAll('.trade')];for(const row of rows){const b=row.querySelector('[data-n]');if(!b)continue;const id=b.dataset.n,n=N.L[id];if(!n)continue;const op=OP12(id,me.id);const sp=row.querySelector('span');if(n.ai&&sp)sp.insertAdjacentHTML('beforeend',` · 호감도 ${op} ${opFace(op)}`);
+    if(atWar(me.id,id)){const box=row.querySelectorAll('span')[1]||row;const marching=MOBS.some(m=>m.t==='soldier'&&m.nat===me.id&&m.attack12===id);box.insertAdjacentHTML('beforeend',`<button class="btn go" type="button" data-n12="${marching?'home':'march'}" data-id="${id}">${marching?'🏠 귀환':'🚩 출정 (수도로)'}</button>`)}}
+  const nn=Object.values(N.L).filter(n=>n.ai).length;if(!nn){const h=ov.querySelector('small');if(h)h.insertAdjacentHTML('afterend','<div class="note info">🤖 컴퓨터 나라를 찾는 중이에요… 잠시 뒤 다시 열어 보세요</div>')}
+  ov.querySelectorAll('[data-n12]').forEach(b=>b.onclick=()=>{const sol=MOBS.filter(m=>m.t==='soldier'&&m.nat===me.id).length;if(b.dataset.n12==='march'&&!sol&&isAuth()){toast('💂 병사가 없어요. 🏰 병영에서 병사를 뽑아요','bad');return}natOp({op:b.dataset.n12,a:me.id,b:b.dataset.id});setTimeout(natCard,200)});
+  const tip=document.createElement('div');tip.className='note';tip.innerHTML='🧭 <b>전쟁하는 법</b>: 🏰 병영에서 병사 뽑기 → ⚔️ 전쟁 선포 → 🚩 출정! 적 수도 깃발 둘레를 지키는 병사가 없으면 점령돼요. 컴퓨터 나라 군대는 1~2분 안에 쳐들어와요 (화면 가장자리 ⬆ 화살표).';ov.querySelector('.card').appendChild(tip)}catch(e){console.error('[나라 카드]',e)}};
+// 지도에 군대 화살표
+const _mc12m=mapCard;mapCard=function(...a){const r=_mc12m(...a);try{const c=ov.querySelector('canvas');if(c&&regOf(P.x)==='over'){const g=c.getContext('2d');const sc=c.width/(RG.over[1]-RG.over[0]);const N=natState();
+  for(const m of MOBS){if(m.t==='soldier'&&m.march&&modOn('nation')){const n=N.L[m.nat];g.fillStyle=n?NCOL[n.flag.bg]:'#f00';const X=(m.x-RG.over[0])*sc,Z=m.z*sc;const a_=Math.atan2(m.march[0]-m.x,m.march[1]-m.z);g.save();g.translate(X,Z);g.rotate(-a_+Math.PI);g.beginPath();g.moveTo(0,-5);g.lineTo(4,4);g.lineTo(-4,4);g.closePath();g.fill();g.strokeStyle='#000';g.stroke();g.restore()}
+    if(GVAR[m.t]){const X=(m.x-RG.over[0])*sc,Z=m.z*sc;g.font='14px sans-serif';g.fillText('🗿',X-7,Z+5)}}}}catch(e){console.error('[지도]',e)}return r};
+// ---------- 매 프레임 ----------
+const _r4f12u=r4Frame;r4Frame=function(dt,t){_r4f12u(dt,t);if(!started)return;giantGround(dt);giantCount(dt);giantHud(dt);natTick12(dt);if(Math.random()<dt*.2)wallRepair();if(modOn('nation')&&isAuth()&&Math.random()<dt*.1){const N=natState();if(N._gen&&!N._more12){N._more12=1;aiMore()}}};
+// ---------- 🪺 외계 벌레 둥지: 울퉁불퉁한 땅에서도 빈틈 없이 (기초를 채워요 · 내가 지은 블록은 그대로) ----------
+const _sm12n=spawnMob;spawnMob=function(t,x,y,z,ex){if(t==='hive'&&isAuth()&&typeof CREEP!=='undefined'){y=surf12(x,z);const m=_sm12n(t,x,y,z,ex);try{const bx=Math.floor(x),bz=Math.floor(z),base=Math.floor(y)-1;
+  for(let dz=-3;dz<=3;dz++)for(let dx=-3;dx<=3;dx++){if(Math.hypot(dx,dz)>3.3)continue;const X=bx+dx,Z=bz+dz;const g=surf12(X,Z)-1;if(get(X,g,Z)===6)continue;const top=Math.max(g,Math.min(base,g+4));let ok=true;for(let yy=g;yy<=top+2;yy++)if(CHANGES[idx(X,yy,Z)]!=null&&get(X,yy,Z)&&get(X,yy,Z)!==CREEP){ok=false;break}if(!ok)continue;
+    for(let yy=g;yy<=top;yy++)setBlock(X,yy,Z,CREEP);for(let yy=top+1;yy<=top+2;yy++){const q=get(X,yy,Z);if(q&&TREEISH(q))setBlock(X,yy,Z,0)}}}catch(e){console.error('[둥지]',e)}return m}return _sm12n(t,x,y,z,ex)};
 
 /* ============ ✨ 그래픽 1: 더 정성스러운 16×16 그림 (자연 블록·광석·금 가기) ============ */
 const GXH=(x,y,s)=>{let h=(Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1442695041))|0;h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;return (h>>>0)/4294967296};
