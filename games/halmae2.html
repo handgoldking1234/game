@@ -120,6 +120,7 @@ body.touch #mmap{left:auto;right:12px;bottom:auto;top:110px;width:84px;height:84
 <div id="bars" class="ui"></div>
 <div id="banner" class="ui"></div>
 <div id="bubs"></div><div id="pops"></div>
+<div id="vig" style="position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 58%,rgba(20,10,0,.32) 100%)"></div>
 <div id="flash"></div>
 <div id="gta" class="ui"><div id="money">₩0</div><div id="stars"></div><div id="wlabel"></div></div>
 <canvas id="mmap" class="ui" width="140" height="140"></canvas>
@@ -233,6 +234,7 @@ function newScene(sky, near, far, night, opt = {}) {
   sun.position.set(30, 60, 20); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
   const c = sun.shadow.camera; c.left = c.bottom = -45; c.right = c.top = 45; c.near = 1; c.far = 220;
   scene.add(sun, sun.target);
+  const rim = new THREE.DirectionalLight(night ? 0x6677cc : 0xa9c8ff, night ? .25 : .45); rim.position.set(-25, 18, -40); scene.add(rim);
   parts.length = 0; fxs.length = 0;
   return scene;
 }
@@ -549,6 +551,14 @@ function goldBat(p, x, z, s = 1) {
   for (const sd of [-1, 1]) { const w = box(b, 1.4, .7, .06, gold, sd * .9, .2, 0); w.rotation.z = sd * .35 }
   sign(g, ['함평 황금박쥐'], 2.2, .5, '#5c3d00', '#ffd43b', 0, .7, 1.42, 0, 40);
   outline(b, .04); return g;
+}
+function petals(n = 40, cx = 0, cz = 0, r = 12, cols = ['#ffc9de', '#ffffff', '#ffe066', '#ffa8a8']) {
+  const pg = geo('petal', () => new THREE.PlaneGeometry(.22, .16));
+  for (let i = 0; i < n; i++) {
+    const col = pick(cols), m = new THREE.Mesh(pg, MC['pt' + col] || (MC['pt' + col] = new THREE.MeshBasicMaterial({ color: lin(col), side: THREE.DoubleSide })));
+    const ph = rnd(0, 20), sp = rnd(.6, 1.4), x0 = cx + rnd(-r, r), z0 = cz + rnd(-r, r); scene.add(m);
+    fxs.push({ o: m, l: 1e9, u: () => { const t = performance.now() / 1000 * sp + ph; const y = 8 - (t * 1.2 % 8); m.position.set(x0 + Math.sin(t * 1.3) * 1.2, y, z0 + Math.cos(t) * .8); m.rotation.set(t * 2, t * 3, t) } });
+  }
 }
 function kimchiSlap(pos) {
   const g = new THREE.Group(); g.position.copy(pos); sph(g, .75, '#e8590c', 0, 0, 0, 1.3, .14, .7); sph(g, .55, '#fff3bf', 0, .03, -.2, 1, .1, .45); sph(g, .3, '#c92a2a', .3, .05, .2, 1, .1, 1);
@@ -2617,7 +2627,7 @@ const T2 = {
   },
   caught(by) {
     this.done = true; cut = true; stats.tries++; snd('bad'); flash(1); banner('들켰다!', '', 1.2);
-    const set = pick([
+    const set = pick(this.caughtSets || [
       [['k', '(불침번) 거기 누구냐! 암구호!'], ['g', '…김장?'], ['k', '땡! 오늘 암구호는 \'배추\'… 아 말해 버렸다!'], ['g', '(그 틈에 후다닥 도망)']],
       [['k', '(불침번) 정지! 손들어!'], ['g', '…할매 손 저려서 못 들어.'], ['k', '아 네… 그럼 내리셔도… 아니 근데 누구세요?!'], ['n', '순배 할매는 일단 후퇴했다.']],
       [['k', '(불침번) 어? 웬 할머님이…? 꿈인가…?'], ['m', '꿈이여~ 꿈~ 얼른 자~'], ['k', '…네… (꾸벅)'], ['n', '…다시 처음 자리로!']],
@@ -2665,8 +2675,8 @@ const T2 = {
       if (this.det >= 1) this.caught();
       if (Math.random() < dt * .06) say(this.dg.g, pick(['…(짖고 싶다)', '…(꼬리만 흔듦)', '…끄응']), 1.4);
       if (P.distanceTo(this.goal) < 1.8) {
-        this.done = true; cut = true; snd('win'); banner('잠입 성공!', '생활관 4 도착', 1.6);
-        dialog([
+        this.done = true; cut = true; snd('win'); banner('잠입 성공!', this.goalName || '생활관 4 도착', 1.6);
+        if (this.onGoal) this.onGoal(); else dialog([
           ['s', '(창문을 열며) 할…할머니?! 여길 어떻게…?!'],
           ['g', '쉿! 김치 가져왔다! 배추김치, 총각김치, 파김치, 갓김치!'],
           ['s', '할머니… 😭 근데 저 내일 유격 훈련이에요…'],
