@@ -17,7 +17,7 @@
 ## 파일
 ```
 index.html                원페이지 (GAMES 목록, 썸네일 내장)
-games/*.html              게임 18종 (+ backrooms-pc 고화질판)
+games/*.html              게임 20종 (+ backrooms-pc 고화질판)
 thumbs/, hero/            썸네일·배경 원본
 mwt.js                    방문·플레이 통계, 좋아요
 api/t.js                  통계 수집 서버 함수
@@ -27,7 +27,7 @@ supabase/*.sql            통계·기기·관리 함수 SQL
 ```
 
 ## 게임 목록 (index.html `GAMES`의 id → 파일)
-pangpang 웨더팡팡 · garden 날씨 정원 · kart 날씨 카트 레이스 · wrivals 날씨 라이벌즈 · wisland 날씨 생존 섬 · dad 엄격한 에너지 아빠 · hospital 한밤의 동물병원 · brawl 에너지 브롤 · blocks 에너지 블록 마을 · park 한밤의 에너지 공원 · keycap 키캡 타워 · forest 에너지 숲의 밤 · backrooms 백룸 방탈출 · rivals 에너지 라이벌즈 · spy 탄소 스파이를 찾아라 · hero 에너지 히어로 · front 에너지 전선 · jump 에너지 점프 · town 에너지 마을 시장 · wing 탄소 제로 비행단 · world 에너지 월드
+halmae 할매 특공대 · halmae2 할매 특공대 2 · pangpang 웨더팡팡 · garden 날씨 정원 · kart 날씨 카트 레이스 · wrivals 날씨 라이벌즈 · wisland 날씨 생존 섬 · dad 엄격한 에너지 아빠 · hospital 한밤의 동물병원 · brawl 에너지 브롤 · blocks 에너지 블록 마을 · park 한밤의 에너지 공원 · keycap 키캡 타워 · forest 에너지 숲의 밤 · backrooms 백룸 방탈출 · rivals 에너지 라이벌즈 · spy 탄소 스파이를 찾아라 · hero 에너지 히어로 · front 에너지 전선 · jump 에너지 점프 · town 에너지 마을 시장 · wing 탄소 제로 비행단 · world 에너지 월드
 
 ## 자주 하는 수정
 - **게임 추가:** `games/`에 파일 → `thumbs/`에 썸네일 → `index.html`의 `GAMES`에 한 줄 → `sitemap.xml`
