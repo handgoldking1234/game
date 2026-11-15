@@ -80,9 +80,38 @@
     (document.body || document.documentElement).appendChild(lockEl);
   }
   if (game) { cfg().then(lock); setInterval(lock, 30000) }
+  // 지금 접속 중인 사람 수 (Supabase 실시간 Presence · 기기 익명 ID만 써요)
+  var ON = { total: 0, games: {}, ready: false }, onCh = null;
+  function onEmit() { try { window.dispatchEvent(new CustomEvent('mw-online', { detail: ON })) } catch (e) {} }
+  function onStart(L) {
+    if (onCh) return;
+    try {
+      var sb = L.createClient(SB_URL, SB_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'mw-online' } });
+      onCh = sb.channel('mwg-online', { config: { presence: { key: vid } } });
+      onCh.on('presence', { event: 'sync' }, function () {
+        var st = onCh.presenceState(), g = {}, n = 0;
+        for (var k in st) {
+          var a = st[k]; if (!a || !a.length) continue; n++;
+          var seen = {}; for (var i = 0; i < a.length; i++) { var id = (a[i] && a[i].g) || 'home'; if (!seen[id]) { seen[id] = 1; g[id] = (g[id] || 0) + 1 } }
+        }
+        ON = { total: n, games: g, ready: true }; onEmit();
+      });
+      onCh.subscribe(function (stt) { if (stt === 'SUBSCRIBED') onCh.track({ g: game || 'home' }) });
+    } catch (e) {}
+  }
+  function onLoad() {
+    if (local) return;
+    var L = window.MWG_SB || window.supabase; if (L && L.createClient) { onStart(L); return }
+    var sc = document.createElement('script'); sc.async = true;
+    sc.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js';
+    sc.onload = function () { var L2 = window.supabase; if (L2 && L2.createClient) onStart(L2) };
+    (document.head || document.documentElement).appendChild(sc);
+  }
+  setTimeout(onLoad, game ? 2500 : 600);
 
   window.MWT = {
     vid: vid,
+    online: function () { return ON },
     cfg: cfg,
     allowed: function (g) { return allowed(g) },
     hoursText: function (g) { return ruleText(g) },

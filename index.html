@@ -128,6 +128,14 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .wm .pl b{color:#111;font-weight:700}
 .wm .hot{background:#fff1e6;color:#ea580c;border-radius:4px;padding:1px 6px;font-weight:700}
 .wm .lock{background:#eef2ff;color:#4338ca;border-radius:4px;padding:1px 6px;font-weight:700}
+.live{display:flex;align-items:center;justify-content:center;gap:6px;margin:-6px auto 12px;font-size:13px;font-weight:700;color:#166534}
+.live i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:livep 1.6s infinite}
+.live b{font-size:15px;color:#15803d}
+.live em{font-style:normal;color:#6b7280;font-weight:600}
+@keyframes livep{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.wm .now{background:#ecfdf5;color:#15803d;border-radius:4px;padding:1px 6px;font-weight:700;white-space:nowrap}
+.wm .now em{font-style:normal}@media(max-width:640px){.wm .now em{display:none}}
+.wm .now[hidden]{display:none}
 .sort{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 18px;justify-content:center}
 .sort button{border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;color:#374151}
 .sort button[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
@@ -240,6 +248,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
     <div class="tabs" id="tabs" role="toolbar" aria-label="게임 분류"></div>
     <label class="find"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="게임·장르·개념 검색" aria-label="게임 찾기"></label>
    </div>
+   <div class="live" id="live" hidden aria-live="polite"><i></i><span>지금 <b id="liveN">0</b>명 접속 중<em id="liveG"></em></span></div>
    <div class="sort" id="sort" role="toolbar" aria-label="정렬"><button type="button" data-s="rec">⭐ 추천순</button><button type="button" data-s="new">🆕 새 게임</button><button type="button" data-s="pop">🔥 많이 한 순</button><button type="button" data-s="like">❤️ 좋아요 순</button></div>
    <div class="recent" id="recent" hidden></div>
    <div class="works" id="works"></div>
@@ -342,8 +351,12 @@ var st={tab:'all',q:'',learn:'',more:false,sort:'rec'};try{st.sort=localStorage.
 var STATS={},MYLIKE={};try{MYLIKE=JSON.parse(localStorage.getItem('mw_likes')||'{}')}catch(e){}
 function nf(n){n=n||0;return n>=10000?(Math.round(n/1000)/10)+'만':n.toLocaleString('ko-KR')}
 function meta(g){var s=STATS[g.id]||{},lk=s.likes||0,on=!!(s.mine!=null?s.mine:MYLIKE[g.id]);var hot=(s.plays7||0)>=Math.max(5,TOP7)?'<span class="hot">🔥 인기</span>':'';
- return '<div class="wm"><button type="button" class="lk" data-like="'+g.id+'" aria-pressed="'+on+'" aria-label="'+esc(g.t)+' 좋아요">♥ <b>'+nf(lk)+'</b></button><span class="pl">▶ <b>'+nf(s.plays||0)+'</b>회</span>'+hot+(window.MWT&&MWT.allowed&&!MWT.allowed(g.id)?'<span class="lock" title="'+esc(MWT.hoursText(g.id))+'">'+(MWT.isOff&&MWT.isOff(g.id)?'⛔ 꺼짐':'🔒 쉬는 시간')+'</span>':'')+'</div>'}
+ return '<div class="wm"><button type="button" class="lk" data-like="'+g.id+'" aria-pressed="'+on+'" aria-label="'+esc(g.t)+' 좋아요">♥ <b>'+nf(lk)+'</b></button><span class="pl">▶ <b>'+nf(s.plays||0)+'</b>회</span>'+nowTag(g.id)+hot+(window.MWT&&MWT.allowed&&!MWT.allowed(g.id)?'<span class="lock" title="'+esc(MWT.hoursText(g.id))+'">'+(MWT.isOff&&MWT.isOff(g.id)?'⛔ 꺼짐':'🔒 쉬는 시간')+'</span>':'')+'</div>'}
 var TOP7=1e9;
+var ONLINE={total:0,games:{}};
+function nowTag(id){var n=ONLINE.games[id]||0;return '<span class="now" data-now="'+id+'"'+(n?'':' hidden')+' title="지금 이 게임을 하는 사람">🟢 <b>'+n+'</b>명<em> 하는 중</em></span>'}
+window.addEventListener('mw-online',function(e){ONLINE=e.detail||ONLINE;var L=document.getElementById('live');if(L){L.hidden=!(ONLINE.total>0);document.getElementById('liveN').textContent=ONLINE.total;var pg=0;for(var k in ONLINE.games)if(k!=='home')pg+=ONLINE.games[k];document.getElementById('liveG').textContent=pg?' · 게임 중 '+pg+'명':''}
+ document.querySelectorAll('[data-now]').forEach(function(el){var n=ONLINE.games[el.dataset.now]||0;el.hidden=!n;var b=el.querySelector('b');if(b)b.textContent=n})});
 function score(g){var s=STATS[g.id]||{};return (s.plays7||0)*3+(s.plays||0)+(s.likes||0)*8}
 function sorted(list){var L=list.slice(),i0={};GAMES.forEach(function(g,i){i0[g.id]=i});
  var NEW3=GAMES.filter(function(g){return g.tags.indexOf('new')>=0}).slice(0,3).map(function(g){return g.id});var isNew=function(g){return NEW3.indexOf(g.id)>=0};
