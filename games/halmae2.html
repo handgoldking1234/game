@@ -319,6 +319,7 @@ function patTex(kind) {
     else if (kind === 'suit') { x.fillStyle = '#4f5866'; x.fillRect(0, 0, w, h); for (let i = 0; i < w; i += 10) { x.fillStyle = 'rgba(255,255,255,.08)'; x.fillRect(i, 0, 1, h) } }
     else if (kind === 'camo') { x.fillStyle = '#5c6b3a'; x.fillRect(0, 0, w, h); for (let i = 0; i < 40; i++) { x.fillStyle = pick(['#3b4a2a', '#7a6a45', '#2e3a22', '#6b7a4a']); x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, rnd(6, 16), rnd(4, 9), rnd(0, 3), 0, TAU); x.fill() } }
     else if (kind === 'fur') { x.fillStyle = '#e9e1d4'; x.fillRect(0, 0, w, h); for (let i = 0; i < 500; i++) { x.strokeStyle = pick(['rgba(255,255,255,.5)', 'rgba(150,130,110,.3)']); x.beginPath(); const a = Math.random() * w, b = Math.random() * h; x.moveTo(a, b); x.lineTo(a + rnd(-3, 3), b + rnd(4, 9)); x.stroke() } }
+    else if (kind === 'aloha') { x.fillStyle = '#1c7ed6'; x.fillRect(0, 0, w, h); for (let i = 0; i < 9; i++) { const cx = Math.random() * w, cy = Math.random() * h; x.fillStyle = '#2b8a3e'; x.beginPath(); x.ellipse(cx + 8, cy + 6, 14, 5, .6, 0, TAU); x.fill(); for (let k = 0; k < 5; k++) { const a = k / 5 * TAU; dot(cx + Math.cos(a) * 6, cy + Math.sin(a) * 6, 5, pick(['#ff8fab', '#ffd43b', '#ffffff'])) } dot(cx, cy, 3, '#ffd43b') } }
     else if (kind === 'hanbok') { x.fillStyle = '#e64980'; x.fillRect(0, 0, w, h); for (let i = 0; i < 14; i++) { dot(Math.random() * w, Math.random() * h, 5, 'rgba(255,215,90,.6)') } }
   });
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.5, 1.5); return _pt[kind] = t;
@@ -404,6 +405,7 @@ function tree(p, x, z, s = 1, kind) {
   if (kind === 'persimmon') { sph(g, 1.4, '#b88a2a', 0, 2.9, 0, 1.1, .85, 1.1); for (let i = 0; i < 9; i++) { const a = i * 2.4; sph(g, .17, '#ff7a1a', Math.cos(a) * 1.2, 2.6 + Math.sin(i) * .5, Math.sin(a) * 1.2) } }
   else if (kind === 'ginkgo') { cone(g, 1.3, 3.2, '#ffcc33', 0, 3.4, 0); }
   else if (kind === 'pine') { cone(g, 1.4, 2.4, '#2f5d34', 0, 2.8, 0); cone(g, 1.0, 2, '#386b3c', 0, 4, 0) }
+  else if (kind === 'palm') { g.children[0].scale.set(.8, 2.4, .8); g.children[0].position.y = 2.6; for (let k = 0; k < 7; k++) { const a = k / 7 * TAU; const l = box(g, .5, .06, 2.6, '#2f9e44', Math.cos(a) * 1.1, 5.2, Math.sin(a) * 1.1); l.rotation.y = -a + PI / 2; l.rotation.x = .35 } for (let k = 0; k < 3; k++) sph(g, .22, '#7a4e2d', Math.cos(k * 2) * .3, 4.9, Math.sin(k * 2) * .3) }
   else if (kind === 'maple') { sph(g, 1.4, '#e8590c', 0, 2.9, 0, 1, .9, 1) }
   else sph(g, 1.4, '#4c8c3a', 0, 2.9, 0, 1, .9, 1);
   return g;
@@ -560,6 +562,14 @@ function petals(n = 40, cx = 0, cz = 0, r = 12, cols = ['#ffc9de', '#ffffff', '#
     fxs.push({ o: m, l: 1e9, u: () => { const t = performance.now() / 1000 * sp + ph; const y = 8 - (t * 1.2 % 8); m.position.set(x0 + Math.sin(t * 1.3) * 1.2, y, z0 + Math.cos(t) * .8); m.rotation.set(t * 2, t * 3, t) } });
   }
 }
+function lei(c, y = .82) { for (let k = 0; k < 16; k++) { const a = k / 16 * TAU; sph(c.body, .07, pick(['#ff8fab', '#ffd43b', '#ffffff', '#f06595']), Math.sin(a) * .36, y + Math.cos(a) * .04, Math.cos(a) * .24 + .03) } }
+function surfBoard() {
+  const g = new THREE.Group(); const b = sph(g, 1, '#ffd43b', 0, .25, 0, .9, .12, 2.6); box(g, .12, .03, 4.6, '#e64980', 0, .38, 0, false);
+  sign(g, ['순배'], 1, .4, null, '#c92a2a', 0, .39, 1.2, 0, 40).rotation.x = -PI / 2; box(g, .06, .5, .4, '#1c7ed6', 0, -.1, 2.1);
+  return outline(g, .04);
+}
+let cutT = 0;
+function cutin(face, text, color) { const c = $('#cutin'); if (!c) return; c.innerHTML = '<span class="cf">' + face + '</span><span class="ct">' + text + '</span>'; c.style.background = color || ''; c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); cutT = 1.5; snd('pow') }
 function kimchiSlap(pos) {
   const g = new THREE.Group(); g.position.copy(pos); sph(g, .75, '#e8590c', 0, 0, 0, 1.3, .14, .7); sph(g, .55, '#fff3bf', 0, .03, -.2, 1, .1, .45); sph(g, .3, '#c92a2a', .3, .05, .2, 1, .1, 1);
   scene.add(g); puff(pos, '!#ff6b6b', 10, 5, .2, .5);
@@ -582,6 +592,7 @@ function popAt(pos, text, color = '#ffd43b', size = 30) {
 }
 const _wp = V3();
 function updTexts(dt) {
+  if (cutT > 0) { cutT -= dt; if (cutT <= 0) { const c = $('#cutin'); if (c) c.classList.remove('on') } }
   drawMinimap(); if (comboT > 0) { comboT -= dt; if (comboT <= 0) { const c = $('#combo'); if (c) c.classList.remove('on') } }
   for (let i = bubbles.length - 1; i >= 0; i--) {
     const b = bubbles[i]; b.t -= dt;
@@ -2863,5 +2874,123 @@ function loop(now) {
   for (const k in KP) delete KP[k];
 }
 resize(); goTitle(); requestAnimationFrame(loop);
+
+/* ===================== 순배 할매의 날씨·에너지 교실 (1~5편 공통 학습) ===================== */
+const LEARN = [
+  // 날씨와 우리 생활
+  { k: '날씨', t: '습도', f: '공기 중에 수증기가 얼마나 들어 있는지를 "습도"라고 혀. 건습구 습도계로 잴 수 있어!', q: '건습구 습도계는 건구 온도와 습구 온도의 차이로 습도를 알아낸다.', a: true, e: '맞아요! 건구·습구 온도 차이를 습도표에서 찾으면 습도가 나와요.' },
+  { k: '날씨', t: '습도가 높을 때', f: '습도가 높으면 빨래가 잘 안 마르고, 곰팡이가 잘 생겨. 김치 장독도 잘 닦아 둬야 혀!', q: '습도가 높으면 빨래가 더 빨리 마른다.', a: false, e: '습도가 높으면 공기 중에 수증기가 많아서 빨래가 잘 마르지 않아요.' },
+  { k: '날씨', t: '습도가 낮을 때', f: '습도가 낮으면 피부가 건조해지고 산불이 나기 쉬워. 가습기나 젖은 수건을 쓰면 좋아!', q: '습도가 낮으면 산불이 나기 쉽다.', a: true, e: '맞아요. 공기가 건조하면 불이 잘 붙고 잘 번져요.' },
+  { k: '날씨', t: '이슬', f: '밤에 기온이 내려가면 공기 속 수증기가 차가운 풀잎에 맺혀 물방울이 돼. 그게 이슬이여!', q: '이슬은 수증기가 응결해서 물체 표면에 맺힌 것이다.', a: true, e: '맞아요. 수증기가 차가워진 물체 표면에서 물방울로 응결한 것이 이슬이에요.' },
+  { k: '날씨', t: '안개', f: '지표면 가까이에서 수증기가 응결해 작은 물방울로 떠 있는 게 안개여. 운전할 땐 조심혀야 혀!', q: '안개는 하늘 높은 곳에서만 생긴다.', a: false, e: '안개는 지표면 가까운 곳의 공기 속 수증기가 응결해서 생겨요.' },
+  { k: '날씨', t: '구름', f: '공기가 위로 올라가면 온도가 낮아져. 그러면 수증기가 응결해서 구름이 생겨!', q: '구름은 공기가 위로 올라가 온도가 낮아질 때 만들어진다.', a: true, e: '맞아요. 높이 올라간 공기가 식으면서 수증기가 물방울·얼음 알갱이가 돼요.' },
+  { k: '날씨', t: '비와 눈', f: '구름 속 물방울이 커지고 무거워지면 떨어져서 비가 되고, 얼음 알갱이가 녹지 않고 내리면 눈이 돼.', q: '구름 속 얼음 알갱이가 녹지 않고 떨어지면 눈이 된다.', a: true, e: '맞아요. 녹으면서 떨어지면 비, 녹지 않고 떨어지면 눈이에요.' },
+  { k: '날씨', t: '고기압과 저기압', f: '같은 부피일 때 공기가 무거우면 고기압, 가벼우면 저기압이여. 차가운 공기가 더 무거워!', q: '따뜻한 공기는 차가운 공기보다 무거워서 고기압이 된다.', a: false, e: '차가운 공기가 같은 부피에서 더 무거워 고기압이 되고, 따뜻한 공기는 저기압이 돼요.' },
+  { k: '날씨', t: '바람', f: '바람은 고기압에서 저기압 쪽으로 불어. 공기가 무거운 쪽에서 가벼운 쪽으로 이사 가는 거여!', q: '바람은 저기압에서 고기압으로 분다.', a: false, e: '바람은 기압이 높은 곳(고기압)에서 낮은 곳(저기압)으로 불어요.' },
+  { k: '날씨', t: '바닷가의 낮 바람', f: '낮엔 육지가 바다보다 빨리 데워져. 그래서 낮에는 바다에서 육지로 해풍이 불어!', q: '맑은 날 낮에 바닷가에서는 바다에서 육지 쪽으로 바람이 분다.', a: true, e: '낮에는 육지가 더 따뜻해 저기압, 바다가 고기압이라 바다→육지로 불어요.' },
+  { k: '날씨', t: '바닷가의 밤 바람', f: '밤엔 육지가 바다보다 빨리 식어. 그래서 밤에는 육지에서 바다로 육풍이 불어!', q: '밤에는 바다가 육지보다 빨리 식는다.', a: false, e: '밤에는 육지가 더 빨리 식어서 육지가 고기압, 육지→바다로 바람이 불어요.' },
+  { k: '날씨', t: '겨울 날씨', f: '겨울엔 북서쪽 대륙에서 차갑고 건조한 공기가 와. 그래서 춥고 건조혀. 김장철이 딱 그때여!', q: '우리나라 겨울에는 북서쪽에서 차갑고 건조한 공기가 온다.', a: true, e: '맞아요. 대륙에서 오는 공기라 차갑고 건조해요.' },
+  { k: '날씨', t: '여름 날씨', f: '여름엔 남동쪽 바다에서 따뜻하고 습한 공기가 와. 그래서 덥고 끈적끈적혀!', q: '우리나라 여름에는 남동쪽 바다에서 따뜻하고 습한 공기가 온다.', a: true, e: '맞아요. 바다 위를 지나온 공기라 습하고, 남쪽이라 따뜻해요.' },
+  { k: '날씨', t: '날씨와 생활', f: '일기 예보를 보면 우산을 챙길지, 빨래를 널지, 김장 날을 언제로 할지 정할 수 있어!', q: '날씨는 우리 생활(옷차림, 농사, 행사)에 영향을 준다.', a: true, e: '맞아요. 그래서 일기 예보를 보고 계획을 세워요.' },
+  // 자원과 에너지
+  { k: '에너지', t: '에너지란?', f: '기계를 움직이거나 생물이 살아가려면 에너지가 필요혀. 할매가 떡메 치는 힘도 밥에서 나와!', q: '사람은 음식을 먹어서 에너지를 얻는다.', a: true, e: '맞아요. 동물은 다른 생물을 먹어서, 식물은 햇빛으로 양분을 만들어 에너지를 얻어요.' },
+  { k: '에너지', t: '식물의 에너지', f: '식물은 햇빛을 받아 스스로 양분을 만들어. 배추도 햇빛 받고 크는 거여!', q: '식물은 다른 생물을 먹어야만 에너지를 얻을 수 있다.', a: false, e: '식물은 빛을 이용해 스스로 양분을 만들어 에너지를 얻어요(광합성).' },
+  { k: '에너지', t: '열에너지', f: '물체의 온도를 높이는 에너지가 열에너지여. 김치찌개 끓이는 가스불이 딱 그거지!', q: '음식을 익히는 것은 열에너지 덕분이다.', a: true, e: '맞아요. 열에너지가 음식의 온도를 높여 익혀요.' },
+  { k: '에너지', t: '전기 에너지', f: '전기 기구를 작동하게 하는 에너지가 전기 에너지여. 김치냉장고도 전기로 돌아가!', q: '김치냉장고는 전기 에너지가 없어도 작동한다.', a: false, e: '김치냉장고는 전기 에너지로 작동해요.' },
+  { k: '에너지', t: '빛에너지', f: '주위를 밝게 비춰 주는 에너지가 빛에너지여. 햇빛, 전등빛 다 빛에너지!', q: '전등은 전기 에너지를 빛에너지로 바꾼다.', a: true, e: '맞아요. 전기 에너지 → 빛에너지로 바뀌어요.' },
+  { k: '에너지', t: '운동 에너지', f: '움직이는 물체가 가진 에너지가 운동 에너지여. 굴러가는 김치통도 운동 에너지가 있어!', q: '움직이는 물체는 운동 에너지를 가진다.', a: true, e: '맞아요. 빠를수록, 무거울수록 운동 에너지가 커요.' },
+  { k: '에너지', t: '위치 에너지', f: '높은 곳에 있는 물체는 위치 에너지를 가져. 높이 든 떡메가 내려칠 때 힘이 센 이유여!', q: '높은 곳에 있는 물체는 위치 에너지를 가진다.', a: true, e: '맞아요. 높을수록 위치 에너지가 커요.' },
+  { k: '에너지', t: '화학 에너지', f: '음식, 석유, 건전지 속에 저장된 에너지가 화학 에너지여. 배추에도 들어 있지!', q: '건전지에는 화학 에너지가 저장되어 있다.', a: true, e: '맞아요. 건전지의 화학 에너지가 전기 에너지로 바뀌어 쓰여요.' },
+  { k: '에너지', t: '에너지 전환', f: '에너지는 형태가 바뀔 수 있어. 이걸 에너지 전환이라 혀. 떡메는 위치 에너지가 운동 에너지로!', q: '태양 전지는 빛에너지를 전기 에너지로 바꾼다.', a: true, e: '맞아요. 태양 전지(태양광 패널)는 빛 → 전기로 에너지를 전환해요.' },
+  { k: '에너지', t: '롤러코스터', f: '롤러코스터는 높은 데서 내려오면서 위치 에너지가 운동 에너지로 바뀌어. 할매는 못 타!', q: '롤러코스터가 내려올 때 운동 에너지가 위치 에너지로 바뀐다.', a: false, e: '내려올 때는 위치 에너지 → 운동 에너지로 바뀌어요. 올라갈 땐 반대예요.' },
+  { k: '에너지', t: '태양 에너지', f: '우리가 쓰는 에너지 대부분은 처음에 태양에서 왔어. 석유·석탄도 옛날 생물이 햇빛 받아 만든 거여!', q: '석유와 석탄의 에너지도 처음에는 태양에서 온 것이다.', a: true, e: '맞아요. 옛날 생물이 햇빛으로 만든 양분이 땅속에서 변한 것이 화석 연료예요.' },
+  { k: '에너지', t: '에너지 효율', f: '같은 일을 하면서 에너지를 덜 쓰면 효율이 높은 거여. LED 전등이 백열등보다 효율이 좋아!', q: 'LED 전등은 백열등보다 에너지를 더 많이 낭비한다.', a: false, e: 'LED는 같은 밝기에 전기를 훨씬 적게 써요. 백열등은 열로 많이 버려요.' },
+  { k: '에너지', t: '에너지 소비 효율 등급', f: '가전제품에 붙은 등급표! 1등급에 가까울수록 에너지를 아껴 써. 김치냉장고 살 때 꼭 봐!', q: '에너지 소비 효율 등급은 5등급이 가장 에너지를 아낀다.', a: false, e: '1등급에 가까울수록 에너지를 적게 써요.' },
+  { k: '에너지', t: '겨울잠과 에너지', f: '곰이나 다람쥐는 겨울잠을 자며 에너지를 아껴. 할매도 김장 끝나면 겨울잠 잘 거여!', q: '겨울잠은 동물이 에너지를 효율적으로 쓰는 방법이다.', a: true, e: '맞아요. 먹이가 부족한 겨울에 에너지를 아끼는 방법이에요.' },
+  { k: '에너지', t: '에너지 절약', f: '안 쓰는 플러그 뽑기, 냉장고 문 빨리 닫기, 가까운 데는 걸어가기! 다 에너지 아끼는 방법이여.', q: '냉장고 문을 오래 열어 두면 에너지가 절약된다.', a: false, e: '문을 오래 열면 찬 공기가 빠져나가 다시 식히는 데 에너지를 더 써요.' },
+  { k: '에너지', t: '이중창과 단열', f: '이중창이나 문풍지는 집 안의 열이 밖으로 새는 걸 막아 줘. 겨울 난방비 아끼는 비법이여!', q: '이중창은 열이 빠져나가는 것을 줄여 에너지를 아낀다.', a: true, e: '맞아요. 창 사이 공기층이 열이 이동하는 것을 막아 줘요.' },
+];
+let learnPool = [], learnLog = [];
+const learnSeen = new Set();
+function nextLearn() { if (!learnPool.length) learnPool = LEARN.slice().sort(() => Math.random() - .5); return learnPool.pop() }
+(function () {
+  const d = document.createElement('div'); d.id = 'ovLearn'; d.className = 'ovl';
+  d.innerHTML = `<div class="card quiz" style="max-width:520px">
+    <div style="font-size:40px;line-height:1">👵📚</div>
+    <h3 style="margin:4px 0 2px">순배 할매의 <span id="lnK"></span> 교실</h3>
+    <div class="small" id="lnStage" style="opacity:.7"></div>
+    <div style="margin:10px 0;padding:12px 14px;background:#fff3bf;border:3px solid #111;border-radius:14px;text-align:left;font-size:17px;line-height:1.5"><b id="lnT" style="color:#c92a2a"></b><br><span id="lnF"></span></div>
+    <div class="q" id="lnQ" style="font-size:18px;margin:8px 0"></div>
+    <div id="lnBtns" style="display:flex;gap:10px"><button class="btn" id="lnO" style="background:#8ce99a;font-size:26px">⭕ 맞아</button><button class="btn" id="lnX" style="background:#ffa8a8;font-size:26px">❌ 틀려</button></div>
+    <div class="ex" id="lnE" style="display:none"></div>
+    <button class="btn" id="lnGo" style="display:none">다음 미션 출발! ▶</button>
+  </div>`;
+  document.body.appendChild(d);
+})();
+let learnCB = null, learnItem = null, learnDone = false;
+function learnAnswer(v) {
+  if (learnDone || !learnItem) return; learnDone = true;
+  const ok = v === learnItem.a; stats.quizN++; if (ok) { stats.quizOK++; addMoney(2000) }
+  learnLog.push({ t: learnItem.t, k: learnItem.k, ok });
+  $('#lnE').innerHTML = (ok ? '⭕ <b>정답! +₩2,000</b> ' : '❌ <b>아쉽다~</b> ') + learnItem.e; $('#lnE').style.display = 'block';
+  $('#lnO').style.opacity = learnItem.a ? 1 : .35; $('#lnX').style.opacity = learnItem.a ? .35 : 1;
+  $('#lnGo').style.display = 'block'; snd(ok ? 'win' : 'bad');
+}
+function learnCard(i, cb) {
+  learnItem = nextLearn(); learnCB = cb; learnDone = false;
+  $('#lnK').textContent = learnItem.k === '날씨' ? '🌦️ 날씨' : '⚡ 에너지';
+  $('#lnStage').textContent = '다음 미션: ' + (typeof STAGE_NAMES !== 'undefined' && STAGE_NAMES[i] ? STAGE_NAMES[i] : (STAGES[i].name || ''));
+  $('#lnT').textContent = '📌 ' + learnItem.t; $('#lnF').textContent = learnItem.f; $('#lnQ').textContent = 'OX 퀴즈: ' + learnItem.q;
+  $('#lnE').style.display = 'none'; $('#lnGo').style.display = 'none'; $('#lnO').style.opacity = $('#lnX').style.opacity = 1;
+  show('#ovLearn');
+}
+$('#lnO').onclick = () => { initAudio(); learnAnswer(true) };
+$('#lnX').onclick = () => { initAudio(); learnAnswer(false) };
+$('#lnGo').onclick = () => { hide('#ovLearn'); const f = learnCB; learnCB = null; f && f() };
+addEventListener('keydown', e => {
+  if (!$('#ovLearn').classList.contains('on')) return;
+  if (!learnDone && (e.code === 'KeyO' || e.key === '1')) learnAnswer(true);
+  else if (!learnDone && (e.code === 'KeyX' || e.key === '2')) learnAnswer(false);
+  else if (learnDone && (e.code === 'Enter' || e.code === 'Space')) $('#lnGo').click();
+  e.stopPropagation();
+}, true);
+// 미션 시작 전 학습 카드 (처음 한 번)
+const _startStageL = startStage;
+startStage = function (i, title) {
+  if (!title && i > 0 && i < STAGES.length - 1 && !learnSeen.has(i)) {
+    learnSeen.add(i); clearUI(); cut = true;
+    learnCard(i, () => _startStageL(i, title)); return;
+  }
+  return _startStageL(i, title);
+};
+// 실패 화면 · 엔딩 화면에 학습 내용 덧붙이기
+const _showL = show;
+show = function (id) {
+  if (id === '#ovFail') {
+    let tip = document.getElementById('failTip'); if (!tip) { tip = document.createElement('div'); tip.id = 'failTip'; tip.style.cssText = 'margin:10px 0;padding:10px 12px;background:#e7f5ff;border:3px solid #111;border-radius:12px;text-align:left;font-size:15px;line-height:1.45'; $('#failMsg').after(tip) }
+    const L = LEARN[Math.random() * LEARN.length | 0]; tip.innerHTML = `💡 <b>할매 상식 · ${L.t}</b><br>${L.f}`;
+  }
+  if (id === '#ovClear') {
+    let s = document.getElementById('learnSum'); if (!s) { s = document.createElement('div'); s.id = 'learnSum'; s.style.cssText = 'margin:10px 0;padding:10px 12px;background:#fff3bf;border:3px solid #111;border-radius:12px;text-align:left;font-size:14px;line-height:1.5'; $('#clearStats').after(s) }
+    const ok = learnLog.filter(x => x.ok).length;
+    s.innerHTML = learnLog.length ? `📚 <b>오늘 배운 것 (OX ${ok}/${learnLog.length})</b><br>` + learnLog.map(x => `${x.ok ? '⭕' : '❌'} ${x.k === '날씨' ? '🌦️' : '⚡'} ${x.t}`).join('<br>') : '';
+  }
+  return _showL(id);
+};
+/* 보스 퀴즈 문제 추가 */
+QUIZ.push(
+  { q: '바람이 부는 까닭으로 알맞은 것은?', a: ['두 지역의 기압 차이 때문에', '나무가 흔들려서', '구름이 움직여서', '바다가 출렁여서'], e: '기압이 높은 곳에서 낮은 곳으로 공기가 이동하는 것이 바람이에요.' },
+  { q: '맑은 날 낮, 바닷가에서 바람은 어느 쪽으로 불까요?', a: ['바다 → 육지', '육지 → 바다', '바람이 불지 않는다', '하늘 → 땅'], e: '낮에는 육지가 빨리 데워져 저기압이 되므로 바다에서 육지로 바람이 불어요.' },
+  { q: '같은 부피일 때 더 무거워서 고기압이 되는 공기는?', a: ['차가운 공기', '따뜻한 공기', '습한 공기만', '모든 공기가 같다'], e: '차가운 공기는 같은 부피에서 더 무거워 고기압이 돼요.' },
+  { q: '건습구 습도계에서 습도를 알아낼 때 필요한 것은?', a: ['건구 온도와 습구 온도의 차이', '바람의 세기', '구름의 양', '해가 뜬 시각'], e: '건구 온도와 두 온도의 차이를 습도표에서 찾으면 습도를 알 수 있어요.' },
+  { q: '우리나라 겨울 날씨가 춥고 건조한 까닭은?', a: ['북서쪽 대륙에서 차갑고 건조한 공기가 와서', '남동쪽 바다에서 따뜻한 공기가 와서', '해가 뜨지 않아서', '비가 많이 와서'], e: '겨울에는 북서쪽 대륙의 차갑고 건조한 공기의 영향을 받아요.' },
+  { q: '롤러코스터가 높은 곳에서 내려올 때 일어나는 에너지 전환은?', a: ['위치 에너지 → 운동 에너지', '운동 에너지 → 위치 에너지', '빛에너지 → 화학 에너지', '전기 에너지 → 소리 에너지'], e: '높이가 낮아지며 위치 에너지가 줄고, 빨라지며 운동 에너지가 늘어요.' },
+  { q: '태양 전지(태양광 패널)에서 일어나는 에너지 전환은?', a: ['빛에너지 → 전기 에너지', '전기 에너지 → 빛에너지', '열에너지 → 화학 에너지', '운동 에너지 → 위치 에너지'], e: '태양 전지는 햇빛의 빛에너지를 전기 에너지로 바꿔요.' },
+  { q: '건전지 속에 저장되어 있는 에너지는?', a: ['화학 에너지', '위치 에너지', '빛에너지', '소리 에너지'], e: '건전지 속 화학 에너지가 전기 에너지로 바뀌어 쓰여요.' },
+  { q: '같은 밝기일 때 에너지를 가장 적게 쓰는 전등은?', a: ['LED 전등', '백열등', '촛불', '모두 같다'], e: 'LED 전등은 에너지 효율이 높아 전기를 적게 써요.' },
+  { q: '에너지 소비 효율 등급에서 에너지를 가장 아끼는 등급은?', a: ['1등급', '3등급', '5등급', '등급과 상관없다'], e: '1등급에 가까울수록 에너지를 적게 써요.' },
+  { q: '식물이 에너지를 얻는 방법으로 알맞은 것은?', a: ['햇빛을 받아 스스로 양분을 만든다', '다른 동물을 먹는다', '땅속 전기를 먹는다', '바람을 마신다'], e: '식물은 빛을 이용해 스스로 양분을 만들어요.' },
+  { q: '겨울철 집에서 열이 빠져나가는 것을 줄이는 방법은?', a: ['문풍지를 붙이고 이중창을 쓴다', '창문을 활짝 연다', '난방기를 하루 종일 최고로 튼다', '현관문을 열어 둔다'], e: '틈을 막고 이중창을 쓰면 열이 덜 빠져나가 에너지를 아낄 수 있어요.' },
+);
 </script>
 </body></html>
