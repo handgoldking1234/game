@@ -117,24 +117,27 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .w .tag .n{background:var(--acc);color:#fff}
 .w .tag .s{background:#111;color:#fff}
 .w .nm{margin-top:10px;text-align:center}
-.w .nm h3{margin:0;font-size:15px;font-weight:700}
+.w .nm h3{margin:0;font-size:15px;font-weight:700;line-height:1.35}
 .w .nm p{margin:2px 0 0;font-size:12.5px;color:var(--mute)}.w .nm [data-alt]{color:var(--acc);text-decoration:underline;text-underline-offset:2px}
 .w.hide,.wi.hide{display:none}
 .wi{position:relative;display:flex;flex-direction:column}
-.wm{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:6px;font-size:12px;color:var(--mute)}
-.lk{border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:3px 10px;font:700 12px var(--ko,inherit);cursor:pointer;color:#6b7280;display:inline-flex;gap:4px;align-items:center;transition:transform .15s,background .15s,color .15s}
+.wm{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;margin-top:8px;font-size:12px;line-height:1;color:var(--mute)}
+.wm>*{height:26px;box-sizing:border-box;display:inline-flex;align-items:center;gap:0;border-radius:999px;padding:0 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wm .ic{width:13px;height:13px;flex:none;fill:currentColor;stroke:none;margin-right:5px}
+.wm b{font-weight:700}
+.lk{border:1px solid #e5e7eb;background:#fff;font:600 12px var(--ko,inherit);line-height:1;cursor:pointer;color:#6b7280;transition:transform .15s,background .15s,color .15s}
 .lk:hover{border-color:#f43f5e;color:#f43f5e}.lk[aria-pressed="true"]{background:#f43f5e;border-color:#f43f5e;color:#fff}
 .lk.pop{transform:scale(1.18)}
-.wm .pl b{color:#111;font-weight:700}
-.wm .hot{background:#fff1e6;color:#ea580c;border-radius:4px;padding:1px 6px;font-weight:700}
-.wm .lock{background:#eef2ff;color:#4338ca;border-radius:4px;padding:1px 6px;font-weight:700}
+.wm .pl{background:#f3f4f6;color:#6b7280;font-weight:600}.wm .pl b{color:#111}.wm .pl .ic{width:11px;height:11px}
+.wm .hot{background:#fff1e6;color:#ea580c;font-weight:700}
+.wm .lock{background:#eef2ff;color:#4338ca;font-weight:700}
 .live{display:flex;align-items:center;justify-content:center;gap:6px;margin:-6px auto 12px;font-size:13px;font-weight:700;color:#166534}
 .live i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:livep 1.6s infinite}
 .live b{font-size:15px;color:#15803d}
 .live em{font-style:normal;color:#6b7280;font-weight:600}
 @keyframes livep{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
-.wm .now{background:#ecfdf5;color:#15803d;border-radius:4px;padding:1px 6px;font-weight:700;white-space:nowrap}
-.wm .now em{font-style:normal}@media(max-width:640px){.wm .now em{display:none}}
+.wm .now{background:#ecfdf5;color:#15803d;font-weight:700}
+.wm .now em{font-style:normal;margin-left:3px}.wm .now .dot{width:7px;height:7px;border-radius:50%;background:#22c55e;margin-right:5px;flex:none}@media(max-width:640px){.wm .now em{display:none}}
 .wm .now[hidden]{display:none}
 .sort{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 18px;justify-content:center}
 .sort button{border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;color:#374151}
@@ -351,10 +354,10 @@ var st={tab:'all',q:'',learn:'',more:false,sort:'rec'};try{st.sort=localStorage.
 var STATS={},MYLIKE={};try{MYLIKE=JSON.parse(localStorage.getItem('mw_likes')||'{}')}catch(e){}
 function nf(n){n=n||0;return n>=10000?(Math.round(n/1000)/10)+'만':n.toLocaleString('ko-KR')}
 function meta(g){var s=STATS[g.id]||{},lk=s.likes||0,on=!!(s.mine!=null?s.mine:MYLIKE[g.id]);var hot=(s.plays7||0)>=Math.max(5,TOP7)?'<span class="hot">🔥 인기</span>':'';
- return '<div class="wm"><button type="button" class="lk" data-like="'+g.id+'" aria-pressed="'+on+'" aria-label="'+esc(g.t)+' 좋아요">♥ <b>'+nf(lk)+'</b></button><span class="pl">▶ <b>'+nf(s.plays||0)+'</b>회</span>'+nowTag(g.id)+hot+(window.MWT&&MWT.allowed&&!MWT.allowed(g.id)?'<span class="lock" title="'+esc(MWT.hoursText(g.id))+'">'+(MWT.isOff&&MWT.isOff(g.id)?'⛔ 꺼짐':'🔒 쉬는 시간')+'</span>':'')+'</div>'}
+ return '<div class="wm"><button type="button" class="lk" data-like="'+g.id+'" aria-pressed="'+on+'" aria-label="'+esc(g.t)+' 좋아요"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><b>'+nf(lk)+'</b></button><span class="pl" title="플레이 횟수"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg><b>'+nf(s.plays||0)+'</b>회</span>'+nowTag(g.id)+hot+(window.MWT&&MWT.allowed&&!MWT.allowed(g.id)?'<span class="lock" title="'+esc(MWT.hoursText(g.id))+'">'+(MWT.isOff&&MWT.isOff(g.id)?'⛔ 꺼짐':'🔒 쉬는 시간')+'</span>':'')+'</div>'}
 var TOP7=1e9;
 var ONLINE={total:0,games:{}};
-function nowTag(id){var n=ONLINE.games[id]||0;return '<span class="now" data-now="'+id+'"'+(n?'':' hidden')+' title="지금 이 게임을 하는 사람">🟢 <b>'+n+'</b>명<em> 하는 중</em></span>'}
+function nowTag(id){var n=ONLINE.games[id]||0;return '<span class="now" data-now="'+id+'"'+(n?'':' hidden')+' title="지금 이 게임을 하는 사람"><i class="dot"></i><b>'+n+'</b>명<em>하는 중</em></span>'}
 window.addEventListener('mw-online',function(e){ONLINE=e.detail||ONLINE;var L=document.getElementById('live');if(L){L.hidden=!(ONLINE.total>0);document.getElementById('liveN').textContent=ONLINE.total;var pg=0;for(var k in ONLINE.games)if(k!=='home')pg+=ONLINE.games[k];document.getElementById('liveG').textContent=pg?' · 게임 중 '+pg+'명':''}
  document.querySelectorAll('[data-now]').forEach(function(el){var n=ONLINE.games[el.dataset.now]||0;el.hidden=!n;var b=el.querySelector('b');if(b)b.textContent=n})});
 function score(g){var s=STATS[g.id]||{};return (s.plays7||0)*3+(s.plays||0)+(s.likes||0)*8}
