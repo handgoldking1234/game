@@ -18,6 +18,8 @@
 ```
 index.html                원페이지 (GAMES 목록, 썸네일 내장)
 games/*.html              게임 20종 (+ backrooms-pc 고화질판)
+star/index.html           잿빛 전선(실시간 전략) → https://game.iux.kr/star · 원페이지 목록에는 없음
+                          웹판은 <html data-noasset="1">: 원작 그림·소리 폴더를 찾지 않고 자체 그래픽으로 실행
 thumbs/, hero/            썸네일·배경 원본
 mwt.js                    방문·플레이 통계, 좋아요
 api/t.js                  통계 수집 서버 함수
