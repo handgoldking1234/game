@@ -193,7 +193,8 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .pr span b{display:block;color:#fff;font-size:12.5px;margin-bottom:1px}
 .pr span.o{background:rgba(255,106,19,.12);border-color:rgba(255,106,19,.4)}
 .copy{color:#555;font-size:11.5px;margin-top:6px}
-#fLive b{color:#4ade80;font-size:14px}#fLive .fdot{display:inline-block;vertical-align:middle;margin:-2px 6px 0 0;width:7px;height:7px;border-radius:50%;background:#22c55e;animation:livep 1.6s infinite}
+.onl{position:fixed;left:28px;bottom:28px;z-index:40;background:rgba(17,17,17,.88);color:#e5e7eb;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.18);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);white-space:nowrap}
+.onl[hidden]{display:none}.onl b{color:#4ade80;font-size:15px}.onl .fdot{display:inline-block;vertical-align:middle;margin:-2px 7px 0 0;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:livep 1.6s infinite}
 
 /* ===== 반응형 ===== */
 
@@ -212,7 +213,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
  .hd{padding:0 16px}.util .ghost{display:none}
  .hero{height:86vh;min-height:520px}.cap{left:20px;right:20px}.cap p{font-size:15px}
  .ctrl{left:16px;right:16px;bottom:22px}.bar{margin:0 8px}
- .fab{right:16px;bottom:16px}.float{padding:11px 16px}.totop{width:44px;height:44px}
+ .fab{right:16px;bottom:16px}.onl{left:16px;bottom:22px;padding:8px 12px;font-size:12px}.onl em{display:none}.float{padding:11px 16px}.totop{width:44px;height:44px}
  .sec{padding:72px 0 80px}.tit{font-size:30px}.lead{margin-bottom:30px}
  .find{width:100%}
  .tabs{width:calc(100% + 40px);margin:0 -20px;padding:4px 20px 10px;gap:20px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 28px),transparent)}
@@ -287,12 +288,13 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
   <div class="info" id="about">
    <div class="logo"><span class="mark">M</span>민왕게임월드</div>
    <dl><dt>운영</dt><dd>민왕게임월드</dd><dt>대상</dt><dd>초등학생 이상 · 😱 표시 게임은 만 10세 이상 권장</dd><dt>환경</dt><dd>최신 크롬 권장 · 3D 게임은 인터넷 연결 필요</dd></dl>
-   <dl><dt>게임</dt><dd id="fCount"></dd><dt>수업</dt><dd>5학년 2학기 「자원과 에너지」 연계</dd><dt>접속</dt><dd id="fLive" aria-live="polite"><i class="fdot"></i>접속자 확인 중…</dd><dt>통계</dt><dd>더 좋은 게임을 위해 익명 이용 통계(기기 종류·지역·일부를 가린 IP·플레이 시간)만 모아요</dd><dd class="copy" style="grid-column:1/-1">Copyright © 2026 Minwang Game World. All rights reserved.</dd></dl>
+   <dl><dt>게임</dt><dd id="fCount"></dd><dt>수업</dt><dd>5학년 2학기 「자원과 에너지」 연계</dd><dt>통계</dt><dd>더 좋은 게임을 위해 익명 이용 통계(기기 종류·지역·일부를 가린 IP·플레이 시간)만 모아요</dd><dd class="copy" style="grid-column:1/-1">Copyright © 2026 Minwang Game World. All rights reserved.</dd></dl>
    <div class="pr"><span class="o"><b>광고 없음</b>게임을 끊지 않아요</span><span><b>가입 없음</b>이름·연락처 안 받아요</span><span><b>설치 없음</b>크롬북 OK</span><span class="o"><b>무서움 표시</b>😱로 미리 알려요</span></div>
   </div>
  </div>
 </footer>
 
+<div class="onl" id="fLive" aria-live="polite" hidden><i class="fdot"></i><span></span></div>
 <div class="fab"><button class="totop" id="totop" type="button" aria-label="맨 위로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span>TOP</span></button><button class="float" id="rand" type="button">랜덤 플레이 <span aria-hidden="true">🎲</span></button></div>
 
 <script>
@@ -362,7 +364,7 @@ var TOP7=1e9;
 var ONLINE={total:0,games:{}};
 function nowTag(id){var n=ONLINE.games[id]||0;return '<span class="now" data-now="'+id+'"'+(n?'':' hidden')+' title="지금 이 게임을 하는 사람"><i class="dot"></i><b>'+n+'</b>명<em>하는 중</em></span>'}
 window.addEventListener('mw-online',function(e){ONLINE=e.detail||ONLINE;var L=document.getElementById('live');if(L){L.hidden=!(ONLINE.total>0);document.getElementById('liveN').textContent=ONLINE.total;var pg=0;for(var k in ONLINE.games)if(k!=='home')pg+=ONLINE.games[k];document.getElementById('liveG').textContent=pg?' · 게임 중 '+pg+'명':''}
- var F=document.getElementById('fLive');if(F){var g2=0;for(var k2 in ONLINE.games)if(k2!=='home')g2+=ONLINE.games[k2];F.innerHTML='<i class="fdot"></i>지금 <b>'+ONLINE.total+'</b>명 접속 중'+(g2?' · 게임 중 '+g2+'명':'')}
+ var F=document.getElementById('fLive');if(F){var g2=0;for(var k2 in ONLINE.games)if(k2!=='home')g2+=ONLINE.games[k2];F.hidden=!(ONLINE.total>0);F.querySelector('span').innerHTML='지금 <b>'+ONLINE.total+'</b>명 접속 중'+(g2?'<em style="font-style:normal;color:#9ca3af"> · 게임 중 '+g2+'명</em>':'')}
  document.querySelectorAll('[data-now]').forEach(function(el){var n=ONLINE.games[el.dataset.now]||0;el.hidden=!n;var b=el.querySelector('b');if(b)b.textContent=n})});
 function score(g){var s=STATS[g.id]||{};return (s.plays7||0)*3+(s.plays||0)+(s.likes||0)*8}
 function sorted(list){var L=list.slice(),i0={};GAMES.forEach(function(g,i){i0[g.id]=i});
