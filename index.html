@@ -116,11 +116,13 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
 .w .tag span{font:700 10.5px/1 var(--en);letter-spacing:.05em;background:#fff;color:#111;padding:5px 7px;border-radius:2px}
 .w .tag .n{background:var(--acc);color:#fff}
 .w .tag .s{background:#111;color:#fff}
-.w .nm{margin-top:10px;text-align:center}
+.w .nm{margin-top:10px;text-align:left;min-width:0}
 .w .nm h3{margin:0;font-size:15px;font-weight:700;line-height:1.35}
 .w .nm p{margin:2px 0 0;font-size:12.5px;color:var(--mute)}.w .nm [data-alt]{color:var(--acc);text-decoration:underline;text-underline-offset:2px}
 .w.hide,.wi.hide{display:none}
-.wi{position:relative;display:flex;flex-direction:column}
+.wi{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:center}
+.wi>.w{display:contents}.wi>.w>.ph{grid-column:1/-1}.w:focus-visible .ph{outline:3px solid var(--acc);outline-offset:2px}
+.wi>.wm{justify-content:flex-end;margin-top:10px;align-self:center}
 .wm{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;margin-top:8px;font-size:12px;line-height:1;color:var(--mute)}
 .wm>*{height:26px;box-sizing:border-box;display:inline-flex;align-items:center;gap:0;border-radius:999px;padding:0 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .wm .ic{width:13px;height:13px;flex:none;fill:currentColor;stroke:none;margin-right:5px}
@@ -216,7 +218,7 @@ header.solid{background:rgba(11,11,13,.92);backdrop-filter:blur(8px);box-shadow:
  .recent{display:block;white-space:nowrap;overflow-x:auto;scrollbar-width:none;width:calc(100% + 40px);margin:-14px -20px 26px;padding:0 20px 4px;-webkit-overflow-scrolling:touch}
  .recent::-webkit-scrollbar{display:none}.recent>span{display:block;margin-bottom:8px}.recent a{display:inline-block;margin-right:6px}
  .tabs::-webkit-scrollbar{display:none}.tabs button{flex:none;white-space:nowrap;scroll-snap-align:start}
- .works{grid-template-columns:repeat(2,1fr);gap:26px 12px}.w .nm h3{font-size:14px}.w .tag span{font-size:9.5px;padding:4px 5px}
+ .works{grid-template-columns:repeat(2,1fr);gap:26px 12px}.wi{grid-template-columns:1fr}.wi>.wm{margin-top:6px}.w .nm h3{font-size:14px}.w .tag span{font-size:9.5px;padding:4px 5px}
  .cards{grid-template-columns:1fr}.c{padding:24px 24px 28px}.c:hover,.c:focus-visible{box-shadow:inset 0 0 0 10px #111}
  .cta{padding:70px 0 44px}.cta h2{font-size:23px}
  .steps{grid-template-columns:1fr}
