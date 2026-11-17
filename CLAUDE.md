@@ -17,7 +17,7 @@
 ## 파일
 ```
 index.html                원페이지 (GAMES 목록, 썸네일 내장)
-games/*.html              게임 24종 (+ backrooms-pc 고화질판)
+games/*.html              게임 27종 (+ backrooms-pc 고화질판)
 star/index.html           잿빛 전선(실시간 전략) → https://game.iux.kr/star · 원페이지 목록에는 없음
                           웹판은 <html data-noasset="1">: 원작 그림·소리 폴더를 찾지 않고 자체 그래픽으로 실행
 thumbs/, hero/            썸네일·배경 원본
@@ -29,10 +29,11 @@ supabase/*.sql            통계·기기·관리 함수 SQL
 ```
 
 ## 게임 목록 (index.html `GAMES`의 id → 파일)
-fest 무궁화 운동회(최대 24명) · halmae 할매 특공대 · halmae2 할매 특공대 2 · halmae3 할매 특공대 3 · halmae4 할매 특공대 4 · halmae5 할매 특공대 5 · pangpang 웨더팡팡 · garden 날씨 정원 · kart 날씨 카트 레이스 · wrivals 날씨 라이벌즈 · wisland 날씨 생존 섬 · dad 엄격한 에너지 아빠 · hospital 한밤의 동물병원 · brawl 에너지 브롤 · blocks 에너지 블록 마을 · park 한밤의 에너지 공원 · keycap 키캡 타워 · forest 에너지 숲의 밤 · backrooms 백룸 방탈출 · rivals 에너지 라이벌즈 · spy 탄소 스파이를 찾아라 · hero 에너지 히어로 · front 에너지 전선 · jump 에너지 점프 · town 에너지 마을 시장 · wing 탄소 제로 비행단 · world 에너지 월드
+fest 무궁화 운동회(최대 24명) · egg 에그 대작전 · cham 카멜레온 숨바꼭질 · op38 새벽 작전 38 · halmae 할매 특공대 · halmae2 할매 특공대 2 · halmae3 할매 특공대 3 · halmae4 할매 특공대 4 · halmae5 할매 특공대 5 · pangpang 웨더팡팡 · garden 날씨 정원 · kart 날씨 카트 레이스 · wrivals 날씨 라이벌즈 · wisland 날씨 생존 섬 · dad 엄격한 에너지 아빠 · hospital 한밤의 동물병원 · brawl 에너지 브롤 · blocks 에너지 블록 마을 · park 한밤의 에너지 공원 · keycap 키캡 타워 · forest 에너지 숲의 밤 · backrooms 백룸 방탈출 · rivals 에너지 라이벌즈 · spy 탄소 스파이를 찾아라 · hero 에너지 히어로 · front 에너지 전선 · jump 에너지 점프 · town 에너지 마을 시장 · wing 탄소 제로 비행단 · world 에너지 월드
 
 ## 자주 하는 수정
 - **게임 추가:** `games/`에 파일 → `thumbs/`에 썸네일 → `index.html`의 `GAMES`에 한 줄 → `sitemap.xml`
+- 과학 게임(fest·egg·cham·op38)은 별도 작업 폴더의 공용 틀(kit)로 만든 단일 HTML. 같이 하기는 4자리 방 번호(PeerJS, 방장이 위치를 묶어 전달)
 - 3D 게임은 three.js·PeerJS를 CDN에서 불러오므로 인터넷 필요
 
 ## 브랜치
