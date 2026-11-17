@@ -40,6 +40,7 @@ fest 무궁화 운동회(최대 24명) · egg 에그 대작전 · cham 카멜레
 - `wip/blocks-expansion` — 에너지 블록 마을 확장(작업 중, 검증 전)
 - `wip/rivals-devlobby` — 에너지 라이벌즈 개발자 모드·3D 로비·스킨(작업 중, 검증 전)
 - `claude/iux-kr-domains` — 도메인 변경, main에 반영된 것으로 보임
+- `claude/science-six-src` — 과학 게임 6종 원본(`science-six/`: kit, g1~g6, 빌드·시험 도구, 완성 파일). main에 합치지 않고 보관용
 
 ---
 
