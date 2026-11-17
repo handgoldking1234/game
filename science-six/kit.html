@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>__TITLE__</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{--y:#ffd43b;--k:#111}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#111;font-family:Jua,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#fff;user-select:none;-webkit-user-select:none;touch-action:none}
+canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block}
+.hud{position:fixed;left:0;right:0;top:0;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;pointer-events:none;z-index:5}
+.chip{background:rgba(17,17,17,.72);border:2px solid #111;border-radius:14px;padding:6px 12px;font-size:15px;line-height:1.3;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+#obj{max-width:62vw}#obj b{color:var(--y)}
+#stat{text-align:right;white-space:nowrap}
+#bar{position:fixed;left:50%;transform:translateX(-50%);top:64px;width:min(420px,70vw);height:14px;background:rgba(0,0,0,.5);border:2px solid #111;border-radius:10px;overflow:hidden;z-index:5;display:none}
+#bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#69db7c,#ffd43b)}
+#toast{width:max-content;max-width:92vw;white-space:normal!important;line-height:1.25;position:fixed;left:50%;top:26%;transform:translateX(-50%);font-family:'Black Han Sans',sans-serif;font-size:clamp(24px,6vw,44px);text-shadow:0 3px 0 #111,0 0 12px rgba(0,0,0,.6);-webkit-text-stroke:1.5px #111;pointer-events:none;z-index:6;opacity:0;transition:opacity .25s;text-align:center;white-space:nowrap}
+#help{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);font-size:13px;background:rgba(0,0,0,.55);padding:5px 12px;border-radius:10px;z-index:5;pointer-events:none;white-space:nowrap;max-width:96vw;overflow:hidden;text-overflow:ellipsis}
+#cross{position:fixed;left:50%;top:50%;width:22px;height:22px;margin:-11px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #111;z-index:5;display:none;pointer-events:none}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:7;transition:opacity .3s}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,10,20,.78);z-index:20;padding:14px;overflow:auto}
+.ov.on{display:flex}
+.card{background:#fffdf5;color:#222;border:4px solid #111;border-radius:22px;box-shadow:0 8px 0 #111;padding:20px 20px 18px;width:min(560px,100%);text-align:center;max-height:96vh;overflow:auto}
+.card h1{font-family:'Black Han Sans',sans-serif;font-size:clamp(28px,7vw,44px);margin:4px 0;color:#111;line-height:1.1}
+.card h3{margin:6px 0;font-size:20px}
+.sub{color:#c92a2a;font-size:17px;margin-bottom:6px}
+.badge{display:inline-block;background:#1c7ed6;color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;margin:2px}
+.badge.age{background:#f08c00}
+.facts{text-align:left;background:#fff3bf;border:3px solid #111;border-radius:14px;padding:10px 14px;margin:10px 0;font-size:15.5px;line-height:1.5}
+.facts b{color:#c92a2a}
+.small{font-size:13.5px;color:#555;line-height:1.5}
+.btn{display:block;width:100%;margin-top:10px;padding:13px;border:3px solid #111;border-radius:14px;background:var(--y);font:20px 'Black Han Sans',Jua,sans-serif;color:#111;box-shadow:0 5px 0 #111;cursor:pointer}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #111}
+.opt{display:block;width:100%;margin-top:8px;padding:11px 12px;border:3px solid #111;border-radius:12px;background:#fff;font:16px Jua,sans-serif;color:#111;text-align:left;cursor:pointer}
+.opt.ok{background:#b2f2bb}.opt.no{background:#ffc9c9}
+#qEx{display:none;margin-top:10px;background:#e7f5ff;border:3px solid #111;border-radius:12px;padding:10px;font-size:15px;text-align:left;line-height:1.5}
+#touch{position:fixed;inset:0;z-index:4;display:none;pointer-events:none}
+#joy{position:absolute;left:22px;bottom:26px;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.14);border:3px solid rgba(255,255,255,.5);pointer-events:auto}
+#joy i{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px;border-radius:50%;background:rgba(255,255,255,.75)}
+#btns{position:absolute;right:16px;bottom:24px;display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
+#btns button{width:70px;height:70px;border-radius:50%;border:3px solid #111;background:var(--y);font:13px Jua,sans-serif;color:#111;box-shadow:0 4px 0 #111;line-height:1.15}
+#btns button b{display:block;font-size:24px}
+@media(max-width:640px){.chip{font-size:12.5px;padding:5px 9px}#help{display:none}#bar{top:auto;bottom:158px;width:56vw}#board{top:96px}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div class="hud"><div class="chip" id="obj"></div><div class="chip" id="stat"></div></div>
+<div id="bar"><i></i></div>
+<div class="chip" id="board" style="position:fixed;right:12px;top:74px;z-index:5;font-size:13px;display:none;pointer-events:none;text-align:right"></div>
+<div id="toast"></div><div id="cross"></div><div id="flash"></div>
+<div id="help"></div>
+<div id="touch"><div id="joy"><i></i></div><div id="btns"></div></div>
+
+<div class="ov on" id="ovStart"><div class="card">
+  <div style="font-size:52px;line-height:1" id="sEmo"></div>
+  <h1 id="sTitle"></h1><div class="sub" id="sSub"></div>
+  <div><span class="badge" id="sUnit"></span><span class="badge age">12세 이용가</span></div>
+  <div class="facts" id="sFacts"></div>
+  <div class="small" id="sHow"></div>
+  <div id="mp" style="margin-top:10px;border-top:2px dashed #bbb;padding-top:10px">
+    <input id="nick" maxlength="8" placeholder="닉네임" style="width:100%;padding:10px;border:3px solid #111;border-radius:12px;font:17px Jua,sans-serif;text-align:center">
+    <button class="btn" id="bStart">혼자 하기 ▶</button>
+    <div style="display:grid;grid-template-columns:1fr 92px 1fr;gap:8px"><button class="btn" id="bHost" style="background:#8ce99a;font-size:16px;padding:13px 4px">👥 방 만들기</button><input id="code" inputmode="numeric" maxlength="4" placeholder="방 번호" style="min-width:0;width:100%;margin-top:10px;border:3px solid #111;border-radius:14px;font:18px 'Black Han Sans',sans-serif;text-align:center;padding:0"><button class="btn" id="bJoin" style="background:#a5d8ff;font-size:16px;padding:13px 4px">🚪 들어가기</button></div>
+    <div class="small" id="mpMsg" style="margin-top:6px;min-height:18px"></div>
+  </div>
+</div></div>
+<div class="ov" id="ovQuiz"><div class="card">
+  <h3>🔬 과학 퀴즈</h3><div id="qQ" style="font-size:18px;margin:8px 0;line-height:1.45"></div>
+  <div id="qOpts"></div><div id="qEx"></div>
+  <button class="btn" id="qNext" style="display:none">계속하기 ▶</button>
+</div></div>
+<div class="ov" id="ovEnd"><div class="card">
+  <div style="font-size:52px;line-height:1" id="eEmo"></div>
+  <h1 id="eTitle"></h1><div class="sub" id="eMsg"></div>
+  <div class="facts" id="eFacts"></div>
+  <button class="btn" id="bRetry">다시 하기 🔁</button>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+__NETFIX__
+</script>
+<script>
+/* ===== 공통 도구 ===== */
+const $ = s => document.querySelector(s), PI = Math.PI, TAU = PI * 2;
+const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.random() * a.length | 0], clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
+let W = innerWidth, H = innerHeight, scene, cam, playing = false, quizOn = false, shake = 0;
+const R = new THREE.WebGLRenderer({ canvas: $('#cv'), antialias: true });
+R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputEncoding = THREE.sRGBEncoding; R.shadowMap.enabled = true;
+function fit() { W = innerWidth; H = innerHeight; R.setSize(W, H, false); if (cam) { cam.aspect = W / H; cam.updateProjectionMatrix() } }
+addEventListener('resize', fit);
+const grad = (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 1; const x = c.getContext('2d'); ['#8a8a8a', '#b8b8b8', '#e0e0e0', '#ffffff'].forEach((v, i) => { x.fillStyle = v; x.fillRect(i, 0, 1, 1) }); const t = new THREE.CanvasTexture(c); t.minFilter = t.magFilter = THREE.NearestFilter; return t })();
+const mats = {};
+function M(c) { return typeof c === 'string' ? (mats[c] || (mats[c] = new THREE.MeshToonMaterial({ color: c, gradientMap: grad }))) : c }
+function MB(c, o) { return new THREE.MeshBasicMaterial(Object.assign({ color: c }, o || {})) }
+function add(p, geo, c, x, y, z) { const m = new THREE.Mesh(geo, M(c)); m.position.set(x || 0, y || 0, z || 0); m.castShadow = true; m.receiveShadow = true; (p || scene).add(m); return m }
+const box = (p, w, h, d, c, x, y, z) => add(p, new THREE.BoxGeometry(w, h, d), c, x, y, z);
+const sph = (p, r, c, x, y, z, sx = 1, sy = 1, sz = 1) => { const m = add(p, new THREE.SphereGeometry(r, 18, 14), c, x, y, z); m.scale.set(sx, sy, sz); return m };
+const cyl = (p, rt, rb, h, c, x, y, z, seg = 14) => add(p, new THREE.CylinderGeometry(rt, rb, h, seg), c, x, y, z);
+const cone = (p, r, h, c, x, y, z, seg = 12) => add(p, new THREE.ConeGeometry(r, h, seg), c, x, y, z);
+function label(p, text, w, h, bg, fg, x, y, z, px = 44) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = Math.round(512 * h / w); const g = c.getContext('2d');
+  if (bg) { g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height) }
+  g.fillStyle = fg || '#111'; g.font = `${px * 2}px "Black Han Sans","Jua",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  let s = 1; const tw = g.measureText(text).width; if (tw > c.width * .92) s = c.width * .92 / tw; g.save(); g.translate(c.width / 2, c.height / 2); g.scale(s, s); g.fillText(text, 0, 4); g.restore();
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: !bg, side: THREE.DoubleSide })); m.position.set(x || 0, y || 0, z || 0); (p || scene).add(m); return m;
+}
+function newScene(sky, near, far, opt = {}) {
+  scene = new THREE.Scene(); scene.background = new THREE.Color(sky); scene.fog = new THREE.Fog(opt.fog || sky, near, far);
+  cam = new THREE.PerspectiveCamera(opt.fov || 55, W / H, .1, 600);
+  scene.add(new THREE.HemisphereLight('#ffffff', opt.ground || '#8a8f7a', opt.amb == null ? .42 : opt.amb));
+  const d = new THREE.DirectionalLight(opt.sun || '#fff3d6', opt.sunI == null ? .62 : opt.sunI); d.position.set(14, 26, 12); d.castShadow = true; d.shadow.mapSize.set(2048, 2048); d.shadow.bias = -.0015; d.shadow.normalBias = .05;
+  const s = d.shadow.camera; s.left = s.bottom = -40; s.right = s.top = 40; s.far = 90; scene.add(d); scene.sunL = d; fit();
+}
+/* 캐릭터: 둥글둥글 2등신 */
+function person(o = {}) {
+  const g = new THREE.Group(), s = o.s || 1; g.scale.setScalar(s);
+  const body = new THREE.Group(); body.position.y = .9; g.add(body);
+  box(body, .7, .8, .45, o.top || '#4dabf7', 0, .1, 0);
+  const head = new THREE.Group(); head.position.y = .95; body.add(head);
+  sph(head, .46, o.skin || '#ffd8b5', 0, 0, 0, 1, .95, .95);
+  if (o.hair !== null) sph(head, .48, o.hair || '#3b2a20', 0, .12, -.06, 1, .8, 1);
+  for (const sx of [-1, 1]) sph(head, .06, '#111', sx * .17, .02, .42);
+  if (o.hat) { cyl(head, .5, .5, .12, o.hat, 0, .34, 0); cyl(head, .34, .36, .3, o.hat, 0, .5, 0) }
+  if (o.mask) box(head, .5, .2, .1, o.mask, 0, -.16, .42);
+  const mk = (x, y, c, h) => { const p = new THREE.Group(); p.position.set(x, y, 0); body.add(p); box(p, .22, h, .24, c, 0, -h / 2, 0); return p };
+  const aL = mk(-.47, .45, o.top || '#4dabf7', .6), aR = mk(.47, .45, o.top || '#4dabf7', .6), lL = mk(-.18, -.3, o.bottom || '#343a40', .6), lR = mk(.18, -.3, o.bottom || '#343a40', .6);
+  return { g, body, head, aL, aR, lL, lR };
+}
+function walk(c, t, a = .8) { const s = Math.sin(t) * a; c.lL.rotation.x = s; c.lR.rotation.x = -s; c.aL.rotation.x = -s; c.aR.rotation.x = s; c.body.position.y = .9 + Math.abs(Math.sin(t)) * .06 * a }
+function stand(c, t = 0) { c.lL.rotation.x = c.lR.rotation.x = 0; c.aL.rotation.x = c.aR.rotation.x = Math.sin(t * 2) * .05; c.body.position.y = .9 + Math.sin(t * 2) * .02 }
+/* 입력 */
+const K = {}, KP = {}; const hit = c => !!KP[c];
+addEventListener('keydown', e => { if (e.target && e.target.tagName === 'INPUT') return; if (e.repeat) return; K[e.code] = 1; KP[e.code] = 1; if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault() });
+addEventListener('keyup', e => { K[e.code] = 0 });
+let joy = { x: 0, y: 0 }, lookDX = 0, lookDY = 0, lookOn = false;
+function axis() { let x = (K.KeyD || K.ArrowRight ? 1 : 0) - (K.KeyA || K.ArrowLeft ? 1 : 0) + joy.x, y = (K.KeyS || K.ArrowDown ? 1 : 0) - (K.KeyW || K.ArrowUp ? 1 : 0) + joy.y; const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l } return { x, y } }
+(function () {
+  const J = $('#joy'), N = J.firstElementChild; let id = null;
+  const mv = e => { const r = J.getBoundingClientRect(), t = [...e.touches].find(t => t.identifier === id); if (!t) return; let x = (t.clientX - r.left - r.width / 2) / (r.width / 2), y = (t.clientY - r.top - r.height / 2) / (r.height / 2); const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l } joy.x = x; joy.y = y; N.style.transform = `translate(${x * 34}px,${y * 34}px)` };
+  J.addEventListener('touchstart', e => { id = e.changedTouches[0].identifier; mv(e); e.preventDefault() }, { passive: false });
+  J.addEventListener('touchmove', e => { mv(e); e.preventDefault() }, { passive: false });
+  const end = e => { if ([...e.changedTouches].some(t => t.identifier === id)) { id = null; joy.x = joy.y = 0; N.style.transform = '' } };
+  J.addEventListener('touchend', end); J.addEventListener('touchcancel', end);
+  // 시점 돌리기 (1인칭 게임)
+  const cv = $('#cv'); let lid = null, lx = 0, ly = 0;
+  addEventListener('mouseup', () => { K.Mouse = 0 });
+  cv.addEventListener('mousedown', () => { KP.Click = 1; K.Mouse = 1; if (lookOn && playing && !isTouch && document.pointerLockElement !== cv) cv.requestPointerLock && cv.requestPointerLock() });
+  addEventListener('mousemove', e => { if (document.pointerLockElement === cv) { lookDX += e.movementX; lookDY += e.movementY } });
+  cv.addEventListener('touchstart', e => { const t = e.changedTouches[0]; lid = t.identifier; lx = t.clientX; ly = t.clientY; if (!lookOn) KP.Click = 1; e.preventDefault() }, { passive: false });
+  cv.addEventListener('touchmove', e => { for (const t of e.changedTouches) if (t.identifier === lid) { lookDX += (t.clientX - lx) * 2.2; lookDY += (t.clientY - ly) * 2.2; lx = t.clientX; ly = t.clientY } e.preventDefault() }, { passive: false });
+})();
+function setBtns(list) { const B = $('#btns'); B.innerHTML = ''; for (const b of list) { const e = document.createElement('button'); e.innerHTML = `<b>${b.i}</b>${b.l}`; const dn = ev => { K[b.k] = 1; KP[b.k] = 1; ev.preventDefault() }, up = ev => { K[b.k] = 0; ev.preventDefault() }; e.addEventListener('touchstart', dn, { passive: false }); e.addEventListener('touchend', up, { passive: false }); e.addEventListener('touchcancel', up); e.addEventListener('mousedown', dn); e.addEventListener('mouseup', up); B.appendChild(e) } }
+/* 소리 */
+let AC; function snd(type) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime; const P = { ok: [660, 990, .18, 'triangle'], bad: [200, 110, .3, 'sawtooth'], hit: [320, 160, .1, 'square'], jump: [300, 620, .15, 'sine'], win: [520, 1040, .5, 'triangle'], shot: [900, 200, .08, 'square'] }[type] || [440, 440, .1, 'sine']; o.type = P[3]; o.frequency.setValueAtTime(P[0], t); o.frequency.exponentialRampToValueAtTime(P[1], t + P[2]); g.gain.setValueAtTime(.12, t); g.gain.exponentialRampToValueAtTime(.001, t + P[2]); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + P[2]) } catch (e) { } }
+/* 화면 표시 */
+let toastT = 0; function toast(t, col = '#fff', dur = 1.2) { const e = $('#toast'); e.textContent = t; e.style.fontSize = t.length > 20 ? 'clamp(17px,3.8vw,28px)' : ''; e.style.color = col; e.style.opacity = 1; toastT = dur }
+function flash() { const f = $('#flash'); f.style.transition = 'none'; f.style.opacity = .7; requestAnimationFrame(() => { f.style.transition = 'opacity .4s'; f.style.opacity = 0 }) }
+function setObj(html) { $('#obj').innerHTML = html } function setStat(html) { $('#stat').innerHTML = html }
+function setBar(v) { const b = $('#bar'); b.style.display = v == null ? 'none' : 'block'; if (v != null) b.firstElementChild.style.width = clamp(v, 0, 1) * 100 + '%' }
+const hearts = (n, m) => '❤️'.repeat(Math.max(0, n)) + '🖤'.repeat(Math.max(0, m - n));
+/* 퀴즈 */
+let qPool = [], qCB = null, qStat = { n: 0, ok: 0 }, learned = [];
+function quiz(cb, tag) {
+  if (!qPool.length) qPool = GAME.quiz.slice().sort(() => Math.random() - .5);
+  let qi = qPool.length - 1; if (tag) { const f = qPool.map((x, i) => x.u === tag ? i : -1).filter(i => i >= 0); if (f.length) qi = f[f.length - 1]; else { const all = GAME.quiz.filter(x => x.u === tag); if (all.length) { qPool.push(pick(all)); qi = qPool.length - 1 } } }
+  const q = qPool.splice(qi, 1)[0], order = q.a.map((_, i) => i).sort(() => Math.random() - .5); quizOn = true; qCB = cb;
+  for (const k in K) K[k] = 0; if (document.exitPointerLock) document.exitPointerLock();
+  $('#qQ').textContent = q.q; $('#qEx').style.display = 'none'; $('#qNext').style.display = 'none'; const O = $('#qOpts'); O.innerHTML = ''; let done = false;
+  order.forEach((idx, n) => { const b = document.createElement('button'); b.className = 'opt'; b.textContent = `${n + 1}. ${q.a[idx]}`; b.onclick = () => { if (done) return; done = true; const ok = idx === 0; qStat.n++; if (ok) qStat.ok++; learned.push((ok ? '⭕ ' : '❌ ') + q.q); b.classList.add(ok ? 'ok' : 'no'); [...O.children].forEach((c, i) => { if (order[i] === 0) c.classList.add('ok') }); $('#qEx').innerHTML = (ok ? '⭕ <b>정답!</b> ' : '❌ <b>아쉬워요.</b> ') + q.e; $('#qEx').style.display = 'block'; $('#qNext').style.display = 'block'; $('#qNext').dataset.ok = ok ? 1 : ''; snd(ok ? 'ok' : 'bad') }; O.appendChild(b) });
+  $('#ovQuiz').classList.add('on');
+}
+$('#qNext').onclick = () => { $('#ovQuiz').classList.remove('on'); quizOn = false; const f = qCB; qCB = null; f && f(!!$('#qNext').dataset.ok) };
+addEventListener('keydown', e => { if (!quizOn) return; const n = '1234'.indexOf(e.key); const O = $('#qOpts'); if (n >= 0 && O.children[n] && $('#qNext').style.display === 'none') O.children[n].click(); else if ((e.code === 'Enter' || e.code === 'Space') && $('#qNext').style.display !== 'none') $('#qNext').click() });
+function endGame(win, msg) {
+  if (!playing) return; playing = false; if (document.exitPointerLock) document.exitPointerLock();
+  $('#eEmo').textContent = win ? '🎉' : '😵'; $('#eTitle').textContent = win ? '성공!' : '다시 도전!'; $('#eMsg').textContent = msg || '';
+  $('#eFacts').innerHTML = `<b>📚 ${GAME.unit} · 퀴즈 ${qStat.ok}/${qStat.n}</b><br>` + (learned.length ? learned.slice(-6).join('<br>') : GAME.facts.join('<br>'));
+  $('#bRetry').textContent = win ? '한 번 더 하기 🔁' : '다시 하기 🔁'; $('#ovEnd').classList.add('on'); snd(win ? 'win' : 'bad');
+}
+function start() { for (const k in K) K[k] = 0; for (const k in KP) delete KP[k]; qStat = { n: 0, ok: 0 }; learned = []; lookOn = false; $('#cross').style.display = 'none'; setBar(null); setBtns([]); GAME.init(); playing = true; $('#ovStart').classList.remove('on'); $('#ovEnd').classList.remove('on'); $('#touch').style.display = isTouch ? 'block' : 'none'; $('#help').textContent = GAME.help || '' }
+$('#bStart').onclick = start; $('#bRetry').onclick = start;
+/* ===== 같이 하기 (방 번호 4자리 · 방장이 중계) ===== */
+const NCOL = ['#ff6b6b', '#4dabf7', '#51cf66', '#fcc419', '#b197fc', '#ff922b', '#22b8cf', '#f783ac'];
+const NET = {
+  on: false, host: false, id: Math.random().toString(36).slice(2, 8), name: '', col: pick(NCOL), code: '', peer: null, conns: [], hc: null, rem: {}, acc: 0,
+  open(asHost, code, cb) {
+    if (typeof Peer === 'undefined') return cb('온라인 연결 도구를 불러오지 못했어요. 인터넷을 확인해 주세요.');
+    this.host = asHost; this.code = code; const rid = 'mwg6-' + GAME.id + '-' + code; let done = false; const fin = e => { if (!done) { done = true; cb(e) } };
+    try { this.peer = new Peer(asHost ? rid : undefined, { debug: 0 }) } catch (e) { return fin('연결을 시작하지 못했어요.') }
+    this.peer.on('error', e => fin(asHost ? '방을 만들지 못했어요. 다시 눌러 주세요.' : '그 번호의 방을 찾지 못했어요.'));
+    this.peer.on('open', () => {
+      if (asHost) { this.on = true; this.peer.on('connection', c => { if (this.conns.length >= (GAME.maxP || 8) - 1) { const no = () => { try { c.send(JSON.stringify({ t: 'full', id: this.id, max: GAME.maxP || 8 })) } catch (e) { } setTimeout(() => c.close(), 600) }; if (c.open) no(); else c.on('open', no); return } this.conns.push(c); c.on('data', d => this.rx(d, c)); c.on('close', () => { this.conns = this.conns.filter(x => x !== c) }) }); fin() }
+      else { const c = this.peer.connect(rid, { reliable: true }); this.hc = c; c.on('open', () => { this.on = true; fin() }); c.on('data', d => this.rx(d, c)); c.on('close', () => { if (this.on) toast('방장과 연결이 끊겼어요', '#ff8787', 2); this.on = false }); setTimeout(() => fin('그 번호의 방을 찾지 못했어요.'), 12000) }
+    });
+  },
+  raw(s, except) { if (this.host) this.conns.forEach(c => { if (c !== except && c.open) try { c.send(s) } catch (e) { } }); else if (this.hc && this.hc.open) try { this.hc.send(s) } catch (e) { } },
+  send(m) { if (!this.on) return; m.id = this.id; this.raw(JSON.stringify(m)) },
+  rx(s, c) {
+    let m; try { m = JSON.parse(s) } catch (e) { return } if (!m || m.id === this.id) return;
+    if (m.t === 'full') { toast(`방이 꽉 찼어요 (최대 ${m.max}명) · 혼자 하기로 해요`, '#ff8787', 3); this.on = false; this.rem = {}; $('#board').style.display = 'none'; return }
+    if (m.t === 'b') { for (const e of m.a) if (e[0] !== this.id) this.st(e[0], e[1], e[2], e[3]); return }
+    if (this.host && m.t !== 's') this.raw(s, c);
+    if (m.t === 's') this.st(m.id, m.n, m.c, m.d);
+    else if (m.to && m.to !== this.id) return; else if (GAME.onNet) GAME.onNet(m);
+  },
+  st(id, n, c, d) { const r = this.rem[id] || (this.rem[id] = { id }); if (!r.n && n) toast(`👋 ${n} 입장!`, '#8ce99a', 1.2); r.n = n; r.c = c; r.d = d; r.at = performance.now() },
+  tick(dt) {
+    if (!this.on) return; this.acc += dt;
+    if (this.acc > .1) { this.acc = 0; const d = (GAME.net ? GAME.net() : [0, 0, 0, 0, 0]).map(v => typeof v === 'number' ? Math.round(v * 100) / 100 : v);
+      if (this.host) { const t0 = performance.now(), a = [[this.id, this.name, this.col, d]]; for (const k in this.rem) { const r = this.rem[k]; if (r.d && t0 - r.at < 3000) a.push([k, r.n, r.c, r.d]) } this.raw(JSON.stringify({ t: 'b', id: this.id, a })) } else this.send({ t: 's', n: this.name, c: this.col, d }) }
+    const now = performance.now(), rows = [[this.name + ' (나)', GAME.net ? GAME.net()[4] : 0, this.col]];
+    for (const k in this.rem) {
+      const r = this.rem[k]; if (now - r.at > 6000) { if (r.g) r.g.g.parent && r.g.g.parent.remove(r.g.g); delete this.rem[k]; continue } if (!r.d) continue;
+      if (!r.g || r.sc !== scene) { r.g = GAME.mkGhost ? GAME.mkGhost(r) : person({ top: r.c, s: .98 }); r.sc = scene; scene.add(r.g.g); const l = label(r.g.g, r.n || '친구', 2.2, .55, '#111', '#fff', 0, GAME.ghostH || 2.9, 0, 40); l.userData.bill = 1; r.lb = l; r.g.g.position.set(r.d[0], r.d[1], r.d[2]) }
+      const P = r.g.g.position, moved = Math.hypot(P.x - r.d[0], P.z - r.d[2]); P.x = lerp(P.x, r.d[0], Math.min(1, dt * 10)); P.y = lerp(P.y, r.d[1], Math.min(1, dt * 10)); P.z = lerp(P.z, r.d[2], Math.min(1, dt * 10)); r.g.g.rotation.y = r.d[3];
+      if (r.g.lL) { if (moved > .05) walk(r.g, now / 80); else stand(r.g, now / 1000) } r.lb.quaternion.copy(r.g.g.quaternion.clone().invert().multiply(cam.quaternion));
+      if (GAME.ghost) GAME.ghost(r, dt); rows.push([r.n || '친구', r.d[4] || 0, r.c]);
+    }
+    rows.sort((a, b) => b[1] - a[1]); const B = $('#board'); B.style.display = 'block'; B.innerHTML = `🚪 방 <b style="color:#ffd43b">${this.code}</b> · ${rows.length}/${GAME.maxP || 8}명<br>` + rows.slice(0, 8).map(r => `<span style="color:${r[2]}">●</span> ${r[0]} <b>${r[1]}</b>`).join('<br>') + (rows.length > 8 ? `<br>… 외 ${rows.length - 8}명` : '');
+  }
+};
+function mpGo(asHost) {
+  NET.name = ($('#nick').value || '').trim() || '친구' + (Math.random() * 90 + 10 | 0); const code = asHost ? String(Math.random() * 9000 + 1000 | 0) : ($('#code').value || '').trim();
+  if (!asHost && !/^\d{4}$/.test(code)) { $('#mpMsg').textContent = '방 번호 4자리를 적어 주세요.'; return }
+  $('#mpMsg').textContent = '연결하는 중…'; NET.open(asHost, code, err => { if (err) { $('#mpMsg').textContent = err; try { NET.peer && NET.peer.destroy() } catch (e) { } NET.peer = null; return } $('#mpMsg').textContent = ''; start(); toast(asHost ? `방 번호 ${code} · 친구에게 알려 줘요!` : `방 ${code}에 들어왔어요!`, '#ffd43b', 3) });
+}
+$('#bHost').onclick = () => mpGo(true); $('#bJoin').onclick = () => mpGo(false);
+$('#nick').addEventListener('keydown', e => e.stopPropagation()); $('#code').addEventListener('keydown', e => e.stopPropagation());
+</script>
+<script>
+__GAME__
+</script>
+<script>
+$('#sEmo').textContent = GAME.emoji; $('#sTitle').textContent = GAME.title; $('#sSub').textContent = GAME.sub; $('#sUnit').textContent = '5학년 과학 · ' + GAME.unit;
+$('#sFacts').innerHTML = '<b>📌 오늘의 과학</b><br>' + GAME.facts.map(f => '· ' + f).join('<br>'); $('#sHow').innerHTML = GAME.how; document.title = GAME.title;
+GAME.init(); let last = performance.now();
+function loop(now) {
+  requestAnimationFrame(loop); const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (playing && (!quizOn || NET.on && GAME.liveQuiz)) GAME.update(dt); else if (!playing && GAME.idle) GAME.idle(dt);
+  NET.tick(dt);
+  if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('#toast').style.opacity = 0 }
+  if (shake > 0) { shake = Math.max(0, shake - dt * 2); cam.position.x += (Math.random() - .5) * shake * .5; cam.position.y += (Math.random() - .5) * shake * .5 }
+  lookDX = lookDY = 0; for (const k in KP) delete KP[k];
+  R.render(scene, cam);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
