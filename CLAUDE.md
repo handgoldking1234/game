@@ -33,6 +33,7 @@ titan 거인 토벌전(진격의 거인풍 3D 와이어 액션, 단원 연계 �
 
 ## 거인 토벌전(titan.html)
 - 3D 모델·three.js를 파일 안에 넣은 단일 HTML(약 8MB). 인체 메쉬는 MakeHuman 기본 메쉬(CC0), 뼈대·걷기 동작은 three.js 예제 Xbot.
+- 배경 음악: `games/titan-music/`에 `feuer.mp3`·`march.mp3`·`void.mp3`·`final.mp3`(챕터 1~4 순서)를 넣으면 그 곡이 나온다. 파일이 없으면 게임이 자체 연주 음악을 튼다. 지금은 파일 없음.
 - 원본(game.js·모델 변환 스크립트)은 저장소에 없다. 고칠 때는 Claude 대화에서 다시 빌드해 파일을 통째로 바꾼다.
 
 ## 자주 하는 수정
