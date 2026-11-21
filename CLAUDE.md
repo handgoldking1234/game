@@ -17,7 +17,7 @@
 ## 파일
 ```
 index.html                원페이지 (GAMES 목록, 썸네일 내장)
-games/*.html              게임 29종 (+ backrooms-pc 고화질판)
+games/*.html              게임 30종 (+ backrooms-pc 고화질판)
 star/index.html           잿빛 전선(실시간 전략) → https://game.iux.kr/star · 원페이지 목록에는 없음
                           웹판은 <html data-noasset="1">: 원작 그림·소리 폴더를 찾지 않고 자체 그래픽으로 실행
 thumbs/, hero/            썸네일·배경 원본
@@ -29,7 +29,13 @@ supabase/*.sql            통계·기기·관리 함수 SQL
 ```
 
 ## 게임 목록 (index.html `GAMES`의 id → 파일)
-titan 거인 토벌전(진격의 거인 팬 게임, 3D 와이어 액션, 단원 연계 없음) · fest 무궁화 운동회(최대 24명) · egg 에그 대작전 · cham 카멜레온 숨바꼭질 · op38 새벽 작전 38 · halmae 할매 특공대 · halmae2 할매 특공대 2 · halmae3 할매 특공대 3 · halmae4 할매 특공대 4 · halmae5 할매 특공대 5 · pangpang 웨더팡팡 · garden 날씨 정원 · kart 날씨 카트 레이스 · wrivals 날씨 라이벌즈 · wisland 날씨 생존 섬 · dad 엄격한 에너지 아빠 · hospital 한밤의 동물병원 · brawl 에너지 브롤 · blocks 에너지 블록 마을 · park 한밤의 에너지 공원 · keycap 키캡 타워 · forest 에너지 숲의 밤 · backrooms 백룸 방탈출 · rivals 에너지 라이벌즈 · spy 탄소 스파이를 찾아라 · hero 에너지 히어로 · front 에너지 전선 · jump 에너지 점프 · town 에너지 마을 시장 · wing 탄소 제로 비행단 · world 에너지 월드
+jodal 조달 히어로: 나라장터를 지켜라(조달청 공모전 출품작, 단원 연계 없음) · titan 거인 토벌전(진격의 거인 팬 게임, 3D 와이어 액션, 단원 연계 없음) · fest 무궁화 운동회(최대 24명) · egg 에그 대작전 · cham 카멜레온 숨바꼭질 · op38 새벽 작전 38 · halmae 할매 특공대 · halmae2 할매 특공대 2 · halmae3 할매 특공대 3 · halmae4 할매 특공대 4 · halmae5 할매 특공대 5 · pangpang 웨더팡팡 · garden 날씨 정원 · kart 날씨 카트 레이스 · wrivals 날씨 라이벌즈 · wisland 날씨 생존 섬 · dad 엄격한 에너지 아빠 · hospital 한밤의 동물병원 · brawl 에너지 브롤 · blocks 에너지 블록 마을 · park 한밤의 에너지 공원 · keycap 키캡 타워 · forest 에너지 숲의 밤 · backrooms 백룸 방탈출 · rivals 에너지 라이벌즈 · spy 탄소 스파이를 찾아라 · hero 에너지 히어로 · front 에너지 전선 · jump 에너지 점프 · town 에너지 마을 시장 · wing 탄소 제로 비행단 · world 에너지 월드
+
+## 조달 히어로(jodal.html) — 2026-11-21 추가
+- 2026 조달청 AI 게임·콘텐츠 공모전(마감 11/22) 출품용. 2D 단일 HTML, 외부 라이브러리 없음(인터넷 없이도 실행).
+- 빠른 모드 3분(시간이 지나며 담합→혁신제품→비축 규칙이 열림) + 스토리 5챕터(나라장터·불공정·혁신조달·공공비축·2050 상상). 1성 이상이면 다음 챕터 열림(localStorage `jodal_ch`).
+- 안내 캐릭터는 직접 그린 로봇 '바로'. 조달청 마스코트(나르미·달이)와 로고는 넣지 않았다(공모요강 확인 전).
+- 공모전 제출본은 `../mwt.js` 줄을 뺀 사본. 시연 영상은 Playwright 화면 캡처 + ffmpeg로 만들었다(소리 없음).
 
 ## 거인 토벌전(titan.html) — 2026-11-21 다시 추가
 - 3D 모델·three.js를 파일 안에 넣은 단일 HTML(약 43MB). 캐릭터 6명 선택, 스토리 모드, 5개 챕터, 부위 표식, 거인화 격투.

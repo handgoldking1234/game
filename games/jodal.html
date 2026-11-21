@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<script src="../mwt.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>조달 히어로: 나라장터를 지켜라 - 공공조달 체험 게임 | 민왕게임월드</title>
+<meta name="description" content="조달 요원이 되어 학교·소방서·재난 대피소가 부탁한 물건을 공정하게, 제때, 좋은 품질로 구해 주세요. 담합 업체를 찾아내고, 혁신제품을 써 보고, 공급망 위기에는 비축물자를 풀어요. 설치 없이 브라우저에서 바로!">
+<link rel="canonical" href="https://game.iux.kr/games/jodal.html">
+<meta property="og:title" content="조달 히어로: 나라장터를 지켜라">
+<meta property="og:description" content="조달 요원이 되어 공정한 입찰로 나라 살림을 지키는 3분 게임. 2026 조달청 AI 게임·콘텐츠 공모전 출품작.">
+<meta property="og:image" content="https://game.iux.kr/thumbs/jodal.webp"><meta property="og:type" content="website"><meta property="og:locale" content="ko_KR">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f3f5f9;--card:#fff;--ink:#14213d;--quiet:#5b6478;--line:#dfe4ee;--blue:#1f5eff;--blue2:#e8efff;--red:#e5383b;--red2:#fdeaea;--green:#139a5b;--green2:#e3f6ec;--gold:#f4a300;--violet:#7b3fe4;--violet2:#f1eafe}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans CJK KR','Noto Sans KR',sans-serif;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.15em;flex:none}
+.screen{position:fixed;inset:0;display:none;flex-direction:column}
+.screen.on{display:flex}
+/* 시작 화면 */
+#title{align-items:center;justify-content:center;padding:24px;gap:18px;text-align:center;background:radial-gradient(circle at 50% 0%,#dfe8ff 0,#f3f5f9 60%)}
+#title h1{font-size:clamp(30px,7vw,52px);font-weight:900;letter-spacing:-.02em;line-height:1.15}
+#title h1 small{display:block;font-size:.42em;font-weight:700;color:var(--blue);letter-spacing:.02em;margin-bottom:6px}
+#title p.lead{color:var(--quiet);font-size:15px;max-width:440px;line-height:1.6}
+.btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.big{background:var(--blue);color:#fff;font-weight:800;font-size:17px;padding:15px 26px;border-radius:14px;box-shadow:0 6px 0 #1546c2;display:inline-flex;gap:8px;align-items:center;transition:transform .08s}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 #1546c2}
+.big.ghost{background:#fff;color:var(--blue);box-shadow:0 6px 0 #c9d6f5}
+.big.ghost:active{box-shadow:0 2px 0 #c9d6f5}
+.credit{font-size:11.5px;color:var(--quiet);line-height:1.6;max-width:520px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:520px}
+.chap{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13px;font-weight:700;display:flex;gap:6px;align-items:center}
+.chap b{color:var(--blue)}
+.chap.lock{opacity:.45}
+/* 로봇 */
+.bot{width:86px;height:86px}
+.say{display:flex;gap:10px;align-items:flex-start;text-align:left;max-width:520px}
+.say .bot{width:56px;height:56px;flex:none}
+.tip .bot{flex:none}
+.bubble{background:#fff;border:1.5px solid var(--line);border-radius:4px 14px 14px 14px;padding:10px 13px;font-size:14px;line-height:1.55}
+/* 브리핑 */
+#brief{align-items:center;justify-content:center;padding:24px;gap:18px;background:var(--bg)}
+#brief .panel{background:#fff;border-radius:20px;padding:24px 22px;max-width:520px;width:100%;box-shadow:0 10px 30px rgba(20,33,61,.08);display:flex;flex-direction:column;gap:14px}
+#brief h2{font-size:24px;font-weight:900}
+#brief h2 small{display:block;font-size:13px;color:var(--blue);font-weight:800;margin-bottom:4px}
+#brief ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+#brief li{display:flex;gap:9px;font-size:14.5px;line-height:1.5}
+#brief li svg{margin-top:3px;color:var(--blue)}
+/* 게임 화면 */
+#play{background:var(--bg)}
+.hud{display:flex;align-items:center;gap:10px;padding:10px 104px 10px 14px;background:#fff;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.hud .ttl{font-weight:900;font-size:15px;margin-right:auto;display:flex;gap:6px;align-items:center}
+.meter{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--quiet)}
+.meter .bar{width:74px;height:9px;border-radius:5px;background:#e9edf4;overflow:hidden}
+.meter .bar i{display:block;height:100%;border-radius:5px;transition:width .3s}
+.meter b{color:var(--ink);min-width:26px;text-align:right}
+.clock{font-weight:900;font-size:15px;display:flex;gap:5px;align-items:center;background:var(--ink);color:#fff;border-radius:9px;padding:5px 10px}
+.pig{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--green)}
+.main{flex:1;display:flex;flex-direction:column;gap:10px;padding:10px 14px;min-height:0;overflow:auto}
+.label{font-size:12px;font-weight:800;color:var(--quiet);display:flex;gap:6px;align-items:center;letter-spacing:.02em}
+.reqs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.req{background:#fff;border:2px solid var(--line);border-radius:14px;padding:9px 10px;text-align:left;display:flex;flex-direction:column;gap:4px;min-height:84px;position:relative;overflow:hidden;transition:border-color .15s,transform .1s}
+.req:active{transform:scale(.98)}
+.req.sel{border-color:var(--blue);background:var(--blue2)}
+.req.empty{border-style:dashed;background:transparent;color:var(--quiet);font-size:12px;align-items:center;justify-content:center}
+.req .ag{display:flex;gap:6px;align-items:center;font-weight:800;font-size:13px}
+.req .ag .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:15px;flex:none}
+.req .it{font-size:12.5px;color:var(--ink);line-height:1.35}
+.req .meta{font-size:11px;color:var(--quiet)}
+.req .tbar{position:absolute;left:0;bottom:0;height:4px;background:var(--blue);transition:width .2s linear}
+.req .tbar.warn{background:var(--red)}
+.req.hf .ag{padding-right:34px}
+.req .flag{position:absolute;top:7px;right:8px;font-size:10px;font-weight:800;border-radius:6px;padding:2px 5px}
+.board{background:#fff;border-radius:16px;border:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:250px}
+.bhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bhead h3{font-size:16px;font-weight:900;margin-right:auto}
+.pill{font-size:12px;font-weight:800;border-radius:8px;padding:4px 8px;background:#eef1f6;color:var(--ink);display:inline-flex;gap:4px;align-items:center}
+.pill.red{background:var(--red2);color:var(--red)}
+.pill.blue{background:var(--blue2);color:var(--blue)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{border:1.5px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px;position:relative;animation:pop .25s ease-out both;background:#fff}
+.card:nth-child(2){animation-delay:.06s}.card:nth-child(3){animation-delay:.12s}.card:nth-child(4){animation-delay:.18s}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.96)}}
+.card .nm{font-weight:900;font-size:14px;display:flex;gap:5px;align-items:center}
+.tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:10.5px;font-weight:800;border-radius:6px;padding:2px 6px;background:#eef1f6;color:var(--quiet)}
+.tag.inno{background:var(--violet2);color:var(--violet)}
+.tag.green{background:var(--green2);color:var(--green)}
+.tag.local{background:#fff4dc;color:#a86b00}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;gap:6px}
+.row span{color:var(--quiet)}
+.row b{font-weight:800}
+.row b.bad{color:var(--red)}
+.row b.ok{color:var(--green)}
+.stars{color:var(--gold);letter-spacing:1px;font-size:13px}
+.row .stars,.stars{color:var(--gold)}
+.stars .off,.row .stars .off{color:#d7dce6}
+.doc{font-size:11.5px;display:flex;gap:4px;align-items:center;font-weight:700}
+.doc.ok{color:var(--green)}.doc.bad{color:var(--red)}
+.phone{font-size:11.5px;color:var(--quiet);font-variant-numeric:tabular-nums}
+.acts{display:flex;gap:6px;margin-top:auto}
+.act{flex:1;border-radius:10px;padding:9px 6px;font-weight:900;font-size:13.5px;display:flex;gap:5px;align-items:center;justify-content:center}
+.act.go{background:var(--blue);color:#fff}
+.act.no{background:var(--red2);color:var(--red);flex:.8}
+.act:active{filter:brightness(.92)}
+.hint{position:absolute;top:-9px;right:8px;background:var(--violet);color:#fff;font-size:10.5px;font-weight:800;border-radius:7px;padding:2px 7px;display:flex;gap:3px;align-items:center}
+.wait{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--quiet);font-size:14px;text-align:center;line-height:1.6}
+.wait .bot{width:70px;height:70px}
+.stock{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:9px 12px;flex-wrap:wrap}
+.stock .nm{font-weight:900;font-size:13.5px;display:flex;gap:6px;align-items:center}
+.dots{display:flex;gap:4px}
+.dots i{width:14px;height:14px;border-radius:4px;background:#e3e7ef;display:block}
+.dots i.on{background:linear-gradient(135deg,#d9822b,#b35a14)}
+.mk{font-size:12px;font-weight:800;border-radius:8px;padding:4px 8px}
+.mk.calm{background:var(--green2);color:var(--green)}
+.mk.crisis{background:var(--red2);color:var(--red);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.55}}
+.buy{margin-left:auto;background:#fff4dc;color:#8a5800;font-weight:900;font-size:12.5px;border-radius:9px;padding:7px 10px;display:flex;gap:5px;align-items:center}
+.buy:disabled{opacity:.4}
+.tip{display:flex;gap:8px;align-items:center;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px 10px;line-height:1.45}
+.tip .bot{width:34px;height:34px}
+/* 알림 */
+#toasts{position:fixed;left:50%;top:70px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:30;width:min(92vw,460px)}
+.toast{background:var(--ink);color:#fff;font-size:14px;font-weight:700;border-radius:12px;padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:tin .25s ease-out both;display:flex;gap:8px;align-items:center;line-height:1.4}
+.toast.good{background:var(--green)}.toast.bad{background:var(--red)}.toast.inno{background:var(--violet)}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+.float{position:fixed;font-weight:900;font-size:18px;pointer-events:none;z-index:40;animation:up 1s ease-out forwards}
+@keyframes up{to{transform:translateY(-50px);opacity:0}}
+/* 검사 */
+#inspect{position:fixed;inset:0;background:rgba(20,33,61,.55);display:none;align-items:center;justify-content:center;z-index:20;padding:18px}
+#inspect.on{display:flex}
+#inspect .panel{background:#fff;border-radius:20px;padding:18px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:12px;text-align:center}
+#inspect h3{font-size:19px;font-weight:900}
+#inspect p{font-size:13.5px;color:var(--quiet);line-height:1.5}
+.grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.box{aspect-ratio:1;border-radius:14px;background:#f3f5f9;border:2px solid var(--line);display:grid;place-items:center}
+.box svg{width:62%;height:62%}
+.box:active{transform:scale(.95)}
+.box.hit{border-color:var(--red);background:var(--red2)}
+.itbar{height:8px;border-radius:4px;background:#e9edf4;overflow:hidden}
+.itbar i{display:block;height:100%;background:var(--blue)}
+/* 결과 */
+#result{align-items:center;justify-content:center;padding:20px;overflow:auto}
+#result .panel{background:#fff;border-radius:22px;padding:22px;max-width:520px;width:100%;display:flex;flex-direction:column;gap:14px;box-shadow:0 10px 30px rgba(20,33,61,.08);text-align:center}
+#result h2{font-size:24px;font-weight:900}
+.bigstars{font-size:42px;color:var(--gold);letter-spacing:4px}
+.bigstars .off{color:#dfe3ea}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--bg);border-radius:12px;padding:10px 6px}
+.stat b{display:block;font-size:20px;font-weight:900}
+.stat span{font-size:11.5px;color:var(--quiet);font-weight:700}
+.learn{background:var(--blue2);border-radius:14px;padding:12px 14px;text-align:left;font-size:14px;line-height:1.6}
+.learn b{color:var(--blue);display:flex;gap:6px;align-items:center;margin-bottom:4px}
+.learn p+p{margin-top:6px}
+.top{position:fixed;top:10px;right:12px;z-index:5;display:flex;gap:6px}
+.top button{width:36px;height:36px;border-radius:10px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;font-size:17px;color:var(--quiet)}
+@media (max-width:760px){
+ .cards{grid-template-columns:repeat(2,1fr);gap:8px}
+ .hud{padding:8px 10px;gap:8px;justify-content:space-between}
+ .hud .ttl{font-size:13.5px;width:100%;margin:0;padding-right:80px;min-height:30px}
+ .meter .bar{width:40px}
+ .meter .lb{display:none}
+ .clock{font-size:13.5px;padding:4px 8px}
+ .main{padding:8px 10px;gap:8px}
+ .req{padding:7px 8px;min-height:78px}
+ .req .ag{font-size:12px}
+ .req .ag .ic{width:22px;height:22px;font-size:13px}
+ .req .it{font-size:11.5px}
+ .card{padding:8px;gap:4px}
+ .card .nm{font-size:13px}
+ .row{font-size:11.5px}
+ .act{font-size:12.5px;padding:8px 4px}
+ .board{padding:10px;gap:8px}
+ .bhead h3{font-size:14.5px}
+ .top{top:6px;right:8px}
+ .top button{width:32px;height:32px}
+ .stock{padding:7px 10px;gap:8px}
+ .stock .nm{font-size:12.5px}
+ .dots i{width:11px;height:11px}
+ .mk{font-size:11px;padding:3px 6px}
+ .buy{font-size:11.5px;padding:6px 8px}
+}
+</style>
+</head>
+<body>
+
+<!-- 아이콘 -->
+<svg width="0" height="0" style="position:absolute">
+ <defs>
+  <symbol id="i-school" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6"/><path d="M5 9v11h14V9"/><path d="M10 20v-5h4v5"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-3 0-5 1-8z"/></symbol>
+  <symbol id="i-health" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></symbol>
+  <symbol id="i-food" viewBox="0 0 24 24"><path d="M6 3v8a2 2 0 0 0 4 0V3M8 11v10"/><path d="M17 3c-2 2-2 6 0 8v10"/></symbol>
+  <symbol id="i-tent" viewBox="0 0 24 24"><path d="M3 20L12 4l9 16z"/><path d="M12 20l-3-6h6l-3 6"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="i-city" viewBox="0 0 24 24"><path d="M4 21V8l6-3v16M10 21V3l10 4v14"/><path d="M3 21h18M14 10h2M14 14h2"/></symbol>
+  <symbol id="i-factory" viewBox="0 0 24 24"><path d="M3 21V10l6 4v-4l6 4V5h6v16z"/><path d="M7 18h2M12 18h2M17 18h2"/></symbol>
+  <symbol id="i-road" viewBox="0 0 24 24"><path d="M7 21L10 3M17 21L14 3M12 6v2M12 11v2M12 16v2"/></symbol>
+  <symbol id="i-plane" viewBox="0 0 24 24"><path d="M2 15l20-7-3 9-7-2-3 5-1-6z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-8-5-8-11a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 6-8 11-8 11z"/></symbol>
+  <symbol id="i-park" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="M12 14v7M8 21h8"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19l8-8"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-pig" viewBox="0 0 24 24"><path d="M4 12a7 6 0 0 1 13-3h2v3l2 1v3h-3a7 6 0 0 1-3 2v2h-3v-1H9v1H6v-3a6 5 0 0 1-2-5z"/><circle cx="15" cy="11" r=".8" fill="currentColor"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M6 10v10h12V10"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+  <symbol id="i-warehouse" viewBox="0 0 24 24"><path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M7 17h10"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="4"/><path d="M12 4v4"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/></symbol>
+ </defs>
+</svg>
+
+<template id="botTpl"><svg class="bot" viewBox="0 0 100 100" aria-hidden="true"><line x1="50" y1="8" x2="50" y2="22" stroke="#1f5eff" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="8" r="6" fill="#f4a300"/><rect x="16" y="22" width="68" height="54" rx="22" fill="#1f5eff"/><rect x="24" y="31" width="52" height="34" rx="15" fill="#e8efff"/><circle cx="39" cy="48" r="5.5" fill="#14213d"/><circle cx="61" cy="48" r="5.5" fill="#14213d"/><circle cx="41" cy="46" r="1.8" fill="#fff"/><circle cx="63" cy="46" r="1.8" fill="#fff"/><path d="M43 57q7 5 14 0" stroke="#14213d" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="34" y="76" width="32" height="14" rx="6" fill="#14213d"/><circle cx="12" cy="49" r="6" fill="#14213d"/><circle cx="88" cy="49" r="6" fill="#14213d"/></svg></template>
+
+<div class="top"><button id="snd" aria-label="소리 켜고 끄기"><svg class="i"><use href="#i-sound"/></svg></button><button id="home" aria-label="처음으로"><svg class="i"><use href="#i-home"/></svg></button></div>
+
+<!-- 시작 -->
+<section id="title" class="screen on">
+ <div class="slot-bot"></div>
+ <h1><small>공공조달 체험 게임</small>조달 히어로<br>나라장터를 지켜라</h1>
+ <p class="lead">학교·소방서·재난 대피소가 물건을 부탁해요. 조달 요원이 되어 <b>공정하게, 제때, 좋은 품질로</b> 구해 주세요. 나라 살림을 아낄수록 국민 저금통이 차올라요.</p>
+ <div class="btns">
+  <button class="big" id="bQuick"><svg class="i"><use href="#i-play"/></svg>빠른 모드 3분</button>
+  <button class="big ghost" id="bStory"><svg class="i"><use href="#i-book"/></svg>스토리 모드</button>
+ </div>
+ <div class="chips" id="chapChips"></div>
+ <p class="credit">2026 조달청 AI 게임·콘텐츠 공모전 출품작 · 기획·코드·문구는 AI(Claude)와 함께 만들었어요.<br>업체 이름과 전화번호는 모두 지어낸 것이고, 2050년 이야기는 상상이에요.</p>
+</section>
+
+<!-- 챕터 안내 -->
+<section id="brief" class="screen">
+ <div class="panel">
+  <h2 id="bTitle"></h2>
+  <div class="say"><div class="slot-bot"></div><div class="bubble" id="bSay"></div></div>
+  <ul id="bList"></ul>
+  <button class="big" id="bGo"><svg class="i"><use href="#i-play"/></svg>시작하기</button>
+ </div>
+</section>
+
+<!-- 게임 -->
+<section id="play" class="screen">
+ <div class="hud">
+  <div class="ttl"><svg class="i" style="color:var(--blue)"><use href="#i-shield"/></svg><span id="hTitle">나라장터</span></div>
+  <div class="meter" title="국민 만족도"><svg class="i"><use href="#i-heart"/></svg><span class="lb">만족</span><div class="bar"><i id="mSat" style="background:#ff7a59"></i></div><b id="vSat">60</b></div>
+  <div class="meter" title="공정 점수"><svg class="i"><use href="#i-shield"/></svg><span class="lb">공정</span><div class="bar"><i id="mFair" style="background:var(--blue)"></i></div><b id="vFair">60</b></div>
+  <div class="pig"><svg class="i"><use href="#i-pig"/></svg><span id="vSave">0만 원</span></div>
+  <div class="clock"><svg class="i"><use href="#i-clock"/></svg><span id="vClock">3:00</span></div>
+ </div>
+ <div class="main">
+  <div class="tip" id="tip" style="display:none"><div class="slot-bot"></div><div id="tipText"></div></div>
+  <div class="stock" id="stock" style="display:none">
+   <div class="nm"><svg class="i"><use href="#i-warehouse"/></svg>구리 비축기지</div>
+   <div class="dots" id="sDots"></div>
+   <div class="mk calm" id="sMarket">시장 가격 낮음</div>
+   <button class="buy" id="sBuy"><svg class="i"><use href="#i-box"/></svg><span id="sBuyT">비축하기 −60만 원</span></button>
+  </div>
+  <div class="label"><svg class="i"><use href="#i-box"/></svg>기관 요청 · 눌러서 나라장터에 공고해요</div>
+  <div class="reqs" id="reqs"></div>
+  <div class="board" id="board"></div>
+ </div>
+</section>
+
+<!-- 납품 검사 -->
+<div id="inspect"><div class="panel">
+ <h3>납품 검사</h3>
+ <p id="iText">물건이 도착했어요. 불량품이 보이면 눌러서 반품해요. 모두 괜찮으면 '합격'!</p>
+ <div class="itbar"><i id="iBar"></i></div>
+ <div class="grid6" id="iGrid"></div>
+ <button class="big" id="iPass"><svg class="i"><use href="#i-check"/></svg>모두 괜찮아요, 합격</button>
+</div></div>
+
+<!-- 결과 -->
+<section id="result" class="screen">
+ <div class="panel">
+  <h2 id="rTitle">수고했어요!</h2>
+  <div class="bigstars" id="rStars"></div>
+  <div class="stats">
+   <div class="stat"><b id="rSat">0</b><span>국민 만족도</span></div>
+   <div class="stat"><b id="rFair">0</b><span>공정 점수</span></div>
+   <div class="stat"><b id="rSave">0</b><span>아낀 나라 살림</span></div>
+  </div>
+  <div class="stats">
+   <div class="stat"><b id="rDone">0</b><span>제때 납품</span></div>
+   <div class="stat"><b id="rCatch">0</b><span>적발한 불공정</span></div>
+   <div class="stat"><b id="rInno">0</b><span>혁신제품 구매</span></div>
+  </div>
+  <div class="learn" id="rLearn"></div>
+  <div class="btns">
+   <button class="big" id="rNext"><svg class="i"><use href="#i-play"/></svg>다음 챕터</button>
+   <button class="big ghost" id="rAgain">다시 하기</button>
+  </div>
+ </div>
+</section>
+
+<div id="toasts"></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var ic=function(n){return '<svg class="i"><use href="#i-'+n+'"/></svg>'};
+var R=Math.random, ri=function(a,b){return a+Math.floor(R()*(b-a+1))}, pick=function(a){return a[Math.floor(R()*a.length)]};
+var shuffle=function(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(R()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a};
+document.querySelectorAll('.slot-bot').forEach(function(s){s.replaceWith($('botTpl').content.cloneNode(true))});
+
+/* ---------- 소리 ---------- */
+var AC=null,muted=false;
+function tone(f,d,type,v,delay){if(muted)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var t=AC.currentTime+(delay||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+var sfx={
+ good:function(){tone(660,.12,'triangle');tone(880,.16,'triangle',.12,.09)},
+ bad:function(){tone(220,.22,'sawtooth',.08);tone(160,.28,'sawtooth',.07,.12)},
+ catch:function(){tone(523,.1,'square',.07);tone(784,.1,'square',.07,.08);tone(1046,.2,'square',.07,.16)},
+ tap:function(){tone(440,.05,'sine',.08)},
+ alarm:function(){tone(740,.12,'square',.06);tone(740,.12,'square',.06,.2)},
+ coin:function(){tone(988,.08,'square',.06);tone(1319,.16,'square',.06,.07)}
+};
+$('snd').onclick=function(){muted=!muted;this.innerHTML=ic(muted?'mute':'sound')};
+
+/* ---------- 데이터 ---------- */
+var AG=[
+ {ag:'초등학교',ic:'school',c:'#1f5eff',items:[['책걸상 30세트',900,12],['교실 공기청정기 10대',700,10],['실험 도구 40세트',400,8]]},
+ {ag:'소방서',ic:'flame',c:'#e5383b',items:[['방화복 20벌',1200,8],['구조용 사다리 4개',600,7]]},
+ {ag:'보건소',ic:'health',c:'#139a5b',items:[['체온계 50개',300,5],['구급상자 80개',400,6]]},
+ {ag:'군부대 급식소',ic:'food',c:'#6b7a2e',items:[['국탕류 밀키트 500개',800,4],['쌀 2톤',700,5]]},
+ {ag:'재난 대피소',ic:'tent',c:'#f08c00',items:[['구호 담요 300장',600,3],['생수 2천 병',300,2]]},
+ {ag:'도서관',ic:'book',c:'#7b3fe4',items:[['노트북 10대',1500,10],['그림책 500권',500,9]]},
+ {ag:'시청',ic:'city',c:'#3d5a80',items:[['민원실 의자 40개',500,9],['전기 관용차 2대',6000,20]]},
+ {ag:'공원 관리소',ic:'park',c:'#2a9d8f',items:[['태양광 가로등 8개',1600,14],['벤치 20개',800,10]]}
+];
+var INNO=[
+ {ag:'요양원',ic:'heart',c:'#d6336c',it:'돌봄 로봇 2대',b:2400,d:14,prod:'AI 돌봄 로봇'},
+ {ag:'도로 관리소',ic:'road',c:'#495057',it:'자율 점검 로봇 1대',b:3000,d:16,prod:'자율 주행 점검 로봇'},
+ {ag:'공항',ic:'plane',c:'#1971c2',it:'위험물 탐지 X-ray 1대',b:5000,d:18,prod:'AI 위험물 자동 탐지 X-ray'},
+ {ag:'항구',ic:'factory',c:'#0b7285',it:'전기 추진 순찰선 1척',b:9000,d:25,prod:'수소·배터리 전기 추진선'}
+];
+var NAMES=['튼튼상사','바른공방','한빛산업','새솔물산','푸른나무','다온산업','해오름','늘봄상회','산들기업','별빛상사','온누리','가온공업','미르상사','누리공방','동트는집','하랑산업','라온물산','도담상회'];
+var INNO_NAMES=['미래로봇랩','새싹AI','내일테크','반짝이노'];
+var LOCAL=['대전','군산','부산','광주','춘천','청주','전주','제주'];
+
+/* 챕터 */
+var CH=[
+ null,
+ {n:1,title:'나라장터 첫 출근',rules:{},count:5,spawn:10,pat:30,
+  say:'안녕하세요, 저는 조달 도우미 <b>바로</b>예요! 공공기관이 필요한 물건을 대신 사 주는 곳이 조달청이에요. 오늘은 나라장터에 공고를 내고 업체를 골라 봐요.',
+  list:[['box','위쪽 <b>기관 요청</b>을 누르면 나라장터에 공고가 나가고 업체가 지원해요.'],['check','<b>예산 안</b>에서, <b>기한 안</b>에 오고, <b>품질 별</b>이 많은 업체와 계약해요.'],['pig','예산보다 싸게 사면 아낀 만큼 국민 저금통이 차올라요.']],
+  learn:'<p>나라장터는 공공기관 7만 1천여 곳과 업체 60만여 곳이 함께 쓰는 나라의 전자 조달 창구예요.</p><p>조달청은 학교 책걸상부터 소방 장비까지 공공기관이 쓰는 물건을 사서 공급해요.</p>'},
+ {n:2,title:'수상한 입찰',rules:{fraud:1},count:6,spawn:9,pat:28,
+  say:'조심! 규칙을 어기는 업체가 섞여 있어요. 수상한 업체는 <b>신고</b> 버튼으로 걸러 내요. 멀쩡한 업체를 신고하면 공정 점수가 깎여요.',
+  list:[['flag','<b>담합</b>: 전화번호가 같은 두 업체가 비슷한 가격을 냈어요. 미리 짠 거예요!'],['x','<b>서류 문제</b>: 직접 만든다는 확인서의 기한이 지났어요.'],['search','<b>너무 싼 가격</b>: 하한선보다 낮으면 품질이 위험해서 계약할 수 없어요.']],
+  learn:'<p>업체끼리 미리 짜고 가격을 맞추는 <b>담합</b>은 불공정 조달행위예요. 조달청은 이런 행위를 조사하고 감독해요.</p><p>너무 낮은 가격은 품질과 일하는 사람에게 피해를 줄 수 있어서, 2026년 하반기부터 물품·용역 낙찰 하한율이 2%p 올라갔어요.</p>'},
+ {n:3,title:'혁신제품을 찾아라',rules:{fraud:1,inno:1},count:6,spawn:9,pat:28,
+  say:'새로 나온 AI·로봇 제품은 처음 사 주는 곳이 있어야 쑥쑥 자라요. 보라색 <b>혁신제품</b> 업체를 골라 시범으로 써 보면 보너스!',
+  list:[['spark','<b>혁신제품</b> 요청이 오면 보라색 업체를 찾아요.'],['heart','혁신제품을 사면 기관도 좋고, 기업도 성장해요.'],['flag','수상한 업체는 계속 나와요. 신고도 잊지 마세요!']],
+  learn:'<p>조달청은 공공기관이 혁신제품을 먼저 사서 써 보는 <b>혁신조달</b>을 운영해요. 혁신제품 시범구매는 2025년 529억 원에서 2026년 839억 원으로 늘었어요.</p><p>AI·로봇·바이오 같은 새 산업의 제품을 공공이 먼저 사 주면 기업이 성장할 사다리가 돼요.</p>'},
+ {n:4,title:'공급망 위기',rules:{fraud:1,stock:1},count:7,spawn:8,pat:28,
+  say:'구리 값이 언제 뛸지 몰라요. <b>쌀 때 비축</b>해 두었다가, 위기가 오면 공장에 <b>방출</b>해서 도와줘요!',
+  list:[['warehouse','시장 가격이 <b>낮을 때</b> 비축하기 버튼으로 구리를 모아요.'],['factory','<b>위기 경보</b>가 울리면 중소 공장이 구리를 부탁해요.'],['box','비축해 둔 구리를 방출하면 공장이 멈추지 않아요.']],
+  learn:'<p>조달청은 알루미늄·구리 같은 주요 원자재를 비축기지에 모아 두었다가, 공급망 위기 때 방출해 중소 제조업체를 도와요.</p><p>민간 기업의 돈으로 산 원자재를 조달청 창고에 함께 쌓아 두는 <b>민관공동비축</b>도 있어요.</p>'},
+ {n:5,title:'2050년 미래 조달청 (상상)',rules:{fraud:1,inno:1,stock:1,green:1,ai:1},count:8,spawn:7,pat:26,
+  say:'2050년이에요! 이제 제가 수상한 서류를 먼저 찾아 <b>AI 알림</b>을 붙여 드려요. 탄소를 적게 내는 <b>녹색제품</b>을 고르면 지구도 웃어요.',
+  list:[['bot','보라색 <b>AI 알림</b>이 붙은 업체를 잘 살펴봐요. 그래도 판단은 요원님 몫!'],['leaf','초록색 <b>녹색제품</b>을 고르면 보너스.'],['spark','혁신제품과 비축기지도 함께 나와요. 지금까지 배운 것을 모두!']],
+  learn:'<p>이 챕터는 상상이에요. 조달청은 지금도 AI로 공공조달을 바꾸고, AI 제품의 공공조달 시장 진입을 돕고 있어요.</p><p>탄소중립을 위해 환경을 덜 해치는 제품을 사는 <b>녹색구매</b>도 공공조달의 중요한 일이에요.</p>'}
+];
+var QUICK={n:0,title:'빠른 모드',rules:{},spawn:7,pat:24,
+ learn:'<p>나라장터는 공공기관 7만 1천여 곳과 업체 60만여 곳이 쓰는 나라의 전자 조달 창구예요.</p><p>담합을 막고(공정), 새 기술을 먼저 사 주고(혁신), 위기에 대비해 원자재를 쌓아 두는 것(비축)까지 모두 조달청의 일이에요.</p>'};
+
+/* ---------- 상태 ---------- */
+var S=null,raf=0,last=0;
+var cleared=+(function(){try{return localStorage.getItem('jodal_ch')||0}catch(e){return 0}})();
+function saveCleared(n){if(n>cleared){cleared=n;try{localStorage.setItem('jodal_ch',n)}catch(e){}}}
+
+function show(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('on',s.id===id)});$('home').style.display=id==='title'?'none':''}
+
+function chips(){
+ var h='';for(var i=1;i<=5;i++){var lock=i>cleared+1;h+='<button class="chap'+(lock?' lock':'')+'" data-ch="'+i+'"'+(lock?' disabled':'')+'><b>'+i+'</b>'+CH[i].title+'</button>'}
+ $('chapChips').innerHTML=h;
+ $('chapChips').querySelectorAll('button').forEach(function(b){b.onclick=function(){sfx.tap();openBrief(+b.dataset.ch)}});
+}
+
+function openBrief(n){
+ var c=CH[n];show('brief');
+ $('bTitle').innerHTML='<small>챕터 '+n+'</small>'+c.title;
+ $('bSay').innerHTML=c.say;
+ $('bList').innerHTML=c.list.map(function(l){return '<li>'+ic(l[0])+'<span>'+l[1]+'</span></li>'}).join('');
+ $('bGo').onclick=function(){sfx.tap();start('story',n)};
+}
+
+function start(mode,n){
+ var c=mode==='quick'?QUICK:CH[n];
+ S={mode:mode,ch:n,cfg:c,rules:Object.assign({},c.rules),sat:60,fair:60,save:0,t:mode==='quick'?180:0,spawnT:1.2,reqs:[],sel:null,
+  made:0,handled:0,done:0,catches:0,inno:0,stock:mode==='quick'?0:1,crisis:false,crisisAt:mode==='quick'?120:null,paused:false,over:false,seen:{},green:0};
+ $('hTitle').textContent=mode==='quick'?'빠른 모드':'챕터 '+n+' · '+c.title;
+ show('play');renderAll();
+ cancelAnimationFrame(raf);last=performance.now();raf=requestAnimationFrame(loop);
+ if(mode==='story'&&n===1)tip('기관 요청 카드를 눌러 공고를 내 보세요!');
+ else if(mode==='quick')tip('요청을 눌러 공고 → 좋은 업체와 계약! 시간이 지나면 새 규칙이 나와요.');
+ else tip('');
+}
+
+/* 빠른 모드는 시간이 지나며 규칙이 늘어나요 */
+function quickRules(){
+ var el=180-S.t,r=S.rules,add=function(k,msg){if(!r[k]){r[k]=1;toast(msg,'inno');sfx.alarm()}};
+ if(el>30)add('fraud','새 규칙: 수상한 업체가 나타났어요! 신고 버튼으로 걸러 내요.');
+ if(el>65)add('inno','새 규칙: 혁신제품 요청! 보라색 업체를 시범구매해 봐요.');
+ if(el>95){if(!r.stock){S.stock=1}add('stock','새 규칙: 구리 비축기지 열림. 쌀 때 비축해 두세요!');}
+}
+
+/* ---------- 요청 만들기 ---------- */
+function newReq(){
+ var r=S.rules,type='normal';
+ if(r.stock&&S.crisis&&R()<.45)type='factory';
+ else if(r.inno&&R()<.35)type='inno';
+ var q;
+ if(type==='factory'){
+  q={type:type,ag:pick(LOCAL)+' '+pick(['부품 공장','전선 공장','모터 공장']),ic:'factory',c:'#8a5800',it:'구리 1묶음이 급해요',b:200,d:2};
+ }else if(type==='inno'){
+  var x=pick(INNO);q={type:type,ag:x.ag,ic:x.ic,c:x.c,it:x.it,b:x.b,d:x.d,prod:x.prod};
+ }else{
+  var a=pick(AG),it=pick(a.items);q={type:type,ag:a.ag,ic:a.ic,c:a.c,it:it[0],b:it[1],d:it[2]};
+ }
+ q.id=++S.made;q.pat=S.cfg.pat+(type==='inno'?6:0);q.left=q.pat;q.floor=Math.round(q.b*.85);
+ return q;
+}
+
+function money(v){return v>=10000?(Math.round(v/1000)/10)+'억':v.toLocaleString('ko-KR')+'만'}
+function phone(){return '042-555-'+ri(1000,9999)}
+
+function makeCards(q){
+ var r=S.rules,B=q.b,D=q.d,cards=[],names=shuffle(NAMES.slice());
+ var mk=function(o){return Object.assign({name:names.pop(),tags:[],ph:phone(),doc:true,fraud:null},o)};
+ if(q.type==='factory'){
+  return [
+   {kind:'release',name:'조달청 비축기지',tags:['비축물자'],price:B,q:3,days:1,doc:true,ph:'정부 비축',fraud:null},
+   {kind:'market',name:'해외 급구 상사',tags:['수입'],price:B*3,q:2,days:D+3,doc:true,ph:phone(),fraud:null}
+  ];
+ }
+ var round5=function(v){return Math.max(5,Math.round(v/5)*5)};
+ if(q.type==='inno'){
+  cards.push(mk({name:pick(INNO_NAMES),tags:['혁신제품'],inno:true,price:round5(B*(.93+R()*.06)),q:3,days:D-ri(1,3),prod:q.prod}));
+  cards.push(mk({tags:['중소기업'],price:round5(B*(.88+R()*.05)),q:2,days:D-ri(0,2)}));
+ }else{
+  cards.push(mk({tags:[pick(['중소기업','지역기업'])],price:round5(B*(.88+R()*.08)),q:R()<.6?3:2,days:D-ri(1,3)}));
+ }
+ var fillers=[
+  function(){return mk({tags:['중소기업'],price:round5(B*(.86+R()*.04)),q:1,days:D-ri(0,2)})},
+  function(){return mk({tags:['지역기업'],price:round5(B*(.9+R()*.05)),q:3,days:D+ri(2,5)})},
+  function(){return mk({tags:['대기업'],price:round5(B*(1.04+R()*.08)),q:3,days:D-ri(1,3)})}
+ ];
+ shuffle(fillers);
+ var want=S.mode==='story'&&S.ch===1?3:4;
+ if(r.fraud&&R()<.75){
+  var f=pick(['collude','fake','dump','collude']);
+  if(f==='collude'&&want-cards.length>=2){
+   var p=round5(B*(.97+R()*.02)),ph=phone(),q2=ri(2,3);
+   cards.push(mk({tags:['중소기업'],price:p,q:q2,days:D-1,ph:ph,fraud:'collude'}));
+   cards.push(mk({tags:['중소기업'],price:p+5,q:q2,days:D-1,ph:ph,fraud:'collude'}));
+  }else if(f==='fake'||f==='collude'){
+   cards.push(mk({tags:['중소기업'],price:round5(B*(.87+R()*.04)),q:3,days:D-ri(1,3),doc:false,fraud:'fake'}));
+  }else{
+   cards.push(mk({tags:['중소기업'],price:round5(B*(.6+R()*.12)),q:3,days:D-ri(1,3),fraud:'dump'}));
+  }
+ }
+ while(cards.length<want)cards.push(fillers.pop()());
+ if(r.green){var g=cards.filter(function(c){return !c.fraud&&c.days<=D&&c.price<=B});if(g.length){var gg=pick(g);gg.green=true;gg.tags.push('녹색제품')}}
+ cards.forEach(function(c){c.kind=c.kind||'buy';if(c.days<1)c.days=1});
+ return shuffle(cards);
+}
+
+/* ---------- 그리기 ---------- */
+function renderAll(){renderHud();renderReqs();renderBoard();renderStock()}
+function renderHud(){
+ S.sat=Math.max(0,Math.min(100,S.sat));S.fair=Math.max(0,Math.min(100,S.fair));
+ $('mSat').style.width=S.sat+'%';$('vSat').textContent=Math.round(S.sat);
+ $('mFair').style.width=S.fair+'%';$('vFair').textContent=Math.round(S.fair);
+ $('vSave').textContent=money(Math.max(0,S.save))+' 원';
+ if(S.mode==='quick'){var t=Math.max(0,Math.ceil(S.t));$('vClock').textContent=Math.floor(t/60)+':'+('0'+t%60).slice(-2)}
+ else $('vClock').textContent=Math.min(S.handled,S.cfg.count)+' / '+S.cfg.count;
+}
+function reqHtml(q){
+ var w=Math.max(0,q.left/q.pat*100),flag='';
+ if(q.type==='inno')flag='<span class="flag" style="background:var(--violet2);color:var(--violet)">혁신</span>';
+ if(q.type==='factory')flag='<span class="flag" style="background:var(--red2);color:var(--red)">긴급</span>';
+ return '<button class="req'+(S.sel===q?' sel':'')+(flag?' hf':'')+'" data-id="'+q.id+'">'+flag+
+  '<div class="ag"><span class="ic" style="background:'+q.c+'">'+ic(q.ic)+'</span>'+q.ag+'</div>'+
+  '<div class="it">'+q.it+'</div><div class="meta">예산 '+money(q.b)+' 원 · '+q.d+'일 안에</div>'+
+  '<i class="tbar'+(w<35?' warn':'')+'" style="width:'+w+'%"></i></button>';
+}
+function renderReqs(){
+ var h='';for(var i=0;i<3;i++){var q=S.reqs[i];h+=q?reqHtml(q):'<div class="req empty">새 요청을 기다리는 중</div>'}
+ $('reqs').innerHTML=h;
+ $('reqs').querySelectorAll('.req[data-id]').forEach(function(b){b.onclick=function(){var q=S.reqs.filter(function(x){return x.id==b.dataset.id})[0];if(q)openReq(q)}});
+}
+function tickReqs(){
+ $('reqs').querySelectorAll('.req[data-id]').forEach(function(b){var q=S.reqs.filter(function(x){return x.id==b.dataset.id})[0];if(!q)return;var i=b.querySelector('.tbar'),w=Math.max(0,q.left/q.pat*100);i.style.width=w+'%';i.classList.toggle('warn',w<35)});
+}
+function stars(n){var s='';for(var i=0;i<3;i++)s+=i<n?'★':'<span class="off">★</span>';return '<span class="stars">'+s+'</span>'}
+function cardHtml(c,i,q){
+ var over=c.price>q.b,low=c.price<q.floor,late=c.days>q.d,tags=c.tags.map(function(t){var k=t==='혁신제품'?'inno':t==='녹색제품'?'green':t==='지역기업'?'local':'';return '<span class="tag '+k+'">'+t+'</span>'}).join('');
+ var hint='';
+ if(S.rules.ai&&c.fraud)hint='<span class="hint">'+ic('bot')+'AI 알림</span>';
+ if(c.kind==='release'){
+  var has=S.stock>0;
+  return '<div class="card" data-i="'+i+'"><div class="nm">'+ic('warehouse')+c.name+'</div><div class="tags">'+tags+'</div>'+
+   '<div class="row"><span>가격</span><b class="ok">평소 가격</b></div><div class="row"><span>도착</span><b class="ok">내일</b></div>'+
+   '<div class="row"><span>남은 구리</span><b class="'+(has?'ok':'bad')+'">'+S.stock+'묶음</b></div>'+
+   '<div class="acts"><button class="act go" data-a="buy"'+(has?'':' disabled style="opacity:.45"')+'>'+ic('box')+'방출하기</button></div></div>';
+ }
+ if(c.kind==='market'){
+  return '<div class="card" data-i="'+i+'"><div class="nm">'+ic('plane')+c.name+'</div><div class="tags">'+tags+'</div>'+
+   '<div class="row"><span>가격</span><b class="bad">'+money(c.price)+' 원 (3배)</b></div><div class="row"><span>도착</span><b class="bad">'+c.days+'일 뒤</b></div>'+
+   '<div class="row"><span>품질</span>'+stars(c.q)+'</div>'+
+   '<div class="acts"><button class="act go" data-a="buy">'+ic('check')+'비싸도 사기</button></div></div>';
+ }
+ return '<div class="card" data-i="'+i+'">'+hint+'<div class="nm">'+(c.inno?ic('spark'):c.green?ic('leaf'):'')+c.name+'</div><div class="tags">'+tags+'</div>'+
+  (c.inno?'<div class="row" style="color:var(--violet);font-weight:800">'+c.prod+'</div>':'')+
+  '<div class="row"><span>가격</span><b class="'+(over||low?'bad':'')+'">'+money(c.price)+' 원'+(over?' (예산 초과)':'')+'</b></div>'+
+  '<div class="row"><span>품질</span>'+stars(c.q)+'</div>'+
+  '<div class="row"><span>도착</span><b class="'+(late?'bad':'ok')+'">'+c.days+'일 뒤</b></div>'+
+  '<div class="doc '+(c.doc?'ok':'bad')+'">'+ic(c.doc?'check':'x')+(c.doc?'직접생산 확인서 유효':'직접생산 확인서 기한 지남')+'</div>'+
+  '<div class="phone">☎ '+c.ph+'</div>'+
+  '<div class="acts"><button class="act go" data-a="buy">'+ic('check')+'계약</button><button class="act no" data-a="flag">'+ic('flag')+'신고</button></div></div>';
+}
+function renderBoard(){
+ var q=S.sel,b=$('board');
+ if(!q){
+  b.innerHTML='<div class="wait">'+$('botTpl').innerHTML+'<div>'+(S.reqs.length?'위쪽 <b>기관 요청</b>을 눌러<br>나라장터에 공고를 내 보세요.':'새 요청을 기다리는 중이에요…')+'</div></div>';
+  return;
+ }
+ var head='<div class="bhead"><h3>'+q.ag+' · '+q.it+'</h3><span class="pill blue">예산 '+money(q.b)+' 원</span><span class="pill">'+ic('clock')+q.d+'일 안에</span>'+(S.rules.fraud&&q.type!=='factory'?'<span class="pill red">하한 '+money(q.floor)+' 원</span>':'')+'</div>';
+ b.innerHTML=head+'<div class="cards">'+q.cards.map(function(c,i){return cardHtml(c,i,q)}).join('')+'</div>';
+ b.querySelectorAll('.card').forEach(function(el){
+  var c=q.cards[+el.dataset.i];
+  el.querySelectorAll('[data-a]').forEach(function(btn){btn.onclick=function(e){if(btn.disabled)return;if(btn.dataset.a==='buy')contract(q,c,e);else report(q,c,el,e)}});
+ });
+}
+function renderStock(){
+ var on=!!S.rules.stock;$('stock').style.display=on?'':'none';if(!on)return;
+ var d='';for(var i=0;i<5;i++)d+='<i class="'+(i<S.stock?'on':'')+'"></i>';$('sDots').innerHTML=d;
+ var m=$('sMarket');m.className='mk '+(S.crisis?'crisis':'calm');m.textContent=S.crisis?'위기 경보! 가격 3배':'시장 가격 낮음';
+ var cost=S.crisis?180:60;$('sBuyT').textContent='비축하기 −'+cost+'만 원';$('sBuy').disabled=S.stock>=5||S.save<cost;
+}
+$('sBuy').onclick=function(e){var cost=S.crisis?180:60;if(S.stock>=5||S.save<cost)return;S.save-=cost;S.stock++;sfx.coin();if(!S.crisis)floatAt(e,'+1 비축','#b35a14');else{floatAt(e,'비싸게 샀어요','#e5383b')}renderStock();renderHud();if(S.sel&&S.sel.type==='factory')renderBoard()};
+
+/* ---------- 행동 ---------- */
+function openReq(q){
+ sfx.tap();S.sel=q;
+ if(!q.cards){q.cards=makeCards(q)}
+ renderReqs();renderBoard();
+ if(S.rules.fraud&&!S.seen.fraudTip&&S.mode==='story'&&S.ch===2){S.seen.fraudTip=1;tip('전화번호가 같은 업체, 서류 ✗, 하한선보다 싼 가격을 찾아보세요!')}
+ if(q.type==='factory'&&!S.seen.fac){S.seen.fac=1;tip('비축해 둔 구리를 방출하면 공장이 멈추지 않아요!')}
+}
+function closeReq(q){S.reqs=S.reqs.filter(function(x){return x!==q});if(S.sel===q)S.sel=null;S.handled++;renderAll();checkEnd()}
+
+function contract(q,c,e){
+ if(c.kind==='buy'&&c.price>q.b){toast('예산을 넘어서 계약할 수 없어요.','bad');sfx.bad();return}
+ if(c.kind==='buy'&&c.price<q.floor&&S.rules.fraud){toast('하한선보다 싼 가격이라 계약할 수 없어요. 신고해야 해요!','bad');sfx.bad();return}
+ if(c.kind==='release'){
+  S.stock--;S.sat+=12;S.fair+=3;S.done++;sfx.good();floatAt(e,'공장 가동!','#139a5b');toast('비축 구리 방출! 공장이 멈추지 않았어요.','good');closeReq(q);return;
+ }
+ if(c.kind==='market'){
+  S.save-=c.price-q.b;S.sat+=2;sfx.bad();floatAt(e,'−'+money(c.price-q.b),'#e5383b');toast('구리를 3배 값에 샀어요. 비축해 뒀다면 아낄 수 있었어요.','bad');closeReq(q);return;
+ }
+ if(c.fraud){
+  S.fair-=14;S.sat-=8;sfx.bad();
+  toast({collude:'앗, 담합 업체였어요! 전화번호가 같은 업체를 조심해요.',fake:'앗, 서류가 잘못된 업체였어요! 확인서를 꼭 봐요.',dump:'너무 싼 업체는 품질이 위험해요.'}[c.fraud],'bad');
+  floatAt(e,'공정 −14','#e5383b');closeReq(q);return;
+ }
+ var saved=q.b-c.price;S.save+=saved;S.fair+=2;
+ var msg='',good=true;
+ if(c.days>q.d){S.sat-=10;good=false;msg=q.ag+'에 '+(c.days-q.d)+'일 늦게 도착했어요.'}
+ else{S.sat+=3+c.q*3;S.done++;msg=q.ag+'에 제때 도착!'}
+ if(c.inno){S.inno++;S.sat+=6;msg='혁신제품 시범구매 성공! '+c.prod+'가 첫 공공 고객을 만났어요.'}
+ if(c.green){S.green++;S.sat+=4;msg+=' 녹색제품이라 탄소도 줄였어요.'}
+ if(q.type==='inno'&&!c.inno){msg+=' (보라색 혁신제품을 고르면 보너스였어요.)'}
+ if(saved>0)floatAt(e,'+'+money(saved)+' 원','#139a5b');
+ good?sfx.good():sfx.bad();
+ var defect=c.q===1?R()<.75:c.q===2?R()<.25:R()<.05;
+ S.sel=null;S.reqs=S.reqs.filter(function(x){return x!==q});renderAll();
+ if(good&&(defect||R()<.25))inspect(defect,function(){toast(msg,c.inno?'inno':'good');S.handled++;renderAll();checkEnd()});
+ else{toast(msg,c.inno?'inno':good?'good':'bad');S.handled++;renderAll();checkEnd()}
+}
+function report(q,c,el,e){
+ if(c.kind!=='buy')return;
+ if(c.fraud){
+  sfx.catch();S.catches++;S.fair+=8;S.sat+=1;floatAt(e,'적발! 공정 +8','#1f5eff');
+  var label={collude:'담합 적발! 같은 전화번호로 가격을 맞췄어요.',fake:'서류 위조 적발! 직접 만들지 않은 업체였어요.',dump:'너무 싼 가격 적발! 품질이 위험했어요.'}[c.fraud];
+  toast(label,'good');
+  q.cards=q.cards.filter(function(x){return c.fraud==='collude'?x.fraud!=='collude':x!==c});
+  renderBoard();
+ }else{
+  sfx.bad();S.fair-=6;floatAt(e,'억울한 신고 −6','#e5383b');toast(c.name+'은(는) 규칙을 잘 지킨 업체예요.','bad');
+ }
+ renderHud();
+}
+
+/* 납품 검사 */
+function inspect(defect,done){
+ S.paused=true;var g=$('iGrid'),bad=defect?ri(0,5):-1,t=5,ended=false;
+ var item=function(d){return '<svg viewBox="0 0 60 60"><path d="M8 18l22-10 22 10v26l-22 10-22-10z" fill="'+(d?'#c9a27a':'#e8b878')+'" stroke="#8a5a2b" stroke-width="2"/><path d="M8 18l22 10 22-10M30 28v26" stroke="#8a5a2b" stroke-width="2" fill="none"/>'+(d?'<path d="M36 30l5 6-4 3 6 7" stroke="#e5383b" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M14 34l6 3-2 5" stroke="#e5383b" stroke-width="3" fill="none" stroke-linecap="round"/>':'<rect x="25" y="12" width="10" height="5" rx="1" fill="#fff" opacity=".7"/>')+'</svg>'};
+ var h='';for(var i=0;i<6;i++)h+='<button class="box" data-i="'+i+'">'+item(i===bad)+'</button>';g.innerHTML=h;
+ $('inspect').classList.add('on');$('iBar').style.width='100%';
+ var finish=function(ok,txt){if(ended)return;ended=true;clearInterval(iv);setTimeout(function(){$('inspect').classList.remove('on');S.paused=false;last=performance.now();if(txt)toast(txt,ok?'good':'bad');done()},ok?450:250)};
+ g.querySelectorAll('.box').forEach(function(b){b.onclick=function(){if(+b.dataset.i===bad){b.classList.add('hit');sfx.catch();S.sat+=4;finish(true,'불량품을 찾아 반품했어요! 새 물건으로 바꿔 받아요.')}else{sfx.tap()}}});
+ $('iPass').onclick=function(){if(bad>=0){S.sat-=9;sfx.bad();finish(false,'불량품이 그대로 들어갔어요. 검사를 꼼꼼히!')}else{S.sat+=2;sfx.good();finish(true,'')}};
+ var iv=setInterval(function(){t-=.1;$('iBar').style.width=Math.max(0,t/5*100)+'%';if(t<=0){if(bad>=0){S.sat-=9;sfx.bad();finish(false,'시간 안에 불량품을 못 찾았어요.')}else finish(true,'')}},100);
+}
+
+/* ---------- 흐름 ---------- */
+function loop(now){
+ var dt=Math.min(.1,(now-last)/1000);last=now;
+ if(S&&!S.over&&!S.paused){
+  if(S.mode==='quick'){S.t-=dt;quickRules();if(S.t<=0){S.t=0;renderHud();end();return}}
+  /* 위기 */
+  if(S.rules.stock&&!S.crisis){
+   var go=S.mode==='quick'?(S.t<=S.crisisAt):(S.handled>=(S.ch===4?2:3));
+   if(go){S.crisis=true;sfx.alarm();toast('공급망 위기 경보! 구리 값이 3배로 뛰었어요.','bad');renderStock()}
+  }
+  S.spawnT-=dt;
+  var room=S.reqs.length<3,more=S.mode==='quick'||S.made<S.cfg.count;
+  if(S.spawnT<=0&&room&&more){S.reqs.push(newReq());S.spawnT=S.cfg.spawn*(S.reqs.length?1:.5);renderReqs();if(!S.sel)renderBoard()}
+  if(!room)S.spawnT=Math.min(S.spawnT,2);
+  if(!S.reqs.length)S.spawnT=Math.min(S.spawnT,1.2);
+  var expired=null;
+  S.reqs.forEach(function(q){q.left-=dt;if(q.left<=0)expired=q});
+  if(expired){S.sat-=10;sfx.bad();toast(expired.ag+'이(가) 기다리다 지쳤어요.','bad');closeReq(expired)}
+  tickReqs();renderHud();
+ }
+ if(S&&!S.over)raf=requestAnimationFrame(loop);
+}
+function checkEnd(){if(S.mode==='story'&&S.handled>=S.cfg.count&&!S.over)setTimeout(end,600)}
+function end(){
+ if(S.over)return;S.over=true;cancelAnimationFrame(raf);
+ var score=S.sat*.5+S.fair*.5,st=score>=80?3:score>=65?2:score>=50?1:0;
+ if(S.mode==='story'&&st>=1)saveCleared(S.ch);
+ $('rTitle').textContent=st>=3?'최고의 조달 요원!':st>=2?'믿음직한 조달 요원!':st>=1?'수고했어요!':'다시 도전해 봐요!';
+ var s='';for(var i=0;i<3;i++)s+=i<st?'★':'<span class="off">★</span>';$('rStars').innerHTML=s;
+ $('rSat').textContent=Math.round(S.sat);$('rFair').textContent=Math.round(S.fair);$('rSave').textContent=money(Math.max(0,S.save));
+ $('rDone').textContent=S.done;$('rCatch').textContent=S.catches;$('rInno').textContent=S.inno;
+ $('rLearn').innerHTML='<b>'+ic('book')+'오늘 배운 조달 상식</b>'+S.cfg.learn;
+ var nx=$('rNext');
+ if(S.mode==='story'&&S.ch<5&&st>=1){nx.style.display='';nx.innerHTML=ic('play')+'다음 챕터';nx.onclick=function(){openBrief(S.ch+1)}}
+ else if(S.mode==='quick'){nx.style.display='';nx.innerHTML=ic('book')+'스토리 모드';nx.onclick=function(){openBrief(Math.min(cleared+1,5))}}
+ else nx.style.display='none';
+ $('rAgain').onclick=function(){S.mode==='quick'?start('quick'):openBrief(S.ch)};
+ setTimeout(function(){show('result');sfx.coin()},300);
+}
+
+/* ---------- 알림 ---------- */
+function toast(t,k){var d=document.createElement('div');d.className='toast '+(k||'');d.textContent=t;$('toasts').appendChild(d);while($('toasts').children.length>3)$('toasts').firstChild.remove();setTimeout(function(){d.remove()},2600)}
+function floatAt(e,t,col){var x=e&&e.clientX?e.clientX:innerWidth/2,y=e&&e.clientY?e.clientY:innerHeight/2,d=document.createElement('div');d.className='float';d.textContent=t;d.style.color=col;d.style.left=(x-40)+'px';d.style.top=(y-20)+'px';document.body.appendChild(d);setTimeout(function(){d.remove()},1000)}
+function tip(t){var el=$('tip');if(!t){el.style.display='none';return}el.style.display='';$('tipText').innerHTML=t;clearTimeout(tip.tm);tip.tm=setTimeout(function(){el.style.display='none'},9000)}
+
+/* ---------- 시작 ---------- */
+$('bQuick').onclick=function(){sfx.tap();start('quick')};
+$('bStory').onclick=function(){sfx.tap();openBrief(Math.min(cleared+1,5))};
+$('home').onclick=function(){if(S){S.over=true;cancelAnimationFrame(raf)}$('inspect').classList.remove('on');chips();show('title')};
+$('home').style.display='none';
+document.addEventListener('keydown',function(e){
+ if(!$('play').classList.contains('on')||S.paused)return;
+ var n=+e.key;if(n>=1&&n<=3&&S.reqs[n-1])openReq(S.reqs[n-1]);
+});
+chips();
+window.__jodal={get S(){return S},start:start,openReq:openReq,newReq:newReq,makeCards:makeCards,renderAll:renderAll};
+})();
+</script>
+</body>
+</html>
