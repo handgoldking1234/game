@@ -31,11 +31,11 @@ supabase/*.sql            통계·기기·관리 함수 SQL
 ## 게임 목록 (index.html `GAMES`의 id → 파일)
 titan 거인 토벌전(진격의 거인 팬 게임, 3D 와이어 액션, 단원 연계 없음) · fest 무궁화 운동회(최대 24명) · egg 에그 대작전 · cham 카멜레온 숨바꼭질 · op38 새벽 작전 38 · halmae 할매 특공대 · halmae2 할매 특공대 2 · halmae3 할매 특공대 3 · halmae4 할매 특공대 4 · halmae5 할매 특공대 5 · pangpang 웨더팡팡 · garden 날씨 정원 · kart 날씨 카트 레이스 · wrivals 날씨 라이벌즈 · wisland 날씨 생존 섬 · dad 엄격한 에너지 아빠 · hospital 한밤의 동물병원 · brawl 에너지 브롤 · blocks 에너지 블록 마을 · park 한밤의 에너지 공원 · keycap 키캡 타워 · forest 에너지 숲의 밤 · backrooms 백룸 방탈출 · rivals 에너지 라이벌즈 · spy 탄소 스파이를 찾아라 · hero 에너지 히어로 · front 에너지 전선 · jump 에너지 점프 · town 에너지 마을 시장 · wing 탄소 제로 비행단 · world 에너지 월드
 
-## 거인 토벌전(titan.html) — 2026-11-21 다시 추가(브랜치 `claude/titan-return`에서 확인 후 main 반영)
-- 3D 모델·three.js를 파일 안에 넣은 단일 HTML(약 29MB). 캐릭터 6명 선택, 스토리 모드, 5개 챕터, 부위 표식, 거인화 격투.
+## 거인 토벌전(titan.html) — 2026-11-21 다시 추가
+- 3D 모델·three.js를 파일 안에 넣은 단일 HTML(약 40MB). 캐릭터 6명 선택, 스토리 모드, 5개 챕터, 부위 표식, 거인화 격투.
 - 캐릭터·장비·건물 모델은 Sketchfab CC BY 4.0 모델(출처는 게임 시작 화면 아래에 표기). 일반 거인은 MakeHuman 기본 메쉬(CC0), 뼈대·걷기 동작은 three.js 예제 Xbot.
-- 웹판에는 넣지 않은 것: 출처·라이선스를 확인하지 못한 배경 음악 mp3 4곡과 거인 모델 4종(진격·갑옷·짐승·초대형 2호). 대신 자체 연주 음악과 기본 거인 모델을 쓴다.
-- 배경 음악: `games/titan-music/`에 `feuer.mp3`·`march.mp3`·`void.mp3`·`final.mp3`를 넣으면 그 곡이 나온다. 파일이 없으면 게임이 자체 연주 음악을 튼다. 지금은 파일 없음.
+- 거인 모델 4종(진격·갑옷·짐승·초대형 2호)은 파일에 출처·라이선스 정보가 없다(Blender에서 내보낸 glb). 문제가 생기면 이 4종만 빼고 기본 거인 모델로 다시 빌드할 수 있다.
+- 배경 음악: `games/titan-music/`의 `feuer.mp3`·`march.mp3`·`void.mp3`·`final.mp3`(직접 만든 Suno 곡). 챕터 1~5 순서로 feuer·march·void·march·final. 파일을 못 불러오면 게임이 자체 연주 음악을 튼다.
 - 같이 하기: 방 코드 + Supabase(iux-cloud) Realtime broadcast(`titan_<방 코드>`). 서로의 캐릭터와 채팅만 보이고 거인은 공유하지 않는다. 실제 두 기기 접속 확인은 아직 안 됨.
 - 원본(패치 스크립트·모델 변환 도구)은 저장소에 없다. 고칠 때는 Claude 대화에서 다시 빌드해 파일을 통째로 바꾼다.
 
