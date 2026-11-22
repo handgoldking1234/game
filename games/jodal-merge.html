@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<script src="../mwt.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>혁신 키우기 - 떨어뜨려 합치는 공공조달 게임 | 민왕게임월드</title>
+<meta name="description" content="같은 구슬을 합쳐 아이디어를 K-조달 대표기업으로 키워요. 혁신제품 지정, 시범구매, 우수조달물품, 해외 진출까지! 손가락 하나로 하는 공공조달 합치기 게임.">
+<link rel="canonical" href="https://game.iux.kr/games/jodal-merge.html">
+<meta property="og:title" content="혁신 키우기">
+<meta property="og:description" content="떨어뜨려 합치면 쑥쑥! 아이디어를 K-조달 대표기업으로 키우는 합치기 게임. 2026 조달청 AI 게임·콘텐츠 공모전 출품작.">
+<meta property="og:image" content="https://game.iux.kr/thumbs/jodal-merge.webp"><meta property="og:type" content="website"><meta property="og:locale" content="ko_KR">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#1b2440;--quiet:#7a839a;--line:#e3e7f0;--blue:#3d6bff;--red:#ef4565;--bg:#eef1f8}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans CJK KR','Noto Sans KR',sans-serif;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.15em;flex:none}
+canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block}
+.abs{position:fixed;z-index:5}
+#top{display:flex;align-items:center;gap:10px;height:76px}
+#top .sc{display:flex;flex-direction:column;line-height:1.1;margin-right:auto;min-width:0}
+#top .sc small{font-size:12px;font-weight:800;color:var(--quiet);letter-spacing:.04em}
+#top .sc b{font-size:34px;font-weight:900;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+#top .sc span{font-size:12px;font-weight:700;color:var(--quiet);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nx{display:flex;align-items:center;gap:8px;background:#fff;border-radius:16px;padding:6px 12px 6px 10px;box-shadow:0 2px 10px rgba(27,36,64,.06)}
+.nx{flex:none}
+.nx small{font-size:11px;font-weight:800;color:var(--quiet);white-space:nowrap}
+.nx img{width:36px;height:36px;display:block}
+.ib{width:38px;height:38px;border-radius:12px;background:#fff;display:grid;place-items:center;font-size:17px;color:var(--quiet);box-shadow:0 2px 10px rgba(27,36,64,.06);pointer-events:auto}
+#ladder{display:flex;align-items:center;justify-content:space-between;height:40px;background:#fff;border-radius:14px;padding:0 10px;box-shadow:0 2px 10px rgba(27,36,64,.06)}
+#ladder img{width:26px;height:26px;opacity:.22;filter:grayscale(1);transition:all .3s}
+#ladder img.on{opacity:1;filter:none}
+#ladder img.now{transform:scale(1.25)}
+#ladder i{flex:1;height:2px;background:var(--line);margin:0 2px;border-radius:2px}
+#btns{display:flex;gap:10px;height:60px}
+.act{flex:1;background:#fff;border-radius:18px;display:flex;align-items:center;gap:10px;padding:0 14px;text-align:left;box-shadow:0 2px 10px rgba(27,36,64,.06);transition:transform .08s}
+.act:active{transform:scale(.97)}
+.act img{width:38px;height:38px}
+.act .ph{display:block;width:38px;height:38px;border-radius:50%;border:2px dashed #cfd5e3;flex:none}
+.act b{display:block;font-size:15px;font-weight:900}
+.act small{display:block;font-size:11.5px;font-weight:700;color:var(--quiet);white-space:nowrap}
+.act .n{margin-left:auto;font-size:20px;font-weight:900;color:var(--blue)}
+.act.off{opacity:.5}
+.act.glow{box-shadow:0 0 0 3px rgba(239,69,101,.35),0 2px 10px rgba(27,36,64,.06)}
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;z-index:10;background:rgba(238,241,248,.82);backdrop-filter:blur(6px)}
+.screen.on{display:flex}
+.panel{background:#fff;border-radius:28px;padding:26px 22px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(27,36,64,.14);display:flex;flex-direction:column;gap:16px;text-align:center;max-height:100%;overflow:auto}
+.panel h1{font-size:clamp(36px,10vw,48px);font-weight:900;letter-spacing:-.03em;line-height:1.05}
+.panel h1 small{display:block;font-size:13.5px;color:var(--blue);font-weight:800;letter-spacing:.02em;margin-bottom:8px}
+.panel h2{font-size:25px;font-weight:900;letter-spacing:-.02em}
+.lead{color:var(--quiet);font-size:14.5px;line-height:1.6}
+.lead b{color:var(--ink)}
+.steps{display:flex;align-items:center;justify-content:center;gap:1px}
+.steps img{width:clamp(24px,7.4vw,34px);height:clamp(24px,7.4vw,34px)}
+.steps span{color:#c5ccdb;font-weight:900;font-size:13px}
+.how{display:flex;flex-direction:column;gap:8px;text-align:left}
+.how div{display:flex;align-items:center;gap:10px;background:#f4f6fb;border-radius:16px;padding:9px 12px;font-size:13.5px;line-height:1.4;color:var(--quiet)}
+.how img{width:34px;height:34px;flex:none}
+.how b{color:var(--ink)}
+.big{background:var(--blue);color:#fff;font-weight:900;font-size:19px;padding:16px 26px;border-radius:18px;box-shadow:0 6px 0 #2a4fcc;display:inline-flex;gap:8px;align-items:center;justify-content:center;transition:transform .08s}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 #2a4fcc}
+.credit{font-size:11.5px;color:var(--quiet);line-height:1.55}
+.hero{width:120px;height:120px;margin:0 auto}
+.bigstars{font-size:44px;color:#ffb703;letter-spacing:6px;line-height:1}
+.bigstars .off{color:#e3e7f0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#f4f6fb;border-radius:14px;padding:10px 4px}
+.stat b{display:block;font-size:20px;font-weight:900}
+.stat span{font-size:11.5px;color:var(--quiet);font-weight:700}
+.learn{background:#eaf0ff;border-radius:16px;padding:12px 14px;text-align:left;font-size:14px;line-height:1.6}
+.learn .h{color:var(--blue);display:block;margin-bottom:4px;font-weight:900}
+.learn p+p{margin-top:6px}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:7;width:min(92vw,420px)}
+.toast{background:var(--ink);color:#fff;font-size:14px;font-weight:800;border-radius:14px;padding:9px 14px;box-shadow:0 8px 24px rgba(27,36,64,.2);animation:tin .25s ease-out both;line-height:1.4;text-align:center;display:flex;align-items:center;gap:8px}
+.toast img{width:26px;height:26px;flex:none}
+.toast.bad{background:var(--red)}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+ <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></symbol>
+ <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></symbol>
+ <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M6 10v10h12V10"/></symbol>
+ <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+</defs></svg>
+<canvas id="cv"></canvas>
+
+<div id="top" class="abs">
+ <div class="sc"><small>점수</small><b id="score">0</b><span id="bestL">가장 크게 키운 단계: 아이디어</span></div>
+ <div class="nx"><small>다음</small><img id="nextImg" alt=""></div>
+ <button class="ib" id="snd" aria-label="소리 켜고 끄기"><svg class="i"><use href="#i-sound"/></svg></button>
+ <button class="ib" id="home" aria-label="처음으로"><svg class="i"><use href="#i-home"/></svg></button>
+</div>
+<div id="ladder" class="abs"></div>
+<div id="btns" class="abs">
+ <button class="act" id="bHold"><span id="holdSlot"><span class="ph"></span></span><span><b>비축</b><small id="holdT">구슬을 맡겨 둬요</small></span></button>
+ <button class="act" id="bProbe"><img id="probeImg" alt=""><span><b>공정 조사</b><small>담합 구슬 없애기</small></span><span class="n" id="probeN">1</span></button>
+</div>
+
+<section class="screen on" id="sTitle">
+ <div class="panel">
+  <h1><small>떨어뜨려 합치는 공공조달 게임</small>혁신 키우기</h1>
+  <p class="lead">같은 구슬 두 개가 만나면 한 단계 자라요.<br>작은 <b>아이디어</b>를 <b>K-조달 대표기업</b>으로 키워 보세요!</p>
+  <div class="steps" id="steps"></div>
+  <div class="how" id="how"></div>
+  <button class="big" id="bStart"><svg class="i"><use href="#i-play"/></svg>시작하기</button>
+  <p class="credit">2026 조달청 AI 게임·콘텐츠 공모전 출품작<br>기획·코드·그림을 AI(Claude)와 함께 만들었어요.</p>
+ </div>
+</section>
+
+<section class="screen" id="sEnd">
+ <div class="panel">
+  <img class="hero" id="eHero" alt="">
+  <h2 id="eTitle"></h2>
+  <div class="bigstars" id="eStars"></div>
+  <div class="stats">
+   <div class="stat"><b id="eScore">0</b><span>점수</span></div>
+   <div class="stat"><b id="eMerge">0</b><span>합친 횟수</span></div>
+   <div class="stat"><b id="eCatch">0</b><span>적발한 담합</span></div>
+  </div>
+  <div class="learn" id="eLearn"></div>
+  <button class="big" id="bAgain"><svg class="i"><use href="#i-play"/></svg>다시 키우기</button>
+ </div>
+</section>
+<div id="toasts"></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var cv=$('cv'),cx=cv.getContext('2d'),R=Math.random;
+var FONT="'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans CJK KR','Noto Sans KR',sans-serif";
+
+/* ---------- 단계 ---------- */
+var LV=[
+ {nm:'담합',r:8.5,c:'#2b3045',c2:'#454b66'},
+ {nm:'아이디어',r:5,c:'#ffc94d',c2:'#ffdf8a',say:''},
+ {nm:'시제품',r:6.7,c:'#ff9a5c',c2:'#ffbd92',say:'아이디어가 시제품이 됐어요!'},
+ {nm:'혁신제품',r:8.6,c:'#ff6b8b',c2:'#ff9db3',say:'혁신제품 지정! 새 기술이 공공시장에 들어가는 문이에요.'},
+ {nm:'시범구매',r:10.8,c:'#b678ff',c2:'#d2abff',say:'시범구매! 조달청이 먼저 사서 공공기관이 써 봐요.'},
+ {nm:'기관 납품',r:13.2,c:'#5f86ff',c2:'#96b0ff',say:'써 보니 좋아요! 학교와 소방서에 납품해요.'},
+ {nm:'우수조달',r:15.9,c:'#2fb8f5',c2:'#7fd6fb',say:'우수조달물품! 기술과 품질을 인정받았어요.'},
+ {nm:'해외 진출',r:19,c:'#22c9a0',c2:'#74e0c5',say:'K-조달, 해외 조달시장으로 나가요!'},
+ {nm:'K-조달 대표',r:22.5,c:'#ffb000',c2:'#ffd466',say:'세계로 뻗은 K-조달 대표기업 탄생!'}
+];
+var PTS=[0,0,2,5,10,20,40,80,160];
+
+function icon(c,l,s){ /* s = 반지름, 흰색 아이콘 */
+ var u=s/10;c.save();c.strokeStyle='#fff';c.fillStyle='#fff';c.lineWidth=Math.max(1.5,u*1.15);c.lineCap='round';c.lineJoin='round';c.beginPath();
+ switch(l){
+  case 0:c.strokeStyle='#ff6b81';c.arc(-1.9*u,0,2.9*u,0,7);c.stroke();c.beginPath();c.arc(1.9*u,0,2.9*u,0,7);c.stroke();break;
+  case 1:c.arc(0,-1*u,3.2*u,0,7);c.fill();c.fillRect(-1.5*u,2.4*u,3*u,1.1*u);c.fillRect(-1*u,4*u,2*u,.9*u);break;
+  case 2:for(var i=0;i<8;i++){c.save();c.rotate(i*Math.PI/4);c.fillRect(-.9*u,-4.6*u,1.8*u,2*u);c.restore()}c.arc(0,0,3.3*u,0,7);c.fill();c.globalCompositeOperation='destination-out';c.beginPath();c.arc(0,0,1.3*u,0,7);c.fill();break;
+  case 3:for(var k=0;k<10;k++){var a=-Math.PI/2+k*Math.PI/5,r=k%2?2*u:4.6*u;c.lineTo(Math.cos(a)*r,Math.sin(a)*r)}c.closePath();c.fill();break;
+  case 4:c.moveTo(-4.6*u,-3*u);c.lineTo(-3.2*u,-3*u);c.lineTo(-2*u,1.6*u);c.lineTo(3.2*u,1.6*u);c.lineTo(4.2*u,-1.6*u);c.lineTo(-2.8*u,-1.6*u);c.stroke();c.beginPath();c.arc(-1.4*u,3.6*u,.9*u,0,7);c.arc(2.6*u,3.6*u,.9*u,0,7);c.fill();break;
+  case 5:c.moveTo(-4.4*u,-1.4*u);c.lineTo(0,-4.4*u);c.lineTo(4.4*u,-1.4*u);c.closePath();c.fill();[-3,-.6,1.8].forEach(function(x){c.fillRect(x*u,-.4*u,1.2*u,3.4*u)});c.fillRect(-4.4*u,3.4*u,8.8*u,1.1*u);break;
+  case 6:c.moveTo(-2.2*u,-4.6*u);c.lineTo(-.6*u,-1.6*u);c.moveTo(2.2*u,-4.6*u);c.lineTo(.6*u,-1.6*u);c.stroke();c.beginPath();c.arc(0,1.4*u,3.2*u,0,7);c.fill();c.strokeStyle=LV[6].c;c.lineWidth=u*.95;c.beginPath();c.moveTo(-1.4*u,1.4*u);c.lineTo(-.3*u,2.5*u);c.lineTo(1.6*u,.4*u);c.stroke();break;
+  case 7:c.arc(0,0,4.3*u,0,7);c.stroke();c.beginPath();c.ellipse(0,0,1.9*u,4.3*u,0,0,7);c.stroke();c.beginPath();c.moveTo(-4.3*u,0);c.lineTo(4.3*u,0);c.stroke();break;
+  case 8:c.moveTo(-4.4*u,3*u);c.lineTo(-4.6*u,-2.6*u);c.lineTo(-2*u,.2*u);c.lineTo(0,-3.8*u);c.lineTo(2*u,.2*u);c.lineTo(4.6*u,-2.6*u);c.lineTo(4.4*u,3*u);c.closePath();c.fill();break;
+ }
+ c.restore();
+}
+function ballArt(c,l,r,label){
+ var L=LV[l],g=c.createRadialGradient(-r*.35,-r*.4,r*.1,0,0,r);g.addColorStop(0,L.c2);g.addColorStop(1,L.c);
+ c.beginPath();c.arc(0,0,r,0,7);c.fillStyle=g;c.fill();
+ if(l===0){c.lineWidth=Math.max(2,r*.1);c.strokeStyle='#ff6b81';c.beginPath();c.arc(0,0,r-c.lineWidth/2,0,7);c.stroke()}
+ c.fillStyle='rgba(255,255,255,.28)';c.beginPath();c.ellipse(-r*.32,-r*.5,r*.3,r*.16,-.6,0,7);c.fill();
+ if(label&&r>=38){c.save();c.translate(0,-r*.14);icon(c,l,r*.52);c.restore();c.font='900 '+Math.max(11,Math.round(r*.23))+'px '+FONT;c.textAlign='center';c.textBaseline='middle';c.fillStyle='#fff';c.fillText(L.nm,0,r*.56)}
+ else icon(c,l,r*.62);
+}
+var ICON={};
+function iconURL(l){if(ICON[l])return ICON[l];var o=document.createElement('canvas');o.width=o.height=144;var c=o.getContext('2d');c.translate(72,72);ballArt(c,l,68,false);return ICON[l]=o.toDataURL()}
+
+/* ---------- 소리 ---------- */
+var AC=null,muted=false;
+function tone(f,d,type,v,delay){if(muted)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var t=AC.currentTime+(delay||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v||.1,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+var NOTE=[0,262,294,330,392,440,523,587,659,784];
+var sfx={drop:function(){tone(180,.08,'sine',.08)},merge:function(l){tone(NOTE[l],.14,'triangle',.11);tone(NOTE[l]*1.5,.2,'triangle',.08,.07)},bad:function(){tone(190,.25,'sawtooth',.07)},probe:function(){tone(523,.08,'square',.06);tone(784,.08,'square',.06,.08);tone(1046,.2,'square',.06,.16)},hold:function(){tone(520,.07,'sine',.08)},over:function(){tone(392,.2,'triangle',.1);tone(330,.2,'triangle',.1,.2);tone(262,.4,'triangle',.1,.4)}};
+$('snd').onclick=function(){muted=!muted;this.innerHTML='<svg class="i"><use href="#i-'+(muted?'mute':'sound')+'"/></svg>'};
+
+/* ---------- 배치 ---------- */
+var W=0,H=0,DPR=1,SC=1,BX=0,BY=0,BW=100,BH=140,LINE=24,DROPY=11;
+function layout(){
+ DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0);
+ var bw=Math.max(240,Math.min(W-24,440,(H-222)/(BH/100)));SC=bw/100;var total=76+8+BH*SC+10+40+10+60,ty=Math.max(6,(H-total)/2);
+ BX=(W-bw)/2;BY=ty+84;
+ var st=function(el,y,h){el.style.left=BX+'px';el.style.width=bw+'px';el.style.top=y+'px'};
+ st($('top'),ty);st($('ladder'),BY+BH*SC+10);st($('btns'),BY+BH*SC+60);
+ $('toasts').style.top=(BY+LINE*SC+14)+'px';
+}
+addEventListener('resize',layout);
+
+/* ---------- 상태 ---------- */
+var G=null,best=+(function(){try{return localStorage.getItem('jodal_merge_best')||0}catch(e){return 0}})();
+function gen(){if(G.t>18&&!G.lastBad&&R()<.13){G.lastBad=true;return 0}G.lastBad=false;var r=R();return r<.45?1:r<.78?2:r<.96?3:4}
+function start(){
+ G={t:0,balls:[],parts:[],rings:[],score:0,maxL:1,merges:0,catches:0,probe:1,toProbe:0,hold:null,cool:0,aim:50,danger:0,over:false,seen:{1:1},lastBad:false,cur:1,next:1,shake:0};
+ G.cur=gen();G.next=gen();
+ $('sTitle').classList.remove('on');$('sEnd').classList.remove('on');renderUI();
+ setTimeout(function(){if(G&&!G.over&&!G.balls.length)toast('좌우로 움직이고, 손을 떼면 떨어져요',1)},400);
+}
+function clampAim(){var r=LV[G.cur].r;G.aim=Math.max(r+.5,Math.min(BW-r-.5,G.aim))}
+function drop(){
+ if(!G||G.over||G.cool>0)return;clampAim();var l=G.cur;
+ G.balls.push({x:G.aim+(R()-.5)*.2,y:DROPY,vx:0,vy:0,l:l,r:LV[l].r,hit:false,pop:1});
+ G.cur=G.next;G.next=gen();G.cool=.5;sfx.drop();renderUI();
+ if(l===0&&!G.seen.bad){G.seen.bad=1;toast('담합 구슬! 합쳐지지 않아요. 공정 조사로 없애요',0,'bad')}
+}
+function hold(){
+ if(!G||G.over||G.cool>0)return;
+ if(G.cur===0){toast('담합 구슬은 비축할 수 없어요',0,'bad');sfx.bad();return}
+ var h=G.hold;G.hold=G.cur;if(h==null){G.cur=G.next;G.next=gen()}else G.cur=h;sfx.hold();renderUI();
+ if(!G.seen.hold){G.seen.hold=1;toast('비축! 지금 맡겨 두고 필요할 때 꺼내 써요',G.hold)}
+}
+function probe(){
+ if(!G||G.over)return;var bad=G.balls.filter(function(b){return b.l===0});
+ if(!bad.length){toast('지금은 담합 구슬이 없어요',0);return}
+ if(G.probe<=0){toast('구슬을 더 합치면 조사권이 생겨요',0);sfx.bad();return}
+ G.probe--;sfx.probe();bad.forEach(function(b){b.dead=true;burst(b.x,b.y,'#ff6b81',16);G.rings.push({x:b.x,y:b.y,r:b.r,t:0,c:'#ff6b81'});G.score+=30;G.catches++});
+ G.balls=G.balls.filter(function(b){return !b.dead});toast('담합 적발! 공정한 경쟁을 지켰어요 +'+bad.length*30,0);renderUI();
+}
+function merge(a,b){
+ a.dead=b.dead=true;var l=a.l+1,x=(a.x+b.x)/2,y=(a.y+b.y)/2;G.merges++;
+ if(l>8){G.score+=500;burst(x,y,LV[8].c,40);G.rings.push({x:x,y:y,r:30,t:0,c:LV[8].c});sfx.merge(9);toast('대표기업 둘이 만나 세계 시장을 열었어요! +500',8);renderUI();return}
+ G.balls.push({x:x,y:y,vx:(a.vx+b.vx)/2,vy:(a.vy+b.vy)/2,l:l,r:LV[l].r,hit:true,pop:0});
+ G.score+=PTS[l];burst(x,y,LV[l].c,10+l*2);G.rings.push({x:x,y:y,r:LV[l].r,t:0,c:LV[l].c});sfx.merge(l);
+ if(l>G.maxL)G.maxL=l;if(!G.seen[l]){G.seen[l]=1;toast(LV[l].say,l)}
+ if(++G.toProbe>=8){G.toProbe=0;if(G.probe<3)G.probe++}
+ renderUI();
+}
+function burst(x,y,c,n){for(var i=0;i<n;i++){var a=R()*7,v=20+R()*70;G.parts.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-20,life:.5+R()*.3,c:c,s:.8+R()*1.2})}}
+
+/* ---------- 물리 ---------- */
+function step(dt){
+ var B=G.balls,i,j,a,b;
+ for(i=0;i<B.length;i++){a=B[i];a.vy+=300*dt;a.vx*=.996;a.x+=a.vx*dt;a.y+=a.vy*dt}
+ for(var it=0;it<4;it++){
+  for(i=0;i<B.length;i++){a=B[i];if(a.dead)continue;
+   for(j=i+1;j<B.length;j++){b=B[j];if(b.dead)continue;var dx=b.x-a.x,dy=b.y-a.y,rr=a.r+b.r,d2=dx*dx+dy*dy;if(d2>=rr*rr)continue;
+    if(a.l===b.l&&a.l>0){merge(a,b);break}
+    var d=Math.sqrt(d2)||.01,nx=dx/d,ny=dy/d,ov=rr-d,ma=a.r*a.r,mb=b.r*b.r,ta=mb/(ma+mb),tb=ma/(ma+mb);
+    a.x-=nx*ov*ta;a.y-=ny*ov*ta;b.x+=nx*ov*tb;b.y+=ny*ov*tb;
+    var rvx=b.vx-a.vx,rvy=b.vy-a.vy,vn=rvx*nx+rvy*ny;
+    if(vn<0){var jn=-(1.12)*vn/(1/ma+1/mb);a.vx-=jn*nx/ma;a.vy-=jn*ny/ma;b.vx+=jn*nx/mb;b.vy+=jn*ny/mb;
+     var tx=-ny,ty=nx,vt=rvx*tx+rvy*ty,jt=-vt*.12/(1/ma+1/mb);a.vx-=jt*tx/ma;a.vy-=jt*ty/ma;b.vx+=jt*tx/mb;b.vy+=jt*ty/mb}
+    a.hit=b.hit=true}
+   if(a.dead)continue;
+   if(a.x<a.r){a.x=a.r;if(a.vx<0)a.vx*=-.2}if(a.x>BW-a.r){a.x=BW-a.r;if(a.vx>0)a.vx*=-.2}
+   if(a.y>BH-a.r){a.y=BH-a.r;if(a.vy>0)a.vy*=-.12;a.vx*=.96;a.hit=true}}
+ }
+ if(B.some(function(x){return x.dead}))G.balls=B.filter(function(x){return !x.dead});
+}
+
+/* ---------- 화면 정보 ---------- */
+function renderUI(){
+ $('score').textContent=G.score.toLocaleString('ko-KR');$('bestL').textContent='가장 크게 키운 단계: '+LV[G.maxL].nm;
+ $('nextImg').src=iconURL(G.next);
+ $('holdSlot').innerHTML=G.hold==null?'<span class="ph"></span>':'<img src="'+iconURL(G.hold)+'" alt="">';
+ $('holdT').textContent=G.hold==null?'구슬을 맡겨 둬요':LV[G.hold].nm+' · 눌러서 바꾸기';
+ $('probeN').textContent=G.probe;var bad=G.balls.some(function(b){return b.l===0});
+ $('bProbe').classList.toggle('off',G.probe<=0);$('bProbe').classList.toggle('glow',bad&&G.probe>0);
+ var im=$('ladder').querySelectorAll('img');for(var i=0;i<im.length;i++){im[i].classList.toggle('on',i+1<=G.maxL);im[i].classList.toggle('now',i+1===G.maxL)}
+}
+function toast(t,l,k){var d=document.createElement('div');d.className='toast '+(k||'');d.innerHTML=(l?'<img src="'+iconURL(l)+'" alt="">':'')+'<span></span>';d.lastChild.textContent=t;$('toasts').appendChild(d);while($('toasts').children.length>2)$('toasts').firstChild.remove();setTimeout(function(){d.remove()},2600)}
+
+/* ---------- 그리기 ---------- */
+function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
+function draw(now){
+ cx.clearRect(0,0,W,H);var g=cx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#f3f5fb');g.addColorStop(1,'#e6eaf5');cx.fillStyle=g;cx.fillRect(0,0,W,H);
+ var bw=BW*SC,bh=BH*SC,sx=0;if(G&&G.shake>0)sx=(R()-.5)*8*G.shake;
+ cx.save();cx.translate(BX+sx,BY);
+ cx.shadowColor='rgba(27,36,64,.10)';cx.shadowBlur=30;cx.shadowOffsetY=10;rr(0,0,bw,bh,26);cx.fillStyle='#fff';cx.fill();cx.shadowColor='transparent';
+ rr(0,0,bw,bh,26);cx.save();cx.clip();
+ var bg=cx.createLinearGradient(0,0,0,bh);bg.addColorStop(0,'#fbfcff');bg.addColorStop(1,'#f1f4fc');cx.fillStyle=bg;cx.fillRect(0,0,bw,bh);
+ /* 넘침 선 */
+ var dz=G?Math.min(1,G.danger/2):0;
+ if(dz>0){cx.fillStyle='rgba(239,69,101,'+(.08+.12*dz*(.6+.4*Math.sin(now/90)))+')';cx.fillRect(0,0,bw,LINE*SC)}
+ cx.setLineDash([6,7]);cx.lineWidth=2;cx.strokeStyle=dz>0?'#ef4565':'#d5dbea';cx.beginPath();cx.moveTo(10,LINE*SC);cx.lineTo(bw-10,LINE*SC);cx.stroke();cx.setLineDash([]);
+ if(G){
+  /* 조준 */
+  if(!G.over){clampAim();var cr=LV[G.cur].r*SC,ax=G.aim*SC;
+   cx.setLineDash([3,8]);cx.lineWidth=2;cx.strokeStyle='rgba(27,36,64,.14)';cx.beginPath();cx.moveTo(ax,DROPY*SC+cr);cx.lineTo(ax,bh);cx.stroke();cx.setLineDash([]);
+   cx.save();cx.translate(ax,DROPY*SC);cx.globalAlpha=G.cool>0?.35:1;ballArt(cx,G.cur,cr,true);cx.restore()}
+  G.balls.forEach(function(b){var s=b.pop<1?(.6+.4*b.pop)*(1+.18*Math.sin(b.pop*Math.PI)):1;cx.save();cx.translate(b.x*SC,b.y*SC);cx.scale(s,s);ballArt(cx,b.l,b.r*SC,true);cx.restore()});
+  G.rings.forEach(function(r){cx.globalAlpha=Math.max(0,1-r.t/.4);cx.lineWidth=3;cx.strokeStyle=r.c;cx.beginPath();cx.arc(r.x*SC,r.y*SC,(r.r+r.t*40)*SC,0,7);cx.stroke()});
+  G.parts.forEach(function(p){cx.globalAlpha=Math.max(0,p.life*1.6);cx.fillStyle=p.c;cx.beginPath();cx.arc(p.x*SC,p.y*SC,p.s*SC,0,7);cx.fill()});cx.globalAlpha=1;
+ }
+ cx.restore();cx.restore();
+}
+
+/* ---------- 흐름 ---------- */
+var last=performance.now(),acc=0;
+function loop(now){
+ var dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
+ if(G&&!G.over){
+  G.t+=dt;if(G.cool>0)G.cool-=dt;if(G.shake>0)G.shake-=dt;
+  if(keys.l)G.aim-=70*dt;if(keys.r)G.aim+=70*dt;
+  acc+=dt;var n=0;while(acc>=1/120&&n<8){step(1/120);acc-=1/120;n++}
+  G.balls.forEach(function(b){if(b.pop<1)b.pop=Math.min(1,b.pop+dt*5)});
+  var up=G.balls.some(function(b){return b.hit&&b.y-b.r<LINE&&Math.abs(b.vy)<25});
+  if(up){G.danger+=dt;if(G.danger>.6&&!G.warned){G.warned=1;toast('선을 넘으면 끝나요! 큰 구슬끼리 합쳐 자리를 만들어요',0,'bad')}}else{G.danger=Math.max(0,G.danger-dt*2);G.warned=0}
+  if(G.danger>=2)end();
+ }
+ if(G){G.parts.forEach(function(p){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=120*dt;p.life-=dt});G.parts=G.parts.filter(function(p){return p.life>0});G.rings.forEach(function(r){r.t+=dt});G.rings=G.rings.filter(function(r){return r.t<.4})}
+ draw(now);requestAnimationFrame(loop);
+}
+function end(){
+ G.over=true;G.shake=.4;sfx.over();if(G.score>best){best=G.score;try{localStorage.setItem('jodal_merge_best',best)}catch(e){}}
+ var m=G.maxL,st=m>=8?3:m>=7?2:m>=6?1:0;
+ $('eHero').src=iconURL(m);$('eTitle').textContent=LV[m].nm+'까지 키웠어요!';
+ var s='';for(var i=0;i<3;i++)s+=i<st?'★':'<span class="off">★</span>';$('eStars').innerHTML=s;
+ $('eScore').textContent=G.score.toLocaleString('ko-KR');$('eMerge').textContent=G.merges;$('eCatch').textContent=G.catches;
+ var L=['<span class="h">오늘 배운 조달 상식</span><p><b>혁신조달</b>: 조달청은 새 기술 제품을 혁신제품으로 지정하고, 공공기관이 먼저 사서 써 보는 시범구매로 기업의 첫 고객이 되어 줘요.</p>'];
+ if(m>=6)L.push('<p>기술과 품질이 뛰어난 제품은 <b>우수조달물품</b>으로 지정되고, 조달청은 우리 기업의 <b>해외 조달시장</b> 진출도 도와요.</p>');
+ L.push('<p><b>비축</b>: 원자재를 쌓아 두었다가 공급망 위기 때 풀어요. <b>담합</b>처럼 불공정한 행위는 조사해서 공정한 경쟁을 지켜요.</p>');
+ $('eLearn').innerHTML=L.join('');
+ setTimeout(function(){$('sEnd').classList.add('on')},900);
+}
+
+/* ---------- 조작 ---------- */
+var keys={l:false,r:false},down=false;
+function aimAt(e){if(G&&!G.over)G.aim=(e.clientX-BX)/SC}
+cv.addEventListener('pointerdown',function(e){down=true;aimAt(e);try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+cv.addEventListener('pointermove',function(e){if(down||e.pointerType==='mouse')aimAt(e)});
+cv.addEventListener('pointerup',function(e){if(!down)return;down=false;aimAt(e);drop()});
+cv.addEventListener('pointercancel',function(){down=false});
+addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowLeft'||k==='a'||k==='A')keys.l=true;if(k==='ArrowRight'||k==='d'||k==='D')keys.r=true;
+ if(k===' '||k==='ArrowDown'){e.preventDefault();if(G&&!G.over)drop();else if(!e.repeat)start()}
+ if(k==='Enter'&&(!G||G.over))start();if(k==='z'||k==='Z')hold();if(k==='x'||k==='X')probe()});
+addEventListener('keyup',function(e){var k=e.key;if(k==='ArrowLeft'||k==='a'||k==='A')keys.l=false;if(k==='ArrowRight'||k==='d'||k==='D')keys.r=false});
+$('bHold').onclick=hold;$('bProbe').onclick=probe;$('bStart').onclick=start;$('bAgain').onclick=start;
+$('home').onclick=function(){if(G)G.over=true;G=null;$('sEnd').classList.remove('on');$('sTitle').classList.add('on')};
+
+/* ---------- 처음 화면 ---------- */
+var h='';for(var i=1;i<=8;i++)h+=(i>1?'<i></i>':'')+'<img src="'+iconURL(i)+'" alt="'+LV[i].nm+'" title="'+LV[i].nm+'">';$('ladder').innerHTML=h;
+h='';for(i=1;i<=8;i++)h+=(i>1?'<span>›</span>':'')+'<img src="'+iconURL(i)+'" alt="'+LV[i].nm+'">';$('steps').innerHTML=h;
+$('how').innerHTML='<div><img src="'+iconURL(3)+'" alt=""><span><b>끌어서 놓기</b> · 같은 구슬끼리 합쳐 키워요</span></div><div><img src="'+iconURL(5)+'" alt=""><span><b>비축</b> · 구슬을 맡겨 두고 필요할 때 꺼내요</span></div><div><img src="'+iconURL(0)+'" alt=""><span><b>공정 조사</b> · 담합 구슬을 없애요</span></div>';
+$('probeImg').src=iconURL(0);$('nextImg').src=iconURL(1);
+layout();requestAnimationFrame(loop);
+window.__m={get G(){return G},start:start,drop:drop,hold:hold,probe:probe,LV:LV,end:function(){end()},add:function(l,x,y){G.balls.push({x:x,y:y,vx:0,vy:0,l:l,r:LV[l].r,hit:true,pop:1})},ui:renderUI};
+})();
+</script>
+</body>
+</html>
