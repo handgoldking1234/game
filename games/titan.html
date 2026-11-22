@@ -70,6 +70,16 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
 .credit{font-size:11px;opacity:.55;margin-top:14px}
 @media (max-width:600px){#msg{white-space:normal;width:92vw;text-align:center;font-size:17px;letter-spacing:0;line-height:1.4}}
 @media (max-width:520px){.quiz .qq{font-size:18px}.quiz .qbtns button{font-size:15px;padding:10px 12px}}
+
+#cine{position:fixed;inset:0;pointer-events:none;z-index:4;display:none}
+#cine.on{display:block}
+body.cine #touch{visibility:hidden}
+#cine .bar{position:absolute;left:0;right:0;height:13vh;background:#000;animation:cineIn .5s ease-out}
+#cine .bar.t{top:0}#cine .bar.b{bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+#cine .ct{color:#ffe0a8;font-weight:900;font-size:clamp(18px,3.4vw,34px);letter-spacing:2px}
+#cine .cs{color:#fff;opacity:.8;font-size:clamp(12px,1.8vw,17px)}
+#cine .skip{position:absolute;right:14px;top:calc(13vh + 10px);color:#fff;opacity:.6;font-size:12px;text-shadow:0 1px 3px #000}
+@keyframes cineIn{from{height:0}to{height:13vh}}
 </style>
 </head>
 <body>
@@ -27809,6 +27819,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     prox(B("Hips"), wp("Hips"), V(0.4, 0.26, 0.28));
     const hp = wp("Head");
     t.head = B("Head");
+    t.spine = B("Spine1");
     prox(t.head, hp.clone().add(V(0, 0.11, 0.02)), V(0.23, 0.3, 0.26));
     const deco = (bone, geo, mat, c) => {
       const m = new Mesh(geo, mat);
@@ -27933,6 +27944,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     sfx("death", dvol(t));
     sfx("hiss", dvol(t));
     slowT = bySpear ? 0.25 : 0.45;
+    if (!bySpear && stage !== 2) startKcam(t);
     shake = 0.7;
     flashT = 0.25;
     t.nhp = 0;
@@ -27980,11 +27992,21 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       for (const A of t.arms) {
         A.sh.getWorldPosition(tmpS);
         tmpAim2.copy(tmpS);
-        tmpAim2.y -= 10;
-        aimBone(A.sh, A.el, tmpAim2, Math.min(1, D * 2));
+        {
+          const ud = clamp2((D - 0.55) / 0.55, 0, 1);
+          tmpAim2.y += lerp2(9 * s2, -10, ud);
+          tmpAim2.x -= Math.sin(t.yaw) * 5 * s2 * (1 - ud);
+          tmpAim2.z -= Math.cos(t.yaw) * 5 * s2 * (1 - ud);
+        }
+        aimBone(A.sh, A.el, tmpAim2, Math.min(1, D * 5));
       }
       const f = Math.max(0, D - 0.55), slow = s2 > 2 ? 0.45 : 1;
-      t.body.rotation.x = Math.min(1.5, f * f * 1.3 * slow);
+      t.body.rotation.x = Math.min(1.5, f * f * 1.3 * slow) - (D < 0.6 ? Math.sin(D / 0.6 * Math.PI) * 0.24 : 0);
+      if (D < 0.9) {
+        const rc = Math.sin(D / 0.9 * Math.PI);
+        wrot(t.spine, g.quaternion, 1, 0, 0, -0.3 * rc);
+        wrot(t.head, g.quaternion, 1, 0, 0, -0.65 * rc);
+      }
       if (!t.fell && t.body.rotation.x >= 1.45) {
         t.fell = true;
         const v = dvol(t);
@@ -28154,10 +28176,17 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
         t.thrown = false;
       }
       if (d < 70 && Math.random() < dt * 0.1) sfx("growl", clamp2(1 - d / 70, 0.1, 0.8));
+      if (!t.roared && d < 85 && t.grabT < 0 && t.throwT < 0) {
+        t.roared = true;
+        if (t.kind !== "normal" || Math.random() < 0.55) {
+          t.roarT = 0;
+          sfx("roar", clamp2(1.25 - d / 85, 0.3, 1));
+        }
+      }
       run = ab || runner || t.rushT > 0;
       t.yaw += angDiff(Math.atan2(dx, dz), t.yaw) * Math.min(1, dt * (run ? 3.5 : 1.6));
       g.rotation.y = t.yaw;
-      moving = t.grabT < 0 && t.throwT < 0 && d > (thrower ? 55 : t.armLen * 0.7);
+      moving = t.grabT < 0 && t.throwT < 0 && !(t.roarT >= 0) && d > (thrower ? 55 : t.armLen * 0.7);
       const want = moving ? t.speed * (t.rushT > 0 ? 3.4 : 1) * (t.lungeT > 0 ? 2.2 : 1) : 0;
       t.v = lerp2(t.v, want, Math.min(1, dt * (want > t.v ? 2.2 : 5)));
       g.position.x += Math.sin(t.yaw) * t.v * dt;
@@ -28168,6 +28197,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     const ts = run ? t.v / (k * 3.3) : t.v / (k * 1.35);
     setAct(t, moving ? run ? "run" : "walk" : "idle", moving ? Math.max(0.25, ts) : 1);
     t.body.rotation.x = lerp2(t.body.rotation.x, run && moving ? t.kind === "runner" ? 0.55 : 0.22 : 0, dt * 3);
+    {
+      const ac = t.acts[t.cur];
+      t.body.rotation.z = lerp2(t.body.rotation.z, moving ? Math.sin(ac.time / ac.getClip().duration * Math.PI * 2) * (run ? 0.085 : 0.055) : 0, Math.min(1, dt * 6));
+    }
     if (t.mode !== "march" && t.grabT < 0) {
       tmpF.set(Math.sin(t.yaw), 0, Math.cos(t.yaw));
       t.head.getWorldPosition(tmpS);
@@ -28205,6 +28238,27 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
         t.throwT = -1;
         t.throwCd = rand(3.5, 6);
       }
+    }
+    if (t.roarT >= 0) {
+      t.roarT += dt;
+      const R = t.roarT / 1.5, e = R < 0.2 ? R / 0.2 : R > 0.8 ? Math.max(0, (1 - R) / 0.2) : 1;
+      if (t.grabT < 0 && t.throwT < 0) {
+        wrot(t.spine, g.quaternion, 1, 0, 0, -0.3 * e);
+        wrot(t.head, g.quaternion, 1, 0, 0, -0.5 * e + Math.sin(time * 42) * 0.035 * e);
+        const rx = Math.cos(t.yaw), rz = -Math.sin(t.yaw);
+        for (const A of t.arms) {
+          A.sh.getWorldPosition(tmpS);
+          const sd = (tmpS.x - g.position.x) * rx + (tmpS.z - g.position.z) * rz > 0 ? 1 : -1;
+          tmpAim2.set(tmpS.x + rx * sd * 6 * s2 + Math.sin(t.yaw) * 2 * s2, tmpS.y - 5 * s2, tmpS.z + rz * sd * 6 * s2 + Math.cos(t.yaw) * 2 * s2);
+          aimBone(A.sh, A.el, tmpAim2, e * 0.9);
+        }
+        if (frame % 3 === 0) {
+          t.head.getWorldPosition(tmpV);
+          puff(tmpV, 1.6 * s2, 0.9, 1.2 * s2, 16777215, 0.35, 2 * s2);
+        }
+      }
+      shake = Math.max(shake, e * clamp2(0.4 - Math.hypot(P.pos.x - g.position.x, P.pos.z - g.position.z) / 200, 0, 0.3));
+      if (R >= 1) t.roarT = -1;
     }
     stepFx(t, moving, dt * ts * 6.2);
     const A0 = t.arms[0].sh;
@@ -28274,6 +28328,180 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
   };
   var hero = new Group();
   scene.add(hero);
+  var _wq = new Quaternion(), _wq2 = new Quaternion(), _wa = new Vector3();
+  function wrot(b, fq, x, y, z, ang) {
+    if (!b || Math.abs(ang) < 1e-4) return;
+    b.getWorldQuaternion(_wq);
+    _wa.set(x, y, z).applyQuaternion(fq).applyQuaternion(_wq.invert());
+    b.quaternion.multiply(_wq2.setFromAxisAngle(_wa, ang));
+  }
+  function poseSoldier(h, dt, air, slashT, fireT, hookOn, vy) {
+    const b = h.bones, q = h.quaternion, pw = h.pw;
+    pw.air = lerp2(pw.air, air ? 1 : 0, Math.min(1, dt * 9));
+    pw.hook = lerp2(pw.hook, hookOn ? 1 : 0, Math.min(1, dt * 10));
+    if (pw.wasAir && !air && pw.vy < -9) {
+      pw.landT = 0;
+      pw.landK = clamp2(-pw.vy / 26, 0.45, 1);
+      if (h === hero) {
+        sfx("thud", 0.35 * pw.landK);
+        for (let i = 0; i < 5; i++) puff(tmpV.set(h.position.x + rand(-0.8, 0.8), h.position.y - HH + 0.2, h.position.z + rand(-0.8, 0.8)), 1.3, 0.7, 1.2, 14208960, 0.4, 0.4);
+      }
+    }
+    pw.wasAir = air;
+    pw.vy = vy;
+    pw.landT = Math.min(1, pw.landT + dt / 0.4);
+    const a = pw.air, c = pw.landT < 1 ? Math.sin(pw.landT * Math.PI) * pw.landK : 0, sl = slashT < 1 ? Math.sin(slashT * Math.PI) : 0, f = fireT < 1 ? Math.sin(fireT * Math.PI) : 0;
+    const lead = Math.max(f, pw.hook * a * 0.75), fl = Math.sin(time * 9 + pw.seed) * 0.07 * a;
+    h.model.position.y = -HH - 0.36 * c;
+    wrot(b.Spine, q, 1, 0, 0, 0.18 * a - 0.5 * c);
+    if (sl > 0) wrot(b.Spine, q, 0, 1, 0, (1 - slashT) * 0.55);
+    wrot(b.LeftUpLeg, q, 1, 0, 0, -0.3 * a + fl + 0.95 * c);
+    wrot(b.RightUpLeg, q, 1, 0, 0, -0.7 * a - fl + 0.95 * c);
+    wrot(b.LeftLeg, q, 1, 0, 0, -0.95 * a - 1.7 * c);
+    wrot(b.RightLeg, q, 1, 0, 0, -0.4 * a - 1.7 * c);
+    for (const S of ["Left", "Right"]) {
+      const A = b[S + "Arm"], sx = h.sx[S], isLead = S === "Right";
+      wrot(A, q, 1, 0, 0, -0.9 * a * (1 - sl) + (isLead ? 2.1 * lead : 0) + 0.5 * c);
+      wrot(A, q, 0, 0, 1, sx * (0.32 * a + 1.15 * sl) * (isLead ? 1 - lead * 0.8 : 1));
+      if (isLead && lead > 0.01) wrot(b[S + "ForeArm"], q, 1, 0, 0, 0.25 * lead);
+    }
+    if (h.cape) {
+      const sp = clamp2(pw.spd / 30, 0, 1);
+      h.cape.quaternion.copy(h.capeQ);
+      wrot(h.cape, q, 1, 0, 0, -(sp * 0.95 + Math.sin(time * 15 + pw.seed) * (0.05 + sp * 0.14)));
+    }
+  }
+  var cine = null, kcam = null, cineEl = null;
+  var _cq0 = new Quaternion(), _cq1 = new Quaternion(), _cp = new Vector3(), _cf = new Vector3(), _cl = new Vector3();
+  var smooth = (u) => u * u * (3 - 2 * u);
+  function cineStart(ci) {
+    endKcam();
+    if (!cineEl) {
+      cineEl = document.createElement("div");
+      cineEl.id = "cine";
+      cineEl.innerHTML = '<div class="bar t"></div><div class="bar b"><div class="ct"></div><div class="cs"></div></div><div class="skip"></div>';
+      document.body.appendChild(cineEl);
+      const skip = (e) => {
+        if (cine && running && !paused && cine.T > 0.7) cine.T = Math.max(cine.T, cine.dur - 0.5);
+      };
+      window.addEventListener("pointerdown", skip, true);
+      window.addEventListener("keydown", skip, true);
+    }
+    const C = CH[ci];
+    cineEl.querySelector(".ct").textContent = C.name;
+    cineEl.querySelector(".cs").textContent = C.desc;
+    cineEl.querySelector(".skip").textContent = IS_TOUCH ? "화면을 누르면 건너뛰기" : "클릭하면 건너뛰기";
+    cineEl.className = "on";
+    document.body.classList.add("cine");
+    cine = { T: 0, dur: 5.2, a0: Math.random() < 0.5 ? 1 : -1 };
+  }
+  function cineEnd() {
+    if (!cine) return;
+    cine = null;
+    cineEl.className = "";
+    document.body.classList.remove("cine");
+    hud.style.display = "block";
+    const C = CH[chapter];
+    msg(C.name + " \u2014 " + C.desc, 3, "#ffe0a8");
+  }
+  function cineTick(rdt) {
+    const c = cine;
+    c.T += rdt;
+    hud.style.display = "none";
+    const u = clamp2(c.T / c.dur, 0, 1);
+    let focus, fy;
+    tmpDir.set(-Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), -Math.cos(P.yaw) * Math.cos(P.pitch));
+    if (stage === 2) {
+      focus = duel.me.g.position;
+      fy = 12;
+      for (const t of titans) {
+        t.mixer.update(rdt);
+        shapeTitan(t);
+      }
+      camT.set(focus.x, 13, focus.z);
+      camPos.copy(camT).addScaledVector(tmpDir, -21);
+      camPos.x += Math.cos(P.yaw) * 5;
+      camPos.z -= Math.sin(P.yaw) * 5;
+      camPos.y = Math.max(3, camPos.y + 3);
+    } else {
+      focus = P.pos;
+      fy = P.pos.y + 1;
+      hero.position.copy(P.pos);
+      hero.rotation.set(0, P.yaw, 0);
+      hero.mixer.update(rdt);
+      hero.pw.spd = 6 + Math.sin(c.T * 2) * 3;
+      poseSoldier(hero, rdt, false, 1, 1, false, 0);
+      for (const s2 of scouts) s2.visible = false;
+      camT.copy(P.pos);
+      camT.y += 1.3;
+      camPos.copy(camT).addScaledVector(tmpDir, -8.5);
+      camPos.x += Math.cos(P.yaw) * 1.6;
+      camPos.z -= Math.sin(P.yaw) * 1.6;
+      camPos.y = Math.max(0.6, camPos.y + 1);
+    }
+    const far = stage === 2 ? 1.5 : 1;
+    const ang = P.yaw + c.a0 * (2.5 - u * 1.9), R = lerp2(72, 26, smooth(u)) * far, Hh = lerp2(52, 14, smooth(u)) * far;
+    _cp.set(focus.x + Math.sin(ang) * R, fy + Hh, focus.z + Math.cos(ang) * R);
+    const k = smooth(clamp2((u - 0.62) / 0.38, 0, 1));
+    camera.rotation.set(P.pitch, P.yaw, 0);
+    _cq1.copy(camera.quaternion);
+    camera.position.copy(_cp);
+    camera.lookAt(_cl.set(focus.x, fy + (stage === 2 ? 2 : 1), focus.z));
+    _cq0.copy(camera.quaternion);
+    camera.position.lerp(camPos, k);
+    camera.quaternion.copy(_cq0).slerp(_cq1, k);
+    camera.fov = lerp2(52, 72, k);
+    camera.updateProjectionMatrix();
+    skyDome.position.copy(camera.position);
+    sun.position.set(focus.x + 90, 170, focus.z + 70);
+    sun.target.position.set(focus.x, 0, focus.z);
+    updateParts(rdt);
+    if (u >= 1) {
+      for (const s2 of scouts) s2.visible = true;
+      cineEnd();
+    }
+  }
+  var streakMat = null;
+  function endKcam() {
+    if (!kcam) return;
+    if (kcam.streak) scene.remove(kcam.streak);
+    kcam = null;
+  }
+  function startKcam(t) {
+    endKcam();
+    if (!streakMat) streakMat = new MeshBasicMaterial({ color: 16777215, transparent: true, opacity: 0.95, depthWrite: false, depthTest: false, side: DoubleSide, blending: AdditiveBlending });
+    const st = new Mesh(new PlaneGeometry(1, 1), streakMat);
+    st.renderOrder = 9;
+    st.frustumCulled = false;
+    t.nape.getWorldPosition(st.position);
+    scene.add(st);
+    const right = Math.cos(P.yaw) * (t.g.position.x - P.pos.x) - Math.sin(P.yaw) * (t.g.position.z - P.pos.z);
+    kcam = { T: 0, dur: 1.25, t, streak: st, side: right > 0 ? -1 : 1, roll: rand(-0.5, 0.5), len: 7 + 5 * t.s };
+    slowT = Math.max(slowT, 0.95);
+  }
+  function kcamTick(rdt) {
+    const kc = kcam;
+    kc.T += rdt;
+    const u = kc.T / kc.dur, w = smooth(u < 0.14 ? u / 0.14 : u > 0.72 ? Math.max(0, (1 - u) / 0.28) : 1);
+    kc.t.nape.getWorldPosition(_cl);
+    const su = Math.min(1, kc.T / 0.5);
+    kc.streak.quaternion.copy(camera.quaternion);
+    kc.streak.rotateZ(kc.roll);
+    kc.streak.scale.set(kc.len * (0.2 + 1.6 * Math.sqrt(su)), kc.len * 0.06 * (1 - su) + 0.01, 1);
+    streakMat.opacity = 0.95 * (1 - su);
+    _cf.copy(P.pos).lerp(_cl, 0.5);
+    const d = clamp2(P.pos.distanceTo(_cl) * 0.5 + 6, 7, 16);
+    _cp.set(_cf.x + Math.cos(P.yaw) * kc.side * d, _cf.y + 2.5, _cf.z - Math.sin(P.yaw) * kc.side * d).addScaledVector(tmpDir, -d * 0.45);
+    if (_cp.y < 1) _cp.y = 1;
+    _cq0.copy(camera.quaternion);
+    camera.position.lerp(_cp, w);
+    camera.lookAt(_cf);
+    _cq1.copy(camera.quaternion);
+    camera.quaternion.copy(_cq0).slerp(_cq1, w);
+    camera.fov -= 16 * w;
+    kc.w = w;
+    if (u >= 1) endKcam();
+  }
   function initHero() {
     scene.remove(hero);
     hero = makeSoldier();
@@ -28310,6 +28538,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     hero2.acts = {};
     for (const [n, c] of [["Idle", "idle"], ["Run", "run"]]) hero2.acts[n] = hero2.mixer.clipAction(MODELS.hero.animations.find((a) => a.name === c));
     hero2.cur = "Idle";
+    hero2.model = model;
+    hero2.bones = {};
+    for (const n of ["Spine", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg", "LeftArm", "RightArm", "LeftForeArm", "RightForeArm"]) hero2.bones[n] = B(n);
+    hero2.sx = { Left: Math.sign(wp("LeftHand").x) || -1, Right: Math.sign(wp("RightHand").x) || 1 };
+    hero2.capeQ = hero2.cape.quaternion.clone();
+    hero2.pw = { air: 0, hook: 0, landT: 1, landK: 1, wasAir: false, vy: 0, spd: 0, seed: Math.random() * 9 };
     hero2.acts.Idle.play();
     hero2.trail = new Mesh(new RingGeometry(1.4, 2.3, 24, 1, 0, Math.PI * 1.2), new MeshBasicMaterial({ color: 16777215, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false }));
     hero2.trail.rotation.x = -Math.PI / 2;
@@ -28353,6 +28587,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
   function fireHook() {
     updateAim();
     sfx("hook");
+    P.fireT = 0;
     hook.tipPos.copy(P.pos);
     if (!aim.hit) {
       hook.state = "miss";
@@ -28999,7 +29234,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     for (let i = 0; i < (C.scouts || 0); i++) addScout(NAMES[i]);
     setTouchLabels();
     bgmPlay(ci);
-    msg(C.name + " \u2014 " + C.desc, 4, "#ffe0a8");
+    cineStart(ci);
     sfx("horn");
   }
   function spawnCity(kind, vname) {
@@ -29149,6 +29384,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       if (s2.slashT < 1) s2.rotateY(-s2.slashT * Math.PI * 2);
       s2.trail.material.opacity = s2.slashT < 1 ? (1 - s2.slashT) * 0.8 : 0;
       s2.mixer.update(dt);
+      s2.pw.spd = s2.vel.length();
+      poseSoldier(s2, dt, true, s2.slashT, 1, false, 0);
       const pa = s2.line.geometry.attributes.position;
       if (t && Math.sin(time * 1.7 + s2.seed) > -0.4) {
         t.nape.getWorldPosition(tmpV);
@@ -29952,6 +30189,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     renderer.render(scene, camera);
   }
   function tick(rdt, now) {
+    if (running && !paused && cine) {
+      cineTick(rdt);
+      return;
+    }
     if (running && !paused) {
       frame++;
       if (slowT > 0) {
@@ -30016,6 +30257,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
         }
         hero.acts.Run.timeScale = clamp2(hv / 6.5, 0.6, 2);
         hero.mixer.update(dt);
+        P.fireT = Math.min(1, (P.fireT === void 0 ? 1 : P.fireT) + dt / 0.38);
+        hero.pw.spd = speedNow;
+        poseSoldier(hero, dt, air, P.slashT, P.fireT, hook.state === "att", P.vel.y);
         if (boosting && frame % 2 === 0) puff(tmpV.copy(P.pos).addScaledVector(P.vel, -0.03), 1.4, 0.6, 0.8, 16777215, 0.5, 0.3);
         focus = P.pos;
         tmpDir.set(-Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), -Math.cos(P.yaw) * Math.cos(P.pitch));
@@ -30047,7 +30291,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       camera.position.x += rand(-1, 1) * shake * 0.5;
       camera.position.y += rand(-1, 1) * shake * 0.5;
       camera.rotation.set(P.pitch, P.yaw, 0);
+      if (kcam) camera.fov += 16 * (kcam.w || 0);
       camera.fov = lerp2(camera.fov, 72 + Math.min(speedNow, 60) * 0.42, rdt * 4);
+      if (kcam) kcamTick(rdt);
       camera.updateProjectionMatrix();
       sun.position.set(focus.x + 90, 170, focus.z + 70);
       sun.target.position.set(focus.x, 0, focus.z);
