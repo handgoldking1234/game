@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<script src="../mwt.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>나라장터 배송 레이스 - 공공조달 카트 레이스 | 민왕게임월드</title>
+<meta name="description" content="조달 배송 카트를 몰고 학교·소방서·재난 대피소·보건소에 물건을 제때 배달하는 3D 레이스. 담합 함정은 피하고, 혁신 부스터와 AI 돋보기로 1등을 노려요. 설치 없이 브라우저에서 바로!">
+<link rel="canonical" href="https://game.iux.kr/games/jodal-race.html">
+<meta property="og:title" content="나라장터 배송 레이스">
+<meta property="og:description" content="담합 함정은 피하고, 혁신 부스터로 쌩! 공공기관에 물건을 제때 배달하는 3D 카트 레이스. 2026 조달청 AI 게임·콘텐츠 공모전 출품작.">
+<meta property="og:image" content="https://game.iux.kr/thumbs/jodal-race.webp"><meta property="og:type" content="website"><meta property="og:locale" content="ko_KR">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#14213d;--quiet:#5b6478;--line:#dfe4ee;--blue:#1f5eff;--red:#e5383b;--green:#139a5b;--gold:#f4a300;--violet:#7b3fe4}
+html,body{height:100%;overflow:hidden;background:#a9d4ff;color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans CJK KR','Noto Sans KR',sans-serif;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.15em;flex:none}
+canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{position:fixed;inset:0;pointer-events:none;display:none;z-index:5}
+#hud.on{display:block}
+.box{background:rgba(20,33,61,.78);color:#fff;border-radius:14px;padding:8px 12px;font-weight:900}
+#rank{position:absolute;left:12px;top:12px;font-size:16px;display:flex;align-items:baseline;gap:2px}
+#rank b{font-size:44px;line-height:1;color:#ffd60a}
+#rank span{opacity:.8}
+#info{position:absolute;left:12px;top:78px;display:flex;flex-direction:column;gap:6px}
+#info .box{font-size:14px;padding:6px 10px;display:flex;gap:6px;align-items:center}
+#info small{font-size:11px;opacity:.75;font-weight:700}
+#info .cop{background:#c8691c}#info .ais{background:var(--blue)}
+#mmw{position:absolute;right:12px;top:56px;width:150px;height:150px;border-radius:16px;background:rgba(255,255,255,.55);backdrop-filter:blur(2px)}
+#mm{width:100%;height:100%}
+#slotw{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px}
+#slot{min-width:150px;height:46px;border-radius:14px;background:rgba(255,255,255,.92);border:3px solid #fff;display:grid;place-items:center;font-size:15px;font-weight:900;padding:0 12px;box-shadow:0 4px 12px rgba(20,33,61,.15)}
+#slot.full{border-color:#ffd60a;animation:pulse 1s infinite}
+#slot .empty{color:#c3cad6;font-size:22px}
+@keyframes pulse{50%{transform:scale(1.05)}}
+#slotw small{font-size:11.5px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+#spdw{position:absolute;right:12px;bottom:14px;text-align:right}
+#spd{font-size:34px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.4);line-height:1}
+#spd small{font-size:13px;margin-left:3px}
+#center{position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);font-size:76px;font-weight:900;color:#fff;text-shadow:0 5px 0 #1546c2,0 10px 30px rgba(20,33,61,.35);text-align:center;display:none;z-index:8;pointer-events:none;line-height:1.1;width:max-content;max-width:94vw}
+#center small{display:block;font-size:19px;text-shadow:0 2px 6px rgba(0,0,0,.5);margin-top:8px;font-weight:800}
+#center.on{display:block;animation:pop .3s ease-out}
+#center.red{color:#fff;text-shadow:0 5px 0 #b00020,0 10px 30px rgba(20,33,61,.35)}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
+#toasts{position:fixed;left:50%;top:84px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:7;width:min(92vw,520px)}
+.toast{background:var(--ink);color:#fff;font-size:15px;font-weight:800;border-radius:12px;padding:9px 14px;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:tin .25s ease-out both;line-height:1.4;text-align:center}
+.toast.good{background:var(--green)}.toast.bad{background:var(--red)}.toast.inno{background:var(--violet)}.toast.blue{background:var(--blue)}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+.fl{position:fixed;left:50%;top:58%;transform:translateX(-50%);font-size:26px;font-weight:900;color:#ffd60a;text-shadow:0 2px 6px rgba(0,0,0,.5);pointer-events:none;z-index:7;animation:up .9s ease-out forwards}
+@keyframes up{to{transform:translate(-50%,-60px);opacity:0}}
+#touch{position:fixed;left:0;right:0;bottom:0;height:150px;display:none;z-index:6;pointer-events:none}
+#touch.on{display:block}
+.tb{position:absolute;bottom:18px;width:84px;height:84px;border-radius:24px;background:rgba(255,255,255,.75);border:3px solid rgba(255,255,255,.95);display:grid;place-items:center;font-size:30px;font-weight:900;color:var(--ink);pointer-events:auto;touch-action:none;box-shadow:0 6px 16px rgba(20,33,61,.18)}
+.tb.down{background:#ffd60a}
+#tL{left:16px}#tR{left:112px}
+#tI{right:16px;width:96px;height:96px;font-size:16px;background:rgba(123,63,228,.55);color:#fff}
+#tI.ready{background:var(--violet);animation:pulse 1s infinite}
+#tB{right:124px;width:70px;height:70px;font-size:14px}
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;z-index:10;background:rgba(20,33,61,.25)}
+.screen.on{display:flex}
+.panel{background:#fff;border-radius:24px;padding:22px 20px;max-width:480px;width:100%;box-shadow:0 14px 40px rgba(20,33,61,.25);display:flex;flex-direction:column;gap:14px;text-align:center;max-height:100%;overflow:auto}
+.panel h1{font-size:clamp(30px,8.5vw,44px);font-weight:900;letter-spacing:-.02em;line-height:1.12}
+.panel h1 small{display:block;font-size:14px;color:var(--blue);font-weight:800;letter-spacing:.02em;margin-bottom:6px}
+.panel h2{font-size:26px;font-weight:900}
+.lead{color:var(--quiet);font-size:14.5px;line-height:1.55}
+.how{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left}
+.how div{background:#f3f6fb;border-radius:14px;padding:9px 11px;font-size:13px;line-height:1.4;color:var(--quiet)}
+.how b{display:block;font-size:14px;color:var(--ink)}
+.how .r b{color:var(--red)}.how .v b{color:var(--violet)}.how .g b{color:var(--green)}.how .c b{color:#c8691c}
+.big{background:var(--blue);color:#fff;font-weight:900;font-size:19px;padding:16px 26px;border-radius:16px;box-shadow:0 6px 0 #1546c2;display:inline-flex;gap:8px;align-items:center;justify-content:center;transition:transform .08s}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 #1546c2}
+.ctrl{font-size:13px;color:var(--quiet);font-weight:700}
+.credit{font-size:11.5px;color:var(--quiet);line-height:1.55}
+.bigstars{font-size:46px;color:var(--gold);letter-spacing:6px;line-height:1}
+.bigstars .off{color:#e1e5ec}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#f3f6fb;border-radius:12px;padding:10px 4px}
+.stat b{display:block;font-size:20px;font-weight:900}
+.stat span{font-size:11.5px;color:var(--quiet);font-weight:700}
+.learn{background:#e8efff;border-radius:14px;padding:12px 14px;text-align:left;font-size:14px;line-height:1.6}
+.learn .h{color:var(--blue);display:block;margin-bottom:4px;font-weight:900}
+.learn p+p{margin-top:6px}
+.top{position:fixed;top:10px;right:12px;z-index:20;display:flex;gap:6px}
+.top button{width:36px;height:36px;border-radius:10px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;font-size:17px;color:var(--quiet)}
+@media (max-width:640px){
+ #mmw{width:104px;height:104px;top:52px;right:8px}
+ #rank b{font-size:36px}
+ #slot{min-width:110px;height:40px;font-size:13px}
+ #slotw{top:52px}
+ #center{font-size:58px}#center small{font-size:15px}
+ #toasts{top:150px}.toast{font-size:13.5px}
+ #spdw{bottom:126px}
+ #spd{font-size:26px}
+ .top{top:8px;right:8px}.top button{width:32px;height:32px}
+}
+@media (hover:hover) and (pointer:fine){#touch.on{display:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+ <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></symbol>
+ <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></symbol>
+ <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M6 10v10h12V10"/></symbol>
+ <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+</defs></svg>
+<canvas id="cv"></canvas>
+
+<div id="hud">
+ <div id="rank" class="box"><b id="rkN">1</b><span>/6등</span></div>
+ <div id="info">
+  <div class="box" id="lap"><small>바퀴</small>1/2</div>
+  <div class="box"><small>시간</small><span id="tm">0:00.0</span></div>
+  <div class="box"><small>납품</small><span id="dlv">0</span></div>
+  <div class="box cop" id="cop" style="display:none"></div>
+  <div class="box ais" id="aiS" style="display:none"></div>
+ </div>
+ <div id="slotw"><div id="slot"><span class="empty">?</span></div><small>아이템</small></div>
+ <div id="mmw"><canvas id="mm" width="300" height="300"></canvas></div>
+ <div id="spdw"><div id="spd">0<small>km/h</small></div></div>
+</div>
+
+<div id="touch">
+ <div class="tb" id="tL">◀</div><div class="tb" id="tR">▶</div>
+ <div class="tb" id="tB">브레이크</div><div class="tb" id="tI">아이템</div>
+</div>
+
+<div class="top"><button id="snd" aria-label="소리 켜고 끄기"><svg class="i"><use href="#i-sound"/></svg></button><button id="home" aria-label="처음으로" style="display:none"><svg class="i"><use href="#i-home"/></svg></button></div>
+
+<section class="screen on" id="sTitle">
+ <div class="panel">
+  <h1><small>공공조달 3D 카트 레이스</small>나라장터<br>배송 레이스</h1>
+  <p class="lead">조달 배송 카트를 몰고 <b>학교·소방서·재난 대피소·보건소</b>에 물건을 <b>제때</b> 배달해요. 2바퀴, 6대가 겨루는 레이스!</p>
+  <div class="how">
+   <div class="r"><b>담합 함정 피하기</b>밟으면 빙글빙글 돌아요</div>
+   <div class="v"><b>? 상자 → 혁신 부스터</b>혁신제품으로 쌩!</div>
+   <div class="g"><b>AI 돋보기</b>함정을 보여 주고 막아 줘요</div>
+   <div class="c"><b>공급망 위기</b>마지막 바퀴에 구리 비축</div>
+  </div>
+  <button class="big" id="bStart"><svg class="i"><use href="#i-play"/></svg>출발하기</button>
+  <div class="ctrl" id="keys"></div>
+  <p class="credit">2026 조달청 AI 게임·콘텐츠 공모전 출품작 · 기획·코드·그림은 AI(Claude)와 함께 만들었어요.<br>3D 엔진: three.js(MIT) · 업체 이름은 모두 지어낸 이름이에요.</p>
+ </div>
+</section>
+
+<section class="screen" id="sEnd">
+ <div class="panel">
+  <h2 id="eTitle">도착!</h2>
+  <div class="bigstars" id="eStars"></div>
+  <div class="stats">
+   <div class="stat"><b id="eRank">-</b><span>순위</span></div>
+   <div class="stat"><b id="eTime">-</b><span>기록</span></div>
+   <div class="stat"><b id="eDel">-</b><span>제때 납품</span></div>
+  </div>
+  <div class="stats">
+   <div class="stat"><b id="eDodge">0</b><span>피한 담합 함정</span></div>
+   <div class="stat"><b id="eHit">0</b><span>걸린 함정</span></div>
+   <div class="stat"><b id="eCop">0</b><span>비축한 구리</span></div>
+  </div>
+  <div class="learn" id="eLearn"></div>
+  <button class="big" id="bAgain"><svg class="i"><use href="#i-play"/></svg>다시 달리기</button>
+ </div>
+</section>
+
+<div id="center"></div>
+<div id="toasts"></div>
+
+<script>/* three.js r160 (MIT License, Copyright 2010-2023 Three.js Authors) 포함 */
+(() => {
+/*THREE*/
+/*GAME*/
+})();
+</script>
+</body>
+</html>
