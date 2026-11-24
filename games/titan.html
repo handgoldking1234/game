@@ -27269,7 +27269,15 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     return d;
   };
   var $ = (id) => document.getElementById(id);
-  var IS_TOUCH = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  var HAS_TOUCH = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  var HAS_FINE = (() => {
+    try {
+      return matchMedia("(any-pointer: fine)").matches;
+    } catch (e) {
+      return false;
+    }
+  })();
+  var IS_TOUCH = HAS_TOUCH && !HAS_FINE && !/CrOS/.test(navigator.userAgent);
   var canvas = $("c");
   var LITE = (() => {
     try {
@@ -31932,6 +31940,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     corpsTick(dt);
     horseTick(dt);
     perfTick(dt);
+    if (keys.ArrowLeft || keys.ArrowRight || keys.ArrowUp || keys.ArrowDown) look(((keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0)) * 900 * dt, ((keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0)) * 600 * dt);
     charTick(dt);
     projTick(dt);
     flyTick(dt);
@@ -34460,7 +34469,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
   var CONTROLS = IS_TOUCH ? `<div class="sub">\uC67C\uCABD \uD654\uBA74: \uC774\uB3D9 \xB7 \uC624\uB978\uCABD \uD654\uBA74 \uB4DC\uB798\uADF8: \uC2DC\uC810<br>\uBC84\uD2BC: \uC640\uC774\uC5B4(\uB204\uB974\uACE0 \uC788\uAE30) \xB7 \uAC00\uC2A4 \xB7 \uBCA0\uAE30 \xB7 \uCC3D \xB7 \uBCF4\uAE09<br>\uAC70\uC778\uC804: \uC8FC\uBA39 \xB7 \uAC15\uD0C0 \xB7 \uD0A5 \xB7 \uD68C\uD53C \xB7 \uACBD\uC9C8\uD654<br><b>\uAC00\uB85C \uD654\uBA74</b>\uC73C\uB85C \uB3CC\uB824\uC11C \uD50C\uB808\uC774\uD558\uC138\uC694</div>` : `<table>
 <tr><td>\uB9C8\uC6B0\uC2A4</td><td>\uC2DC\uC810</td></tr><tr><td>\uC6B0\uD074\uB9AD (\uB204\uB974\uACE0 \uC788\uAE30)</td><td>\uC640\uC774\uC5B4 \uBC1C\uC0AC\xB7\uAC10\uAE30 / \uAC70\uC778\uC804: \uC8FC\uBA39</td></tr>
 <tr><td>\uC88C\uD074\uB9AD \uB610\uB294 E</td><td>\uBCA0\uAE30 / \uAC70\uC778\uC804: \uAC15\uD0C0</td></tr><tr><td>Space</td><td>\uAC00\uC2A4 \uBD84\uC0AC / \uAC70\uC778\uC804: \uD68C\uD53C</td></tr>
-<tr><td>F \uB610\uB294 Q</td><td>\uD3ED\uB8B0\uCC3D \uBC1C\uC0AC / \uAC70\uC778\uC804: \uD0A5</td></tr><tr><td>W A S D</td><td>\uC774\uB3D9</td></tr><tr><td>R</td><td>\uBCF4\uAE09 (\uCD08\uB85D \uBE5B\uAE30\uB465) / \uAC70\uC778\uC804: \uACBD\uC9C8\uD654</td></tr><tr><td>ESC \xB7 P / M</td><td>\uC77C\uC2DC\uC815\uC9C0 / \uC74C\uC545 \uCF1C\uAE30\xB7\uB044\uAE30</td></tr></table>`;
+<tr><td>Q (누르고 있기)</td><td>와이어 발사 — 마우스 없이 터치패드만 있을 때</td></tr><tr><td>방향키 ← → ↑ ↓</td><td>시점 돌리기 (마우스가 안 될 때)</td></tr><tr><td>F</td><td>\uD3ED\uB8B0\uCC3D \uBC1C\uC0AC / \uAC70\uC778\uC804: \uD0A5</td></tr><tr><td>W A S D</td><td>\uC774\uB3D9</td></tr><tr><td>R</td><td>\uBCF4\uAE09 (\uCD08\uB85D \uBE5B\uAE30\uB465) / \uAC70\uC778\uC804: \uACBD\uC9C8\uD654</td></tr><tr><td>ESC \xB7 P / M</td><td>\uC77C\uC2DC\uC815\uC9C0 / \uC74C\uC545 \uCF1C\uAE30\xB7\uB044\uAE30</td></tr></table>`;
   var TIP = `<div class="sub">\uC57D\uC810\uC740 <b style="color:#ff9a5a">\uBAA9\uB35C\uBBF8\uC758 \uC8FC\uD669\uC0C9 \uAE09\uC18C</b>. \uB4A4\uB098 \uC704\uC5D0\uC11C \uBCA8 \uB54C <b>\uBE60\uB97C\uC218\uB85D \uD53C\uD574\uAC00 \uD06C\uB2E4.</b> \uBA38\uB9AC \uC704 \uCCB4\uB825 \uAC8C\uC774\uC9C0\uB97C 0\uC73C\uB85C \uB9CC\uB4E4\uBA74 \uD1A0\uBC8C! \uBC1C\uBAA9\uC744 \uBCA0\uC5B4 \uBB34\uB98E \uAFC7\uB9AC\uBA74 \uD53C\uD574\uAC00 \uB354 \uB4E4\uC5B4\uAC04\uB2E4.</div>`;
   var HEROKEY = "hero";
   try {
@@ -35354,7 +35363,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       answerQuiz(+e.code.slice(5) - 1);
       return;
     }
-    if (["Space", "ShiftLeft", "KeyE", "KeyR", "KeyF", "KeyQ", "KeyC"].includes(e.code)) e.preventDefault();
+    if (["Space", "ShiftLeft", "KeyE", "KeyR", "KeyF", "KeyQ", "KeyC", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.code)) e.preventDefault();
     if (e.code === "KeyU" && !e.repeat && running && stage !== 2 && (UPG.on || !paused && !DLG.on)) return void upgToggle();
     if (e.code === "KeyN" && !e.repeat && running && !paused) horseCall();
     if (HUB.on && !e.repeat && !DLG.on && !paused) {
@@ -35405,13 +35414,15 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     } else if (e.code === "KeyE" || e.code === "ShiftLeft") actSlash();
     if (!fighter() && e.code === "KeyC") tryRide();
     if (e.code === "KeyR") actRefill();
-    if (e.code === "KeyF" || e.code === "KeyQ" && !fighter()) actSpear();
+    if (e.code === "KeyF") actSpear();
+    if (e.code === "KeyQ" && !fighter()) wireDown();
     if (e.code === "Space") actGas(true);
   });
   document.addEventListener("keyup", (e) => {
     if (e.target && e.target.tagName === "INPUT") return;
     keys[e.code] = false;
     if (e.code === "Space") actGas(false);
+    if (e.code === "KeyQ") wireUp();
   });
   addEventListener("resize", () => {
     camera.aspect = innerWidth / innerHeight;
@@ -35426,8 +35437,40 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     $("bSpear").textContent = stage === 2 ? "\uD0A5" : "\uCC3D";
     $("bRefill").textContent = stage === 2 ? "\uACBD\uC9C8" : "\uBCF4\uAE09";
   }
-  if (IS_TOUCH) {
-    $("touch").style.display = "block";
+  var lastTouchT = 0;
+  function inputMode(t) {
+    if (t === IS_TOUCH) return;
+    IS_TOUCH = t;
+    $("touch").style.display = t ? "block" : "none";
+    if (t) {
+      try {
+        if (document.pointerLockElement) document.exitPointerLock();
+      } catch (e) {
+      }
+      setTouchLabels();
+    }
+  }
+  if (HAS_TOUCH) {
+    document.addEventListener("touchstart", () => {
+      lastTouchT = performance.now();
+      inputMode(true);
+    }, { capture: true, passive: true });
+    const toMouse = (e) => {
+      if (!IS_TOUCH) return;
+      if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+      if (performance.now() - lastTouchT < 900) return;
+      inputMode(false);
+    };
+    document.addEventListener("mousedown", toMouse, true);
+    document.addEventListener("mousemove", (e) => {
+      if (Math.abs(e.movementX) + Math.abs(e.movementY) > 2) toMouse(e);
+    }, true);
+    document.addEventListener("keydown", (e) => {
+      if (/^(Key[WASD]|Space)$/.test(e.code)) toMouse(e);
+    }, true);
+  }
+  if (HAS_TOUCH) {
+    $("touch").style.display = IS_TOUCH ? "block" : "none";
     const hold = (id, down, up) => {
       const b = $(id);
       b.addEventListener("touchstart", (e) => {
