@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<script src="../mwt.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>물방울 키우기 - 떨어뜨려 합치는 날씨 과학 게임 | 민왕게임월드</title>
+<meta name="description" content="수증기가 물방울이 되고, 구름이 되고, 비가 되어 내려요. 같은 친구를 합쳐 무지개까지 키우는 초등 5학년 과학 「날씨와 우리 생활」 연계 합치기 게임.">
+<link rel="canonical" href="https://game.iux.kr/games/water-merge.html">
+<meta property="og:title" content="물방울 키우기">
+<meta property="og:description" content="수증기 → 물방울 → 구름 → 비 → 무지개! 떨어뜨려 합치며 배우는 5학년 날씨 과학.">
+<meta property="og:image" content="https://game.iux.kr/thumbs/water-merge.webp"><meta property="og:type" content="website"><meta property="og:locale" content="ko_KR">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#243067;--quiet:#6f7bb0;--blue:#4f7dff;--pink:#ff5c8d;--yellow:#ffc928}
+html,body{height:100%;overflow:hidden;background:#8fdcff;color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans CJK KR','Noto Sans KR',sans-serif;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.15em;flex:none}
+canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block}
+.abs{position:fixed;z-index:5}
+.chunk{background:#fff;border-radius:18px;box-shadow:0 4px 0 #b9cdf2,0 8px 16px rgba(36,48,103,.14)}
+#top{display:flex;align-items:flex-start;gap:8px;height:76px}
+#top>.chunk{margin-top:8px}
+#top .sc{display:flex;flex-direction:column;line-height:1.05;margin-right:auto;min-width:0}
+#top .sc small{font-size:12px;font-weight:900;color:#fff;letter-spacing:.06em;text-shadow:0 1px 0 #2d6fb8}
+#top .sc b{font-size:40px;font-weight:900;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:#fff;-webkit-text-stroke:6px #243067;paint-order:stroke fill;text-shadow:0 4px 0 #243067}
+#top .sc span{font-size:12px;font-weight:800;color:#1f4f8f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:9px}
+.nx{flex:none;display:flex;align-items:center;gap:6px;padding:5px 10px 5px 11px}
+.nx small{font-size:11.5px;font-weight:900;color:var(--quiet);white-space:nowrap}
+.nx img{width:38px;height:38px;display:block}
+.ib{width:40px;height:40px;display:grid;place-items:center;font-size:18px;color:var(--ink);border-radius:14px}
+.ib:active,.act:active,.big:active{transform:translateY(3px)}
+#ladder{display:flex;align-items:center;justify-content:space-between;height:42px;padding:0 10px;background:rgba(36,48,103,.82);border-radius:21px;box-shadow:0 4px 0 rgba(24,32,78,.9)}
+#ladder img{width:28px;height:28px;opacity:.3;filter:grayscale(1) brightness(1.4);transition:all .3s}
+#ladder img.on{opacity:1;filter:none}
+#ladder img.now{transform:scale(1.3);animation:bob 1s ease-in-out infinite}
+#ladder i{flex:1;height:3px;background:rgba(255,255,255,.22);margin:0 2px;border-radius:2px}
+@keyframes bob{50%{transform:scale(1.3) translateY(-3px)}}
+#btns{display:flex;gap:10px;height:62px}
+.act{flex:1;display:flex;align-items:center;gap:9px;padding:0 12px;text-align:left;border-radius:20px;min-width:0}
+#bHold{box-shadow:0 4px 0 #f0b400,0 8px 16px rgba(36,48,103,.14)}
+#bProbe{box-shadow:0 4px 0 #f2578a,0 8px 16px rgba(36,48,103,.14)}
+.act img{width:42px;height:42px;flex:none}
+.act .ph{display:block;width:40px;height:40px;border-radius:50%;border:3px dashed #c8d3ee;flex:none}
+.act b{display:block;font-size:15.5px;font-weight:900;white-space:nowrap}
+.act small{display:block;font-size:11.5px;font-weight:800;color:var(--quiet);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act>span:nth-child(2){min-width:0}
+.act .n{margin-left:auto;min-width:28px;height:28px;border-radius:14px;background:var(--pink);color:#fff;font-size:16px;font-weight:900;display:grid;place-items:center}
+.act.off .n{background:#c8d3ee}
+.act.glow{animation:wig .5s ease-in-out infinite}
+@keyframes wig{50%{transform:scale(1.04)}}
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;z-index:10;background:rgba(104,196,255,.55);backdrop-filter:blur(5px)}
+.screen.on{display:flex}
+.panel{background:#fff;border-radius:32px;padding:24px 20px 22px;max-width:430px;width:100%;box-shadow:0 8px 0 #b9cdf2,0 24px 50px rgba(36,48,103,.25);display:flex;flex-direction:column;gap:14px;text-align:center;max-height:100%;overflow:auto;border:4px solid #fff}
+.logo small{display:inline-block;font-size:13px;color:#fff;font-weight:900;background:var(--blue);border-radius:12px;padding:4px 12px;margin-bottom:10px}
+.logo h1{font-size:clamp(44px,13vw,60px);font-weight:900;letter-spacing:-.02em;line-height:1;color:var(--yellow);-webkit-text-stroke:9px #243067;paint-order:stroke fill;text-shadow:0 6px 0 #243067}
+.logo h1 em{font-style:normal;color:#ff7aa5}
+.panel h2{font-size:25px;font-weight:900;letter-spacing:-.02em}
+.lead{color:var(--quiet);font-size:14.5px;line-height:1.6;font-weight:700}
+.lead b{color:var(--ink)}
+.steps{display:flex;align-items:flex-end;justify-content:center;gap:0;height:56px}
+.steps img{animation:hop 1.6s ease-in-out infinite}
+@keyframes hop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-9px)}}
+.how{display:flex;flex-direction:column;gap:8px;text-align:left}
+.how div{display:flex;align-items:center;gap:10px;background:#eef4ff;border-radius:18px;padding:8px 12px;font-size:13.5px;line-height:1.4;color:var(--quiet);font-weight:700}
+.how img{width:36px;height:36px;flex:none}
+.how b{color:var(--ink)}
+.big{background:var(--pink);color:#fff;font-weight:900;font-size:21px;padding:15px 26px;border-radius:22px;box-shadow:0 6px 0 #d63a6c;display:inline-flex;gap:8px;align-items:center;justify-content:center}
+.big:active{box-shadow:0 3px 0 #d63a6c}
+.credit{font-size:11.5px;color:var(--quiet);line-height:1.55;font-weight:700}
+.hero{width:132px;height:132px;margin:0 auto;animation:hop 1.4s ease-in-out infinite}
+.bigstars{font-size:46px;color:var(--yellow);letter-spacing:6px;line-height:1;-webkit-text-stroke:5px #243067;paint-order:stroke fill}
+.bigstars .off{color:#e3e9f7;-webkit-text-stroke:5px #c8d3ee}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#eef4ff;border-radius:16px;padding:10px 4px}
+.stat b{display:block;font-size:21px;font-weight:900}
+.stat span{font-size:11.5px;color:var(--quiet);font-weight:800}
+.learn{background:#fff6d6;border-radius:18px;padding:12px 14px;text-align:left;font-size:14px;line-height:1.6;font-weight:600}
+.learn .h{color:#c98600;display:block;margin-bottom:4px;font-weight:900}
+.learn p+p{margin-top:6px}
+.quiz{background:#eef4ff;border-radius:18px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:8px}
+.quiz .q{font-size:14.5px;font-weight:900;line-height:1.45}
+.quiz .q small{display:block;color:var(--blue);font-size:12px;margin-bottom:2px}
+.quiz button{background:#fff;border-radius:14px;padding:10px 12px;font-size:14px;font-weight:800;text-align:left;box-shadow:0 3px 0 #b9cdf2;line-height:1.35}
+.quiz button.ok{background:#d8f7e6;box-shadow:0 3px 0 #86d6a8}
+.quiz button.no{background:#ffe3ec;box-shadow:0 3px 0 #f2a3bd}
+.quiz .ex{font-size:13.5px;font-weight:700;color:var(--quiet);line-height:1.5}
+.quiz .nx2{background:var(--blue);color:#fff;text-align:center;box-shadow:0 3px 0 #2a4fcc}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:7;width:min(92vw,410px)}
+.toast{background:#fff;color:var(--ink);font-size:14px;font-weight:900;border-radius:20px;padding:7px 14px 7px 8px;box-shadow:0 4px 0 #b9cdf2,0 10px 22px rgba(36,48,103,.25);animation:tin .3s cubic-bezier(.3,1.6,.5,1) both;line-height:1.35;text-align:left;display:flex;align-items:center;gap:8px}
+.toast img{width:34px;height:34px;flex:none}
+.toast.noimg{padding-left:14px}
+.toast.bad{background:#ffe3ec;box-shadow:0 4px 0 #f2a3bd,0 10px 22px rgba(36,48,103,.25)}
+@keyframes tin{from{opacity:0;transform:scale(.7)}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+ <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></symbol>
+ <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></symbol>
+ <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M6 10v10h12V10"/></symbol>
+ <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="currentColor"/></symbol>
+</defs></svg>
+<canvas id="cv"></canvas>
+
+<div id="top" class="abs">
+ <div class="sc"><small>SCORE</small><b id="score">0</b><span id="bestL">가장 크게 키운 단계: 수증기</span></div>
+ <div class="nx chunk"><small>다음</small><img id="nextImg" alt=""></div>
+ <button class="ib chunk" id="snd" aria-label="소리 켜고 끄기"><svg class="i"><use href="#i-sound"/></svg></button>
+ <button class="ib chunk" id="home" aria-label="처음으로"><svg class="i"><use href="#i-home"/></svg></button>
+</div>
+<div id="ladder" class="abs"></div>
+<div id="btns" class="abs">
+ <button class="act chunk" id="bHold"><span id="holdSlot"><span class="ph"></span></span><span><b>저수지</b><small id="holdT">친구를 모아 둬요</small></span></button>
+ <button class="act chunk" id="bProbe"><img id="probeImg" alt=""><span><b>바람 불기</b><small>먼지 날리기</small></span><span class="n" id="probeN">1</span></button>
+</div>
+
+<section class="screen on" id="sTitle">
+ <div class="panel">
+  <div class="logo"><small>5학년 과학 · 날씨와 우리 생활</small><h1>물방울 <em>키우기</em></h1></div>
+  <div class="steps" id="steps"></div>
+  <p class="lead">같은 친구 둘이 만나면 한 단계 자라요.<br>보이지 않는 <b>수증기</b>를 <b>무지개</b>까지 키워 보세요!</p>
+  <div class="how" id="how"></div>
+  <button class="big" id="bStart"><svg class="i"><use href="#i-play"/></svg>시작하기</button>
+  <p class="credit">초등 5학년 2학기 과학 「날씨와 우리 생활」과 함께 해요.<br>무지개는 재미로 넣은 마지막 단계예요.</p>
+ </div>
+</section>
+
+<section class="screen" id="sEnd">
+ <div class="panel">
+  <img class="hero" id="eHero" alt="">
+  <h2 id="eTitle"></h2>
+  <div class="bigstars" id="eStars"></div>
+  <div class="stats">
+   <div class="stat"><b id="eScore">0</b><span>점수</span></div>
+   <div class="stat"><b id="eMerge">0</b><span>합친 횟수</span></div>
+   <div class="stat"><b id="eCatch">0</b><span>날린 미세먼지</span></div>
+  </div>
+  <div class="learn" id="eLearn"></div>
+  <div class="quiz" id="quiz"></div>
+  <button class="big" id="bAgain"><svg class="i"><use href="#i-play"/></svg>다시 키우기</button>
+ </div>
+</section>
+<div id="toasts"></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var cv=$('cv'),cx=cv.getContext('2d'),R=Math.random;
+var FONT="'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans CJK KR','Noto Sans KR',sans-serif";
+
+/* ---------- 단계(친구들) ---------- */
+var LV=[
+ {nm:'미세먼지',r:8.5,a:'#cdbb9c',c:'#8c7a5f',d:'#5a4c38',e:'#ffe9c2'},
+ {nm:'수증기',r:5,a:'#f2fffb',c:'#aeeede',d:'#55bfa9',e:'#2f9c86',say:''},
+ {nm:'물방울',r:6.7,a:'#c2eaff',c:'#4fb8ff',d:'#1f86d6',e:'#fff',say:'응결! 수증기가 차가워지면 작은 물방울이 돼요.'},
+ {nm:'구름 조각',r:8.6,a:'#ffffff',c:'#edf3fb',d:'#a3b6d2',e:'#7890b4',say:'작은 물방울이 하늘에 모여 떠 있으면 구름이에요.'},
+ {nm:'구름',r:10.8,a:'#e6efff',c:'#9dbcf2',d:'#5a82cc',e:'#fff',say:'물방울이 더 모여 구름이 커졌어요.'},
+ {nm:'먹구름',r:13.2,a:'#b3bcd2',c:'#737e9c',d:'#434c68',e:'#fff',say:'먹구름! 물방울이 아주 많이 모여 두껍고 어두워요.'},
+ {nm:'빗방울',r:15.9,a:'#a8d4ff',c:'#2f7dff',d:'#1b4fc4',e:'#fff',say:'구름 속 물방울이 합쳐져 무거워지면 비가 되어 떨어져요.'},
+ {nm:'소나기',r:19,a:'#c3b5ff',c:'#735ff2',d:'#4737ba',e:'#fff',say:'소나기! 짧은 시간에 세차게 쏟아지는 비예요.'},
+ {nm:'무지개',r:22.5,a:'#fff6a8',c:'#ffc400',d:'#d48f00',e:'#fff',say:'비가 그친 뒤 햇빛이 물방울을 만나면 무지개가 보여요!'}
+];
+var PTS=[0,0,2,5,10,20,40,80,160];
+
+function emblem(c,l,s,col){ /* 이마 장식: 날씨 그림 */
+ var u=s/10;c.save();c.strokeStyle=col;c.fillStyle=col;c.lineWidth=Math.max(1.4,u*1.5);c.lineCap='round';c.lineJoin='round';
+ var cloud=function(k){c.beginPath();c.arc(-2.4*u*k,.8*u*k,2.2*u*k,0,7);c.arc(.2*u*k,-1*u*k,2.9*u*k,0,7);c.arc(2.8*u*k,.9*u*k,2.1*u*k,0,7);c.fill();c.fillRect(-2.4*u*k,.6*u*k,5.2*u*k,2.4*u*k)};
+ var drop=function(x,y,k){c.beginPath();c.moveTo(x,y-3.6*u*k);c.quadraticCurveTo(x+3.4*u*k,y+.6*u*k,x,y+2.6*u*k);c.quadraticCurveTo(x-3.4*u*k,y+.6*u*k,x,y-3.6*u*k);c.fill()};
+ switch(l){
+  case 0:[[-3,-1],[0,-2.4],[3,-.6],[-1.4,1.8],[2,2.2]].forEach(function(p){c.beginPath();c.arc(p[0]*u,p[1]*u,1.1*u,0,7);c.fill()});break;
+  case 1:[-2.6,0,2.6].forEach(function(x){c.beginPath();c.moveTo(x*u,3.6*u);c.quadraticCurveTo((x-1.6)*u,1.2*u,x*u,0);c.quadraticCurveTo((x+1.6)*u,-1.4*u,x*u,-3.6*u);c.stroke()});break;
+  case 2:drop(0,.4*u,1.25);break;
+  case 3:cloud(.8);break;
+  case 4:cloud(1.15);break;
+  case 5:cloud(1.1);break;
+  case 6:drop(0,1*u,1.1);c.beginPath();c.moveTo(-3.6*u,-4*u);c.lineTo(-3.6*u,-1.6*u);c.moveTo(3.6*u,-4*u);c.lineTo(3.6*u,-1.6*u);c.stroke();break;
+  case 7:c.translate(0,-1.4*u);cloud(.95);[-2.6,0,2.6].forEach(function(x){c.beginPath();c.moveTo(x*u,3.6*u);c.lineTo((x-.9)*u,6*u);c.stroke()});break;
+  case 8:['#ff6b6b','#fff','#4fb8ff'].forEach(function(k,i){c.strokeStyle=k;c.lineWidth=u*1.5;c.beginPath();c.arc(0,3*u,(5.6-i*1.7)*u,Math.PI,0);c.stroke()});break;
+ }
+ c.restore();
+}
+/* mood: 0 보통, 1 신남, 2 걱정 */
+function face(c,l,r,mood,blink){
+ var ex=r*.3,ey=r*.16,er=Math.max(1.6,r*.125),ink=l===0?'#fff':'#2a2140';
+ if(l===0){c.fillStyle='#17132f';c.beginPath();c.ellipse(0,ey,r*.78,r*.27,0,0,7);c.fill()}
+ c.fillStyle=ink;c.strokeStyle=ink;c.lineCap='round';c.lineWidth=Math.max(1.4,r*.07);
+ if(blink||mood===1){[-1,1].forEach(function(s){c.beginPath();if(mood===1)c.arc(s*ex,ey+er*.4,er,Math.PI+.35,-.35);else{c.moveTo(s*ex-er,ey);c.lineTo(s*ex+er,ey)}c.stroke()})}
+ else{[-1,1].forEach(function(s){c.beginPath();c.ellipse(s*ex,ey,er,er*1.15,0,0,7);c.fill();if(r>12){c.fillStyle=l===0?'#17132f':'#fff';c.beginPath();c.arc(s*ex-er*.3,ey-er*.4,er*.38,0,7);c.fill();c.fillStyle=ink}})}
+ if(l===0){c.strokeStyle='#17132f';c.lineWidth=Math.max(1.4,r*.08);c.beginPath();c.moveTo(-ex-er*1.3,ey-er*2);c.lineTo(-ex+er,ey-er*1.2);c.moveTo(ex+er*1.3,ey-er*2);c.lineTo(ex-er,ey-er*1.2);c.stroke();
+  c.strokeStyle='#fff';c.lineWidth=Math.max(1.4,r*.07);c.beginPath();c.moveTo(-r*.2,r*.56);c.quadraticCurveTo(0,r*.68,r*.26,r*.5);c.stroke();return}
+ c.fillStyle='rgba(255,90,120,.38)';c.beginPath();c.ellipse(-r*.54,r*.36,r*.14,r*.09,0,0,7);c.ellipse(r*.54,r*.36,r*.14,r*.09,0,0,7);c.fill();
+ c.strokeStyle=ink;c.fillStyle=ink;c.lineWidth=Math.max(1.3,r*.06);c.beginPath();
+ if(mood===1){c.moveTo(-r*.17,r*.36);c.quadraticCurveTo(0,r*.74,r*.17,r*.36);c.closePath();c.fill();c.fillStyle='#ff7a9a';c.beginPath();c.ellipse(0,r*.5,r*.08,r*.05,0,0,7);c.fill()}
+ else if(mood===2){c.ellipse(0,r*.46,r*.07,r*.09,0,0,7);c.stroke();c.fillStyle='#8fdcff';c.beginPath();c.moveTo(r*.7,-r*.2);c.quadraticCurveTo(r*.82,r*.02,r*.7,r*.06);c.quadraticCurveTo(r*.58,r*.02,r*.7,-r*.2);c.fill()}
+ else{c.moveTo(-r*.13,r*.38);c.quadraticCurveTo(0,r*.52,r*.13,r*.38);c.stroke()}
+}
+function ballArt(c,l,r,mood,blink,label){
+ var L=LV[l],lw=Math.max(2,r*.085);
+ var g=c.createRadialGradient(-r*.3,-r*.45,r*.05,0,0,r*1.05);g.addColorStop(0,L.a);g.addColorStop(.62,L.c);g.addColorStop(1,L.d);
+ c.beginPath();c.arc(0,0,r-lw/2,0,7);c.fillStyle=g;c.fill();c.lineWidth=lw;c.strokeStyle=L.d;c.stroke();
+ c.fillStyle='rgba(255,255,255,.55)';c.beginPath();c.ellipse(-r*.4,-r*.52,r*.2,r*.1,-.65,0,7);c.fill();c.beginPath();c.arc(-r*.6,-r*.3,r*.05,0,7);c.fill();
+ c.save();c.translate(0,-r*.42);emblem(c,l,r*.27,L.e);c.restore();
+ face(c,l,r,mood||0,blink);
+ if(label&&r>=46){c.font='900 '+Math.max(11,Math.round(r*.19))+'px '+FONT;c.textAlign='center';c.textBaseline='middle';c.lineWidth=Math.max(3,r*.07);c.strokeStyle=L.d;c.lineJoin='round';c.strokeText(L.nm,0,r*.74);c.fillStyle='#fff';c.fillText(L.nm,0,r*.74)}
+}
+var ICON={};
+function iconURL(l,mood){var k=l+'_'+(mood||0);if(ICON[k])return ICON[k];var o=document.createElement('canvas');o.width=o.height=160;var c=o.getContext('2d');c.translate(80,80);ballArt(c,l,74,mood||0,false,false);return ICON[k]=o.toDataURL()}
+
+/* ---------- 소리 ---------- */
+var AC=null,muted=false;
+function tone(f,d,type,v,delay){if(muted)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var t=AC.currentTime+(delay||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v||.1,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+var NOTE=[0,262,294,330,392,440,523,587,659,784];
+var sfx={drop:function(){tone(420,.07,'sine',.08);tone(280,.09,'sine',.07,.04)},merge:function(l,combo){var k=1+Math.min(4,combo||0)*.06;tone(NOTE[l]*k,.14,'triangle',.11);tone(NOTE[l]*1.5*k,.2,'triangle',.08,.07)},bad:function(){tone(190,.25,'sawtooth',.07)},probe:function(){tone(523,.08,'square',.06);tone(784,.08,'square',.06,.08);tone(1046,.2,'square',.06,.16)},hold:function(){tone(520,.07,'sine',.08)},over:function(){tone(392,.2,'triangle',.1);tone(330,.2,'triangle',.1,.2);tone(262,.4,'triangle',.1,.4)}};
+$('snd').onclick=function(){muted=!muted;this.innerHTML='<svg class="i"><use href="#i-'+(muted?'mute':'sound')+'"/></svg>'};
+
+/* ---------- 배치 ---------- */
+var W=0,H=0,DPR=1,SC=1,BX=0,BY=0,BW=100,BH=140,LINE=24,DROPY=11;
+function layout(){
+ DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0);
+ var bw=Math.max(240,Math.min(W-28,440,(H-232)/(BH/100)));SC=bw/100;var total=76+10+BH*SC+12+42+12+62,ty=Math.max(6,(H-total)/2);
+ BX=(W-bw)/2;BY=ty+86;
+ var st=function(el,y){el.style.left=BX+'px';el.style.width=bw+'px';el.style.top=y+'px'};
+ st($('top'),ty);st($('ladder'),BY+BH*SC+12);st($('btns'),BY+BH*SC+66);
+ $('toasts').style.top=(BY+LINE*SC+12)+'px';
+}
+addEventListener('resize',layout);
+
+/* ---------- 상태 ---------- */
+var G=null,best=+(function(){try{return localStorage.getItem('water_merge_best')||0}catch(e){return 0}})();
+function gen(){if(G.t>18&&!G.lastBad&&R()<.13){G.lastBad=true;return 0}G.lastBad=false;var r=R();return r<.45?1:r<.78?2:r<.96?3:4}
+function start(){
+ G={t:0,balls:[],parts:[],rings:[],floats:[],score:0,maxL:1,merges:0,catches:0,probe:1,toProbe:0,hold:null,cool:0,aim:50,danger:0,over:false,seen:{1:1},lastBad:false,cur:1,next:1,shake:0,combo:0,comboT:0,flash:0};
+ G.cur=gen();G.next=gen();
+ $('sTitle').classList.remove('on');$('sEnd').classList.remove('on');renderUI();
+ setTimeout(function(){if(G&&!G.over&&!G.balls.length)toast('좌우로 움직이고, 손을 떼면 떨어져요',1)},400);
+}
+function mk(l,x,y,hit){return {x:x,y:y,vx:0,vy:0,l:l,r:LV[l].r,hit:!!hit,pop:1,joy:0,seed:R()*10,sq:0}}
+function clampAim(){var r=LV[G.cur].r;G.aim=Math.max(r+.5,Math.min(BW-r-.5,G.aim))}
+function drop(){
+ if(!G||G.over||G.cool>0)return;clampAim();var l=G.cur;
+ G.balls.push(mk(l,G.aim+(R()-.5)*.2,DROPY,false));
+ G.cur=G.next;G.next=gen();G.cool=.5;sfx.drop();renderUI();
+ if(l===0&&!G.seen.bad){G.seen.bad=1;toast('미세먼지 등장! 합쳐지지 않아요. 바람 불기로 날려요',0,'bad')}
+}
+function hold(){
+ if(!G||G.over||G.cool>0)return;
+ if(G.cur===0){toast('미세먼지는 저수지에 넣을 수 없어요',0,'bad');sfx.bad();return}
+ var h=G.hold;G.hold=G.cur;if(h==null){G.cur=G.next;G.next=gen()}else G.cur=h;sfx.hold();renderUI();
+ if(!G.seen.hold){G.seen.hold=1;toast('저수지! 물을 모아 두었다가 필요할 때 꺼내 써요',G.hold)}
+}
+function probe(){
+ if(!G||G.over)return;var bad=G.balls.filter(function(b){return b.l===0});
+ if(!bad.length){toast('지금은 미세먼지가 없어요');return}
+ if(G.probe<=0){toast('친구들을 더 합치면 바람이 생겨요');sfx.bad();return}
+ G.probe--;sfx.probe();G.flash=.25;bad.forEach(function(b){b.dead=true;burst(b.x,b.y,'#ff7a9a',16);G.rings.push({x:b.x,y:b.y,r:b.r,t:0,c:'#ff7a9a'});G.floats.push({x:b.x,y:b.y,t:0,s:'휘익! +30',c:'#ff9dbb'});G.score+=30;G.catches++});
+ G.balls=G.balls.filter(function(b){return !b.dead});toast('바람이 미세먼지를 날려 보냈어요!',0);renderUI();
+}
+function merge(a,b){
+ a.dead=b.dead=true;var l=a.l+1,x=(a.x+b.x)/2,y=(a.y+b.y)/2;G.merges++;
+ G.combo=G.comboT>0?G.combo+1:1;G.comboT=1.1;
+ if(l>8){G.score+=500;burst(x,y,LV[8].c,44);G.rings.push({x:x,y:y,r:30,t:0,c:LV[8].c});G.floats.push({x:x,y:y,t:0,s:'+500',c:'#ffd84a'});G.flash=.3;sfx.merge(9);toast('쌍무지개가 떴어요!',8);renderUI();return}
+ var n=mk(l,x,y,true);n.vx=(a.vx+b.vx)/2;n.vy=(a.vy+b.vy)/2;n.pop=0;n.joy=.9;G.balls.push(n);
+ var pts=PTS[l]*(G.combo>1?G.combo:1);G.score+=pts;burst(x,y,LV[l].c,10+l*3);G.rings.push({x:x,y:y,r:LV[l].r,t:0,c:LV[l].a});
+ G.floats.push({x:x,y:y-LV[l].r,t:0,s:(G.combo>1?G.combo+'연속! ':'')+'+'+pts,c:G.combo>1?'#ffd84a':'#fff'});
+ if(l>=6)G.flash=.2;sfx.merge(l,G.combo);
+ if(l>G.maxL)G.maxL=l;if(!G.seen[l]){G.seen[l]=1;toast(LV[l].say,l)}
+ if(++G.toProbe>=8){G.toProbe=0;if(G.probe<3)G.probe++}
+ renderUI();
+}
+function burst(x,y,c,n){for(var i=0;i<n;i++){var a=R()*7,v=25+R()*80;G.parts.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-25,life:.5+R()*.4,c:i%3?c:'#fff',s:1+R()*1.6,rot:R()*6,star:i%2===0})}}
+
+/* ---------- 물리 ---------- */
+function step(dt){
+ var B=G.balls,i,j,a,b;
+ for(i=0;i<B.length;i++){a=B[i];a.vy+=300*dt;a.vx*=.996;a.x+=a.vx*dt;a.y+=a.vy*dt}
+ for(var it=0;it<4;it++){
+  for(i=0;i<B.length;i++){a=B[i];if(a.dead)continue;
+   for(j=i+1;j<B.length;j++){b=B[j];if(b.dead)continue;var dx=b.x-a.x,dy=b.y-a.y,rr=a.r+b.r,d2=dx*dx+dy*dy;if(d2>=rr*rr)continue;
+    if(a.l===b.l&&a.l>0){merge(a,b);break}
+    var d=Math.sqrt(d2)||.01,nx=dx/d,ny=dy/d,ov=rr-d,ma=a.r*a.r,mb=b.r*b.r,ta=mb/(ma+mb),tb=ma/(ma+mb);
+    a.x-=nx*ov*ta;a.y-=ny*ov*ta;b.x+=nx*ov*tb;b.y+=ny*ov*tb;
+    var rvx=b.vx-a.vx,rvy=b.vy-a.vy,vn=rvx*nx+rvy*ny;
+    if(vn<0){if(vn<-40){if(!a.hit)a.sq=.25;if(!b.hit)b.sq=.25}
+     var jn=-(1.12)*vn/(1/ma+1/mb);a.vx-=jn*nx/ma;a.vy-=jn*ny/ma;b.vx+=jn*nx/mb;b.vy+=jn*ny/mb;
+     var tx=-ny,ty=nx,vt=rvx*tx+rvy*ty,jt=-vt*.12/(1/ma+1/mb);a.vx-=jt*tx/ma;a.vy-=jt*ty/ma;b.vx+=jt*tx/mb;b.vy+=jt*ty/mb}
+    a.hit=b.hit=true}
+   if(a.dead)continue;
+   if(a.x<a.r){a.x=a.r;if(a.vx<0)a.vx*=-.2}if(a.x>BW-a.r){a.x=BW-a.r;if(a.vx>0)a.vx*=-.2}
+   if(a.y>BH-a.r){a.y=BH-a.r;if(a.vy>40&&!a.hit)a.sq=.25;if(a.vy>0)a.vy*=-.12;a.vx*=.96;a.hit=true}}
+ }
+ if(B.some(function(x){return x.dead}))G.balls=B.filter(function(x){return !x.dead});
+}
+
+/* ---------- 화면 정보 ---------- */
+function renderUI(){
+ $('score').textContent=G.score.toLocaleString('ko-KR');$('bestL').textContent='가장 크게 키운 단계: '+LV[G.maxL].nm;
+ $('nextImg').src=iconURL(G.next);
+ $('holdSlot').innerHTML=G.hold==null?'<span class="ph"></span>':'<img src="'+iconURL(G.hold)+'" alt="">';
+ $('holdT').textContent=G.hold==null?'친구를 모아 둬요':LV[G.hold].nm+' · 눌러서 바꾸기';
+ $('probeN').textContent=G.probe;var bad=G.balls.some(function(b){return b.l===0});
+ $('bProbe').classList.toggle('off',G.probe<=0);$('bProbe').classList.toggle('glow',bad&&G.probe>0);
+ var im=$('ladder').querySelectorAll('img');for(var i=0;i<im.length;i++){im[i].classList.toggle('on',i+1<=G.maxL);im[i].classList.toggle('now',i+1===G.maxL)}
+}
+function toast(t,l,k){var d=document.createElement('div');d.className='toast '+(k||'')+(l==null?' noimg':'');d.innerHTML=(l!=null?'<img src="'+iconURL(l,l?1:0)+'" alt="">':'')+'<span></span>';d.lastChild.textContent=t;$('toasts').appendChild(d);while($('toasts').children.length>2)$('toasts').firstChild.remove();setTimeout(function(){d.remove()},2600)}
+
+/* ---------- 그리기 ---------- */
+function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
+function star(x,y,r,rot){cx.beginPath();for(var k=0;k<10;k++){var a=rot-Math.PI/2+k*Math.PI/5,q=k%2?r*.45:r;cx.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}cx.closePath();cx.fill()}
+var clouds=[];for(var ci=0;ci<7;ci++)clouds.push({x:R(),y:.04+R()*.9,s:.7+R()*1.1,v:.003+R()*.006});
+var twk=[];for(ci=0;ci<26;ci++)twk.push({x:R(),y:R(),p:R()*6,s:2+R()*3});
+function drawBg(now,dt){
+ var g=cx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#58b9ff');g.addColorStop(.55,'#8fdcff');g.addColorStop(1,'#d6f7ff');cx.fillStyle=g;cx.fillRect(0,0,W,H);
+ cx.fillStyle='rgba(255,255,255,.75)';clouds.forEach(function(c){c.x+=c.v*dt;if(c.x>1.15)c.x=-.2;var x=c.x*W,y=c.y*H,s=c.s*34;cx.beginPath();cx.arc(x,y,s*.6,0,7);cx.arc(x+s*.6,y-s*.25,s*.55,0,7);cx.arc(x+s*1.2,y,s*.6,0,7);cx.arc(x+s*.6,y+s*.15,s*.6,0,7);cx.fill()});
+ twk.forEach(function(t){cx.globalAlpha=.25+.45*Math.abs(Math.sin(now/600+t.p));cx.fillStyle='#fff';star(t.x*W,t.y*H,t.s,t.p)});cx.globalAlpha=1;
+}
+function draw(now,dt){
+ cx.clearRect(0,0,W,H);drawBg(now,dt);
+ var bw=BW*SC,bh=BH*SC,sx=0;if(G&&G.shake>0)sx=(R()-.5)*8*G.shake;
+ cx.save();cx.translate(BX+sx,BY);
+ cx.shadowColor='rgba(36,48,103,.28)';cx.shadowBlur=24;cx.shadowOffsetY=10;rr(-6,-6,bw+12,bh+12,32);cx.fillStyle='#fff';cx.fill();cx.shadowColor='transparent';
+ rr(0,0,bw,bh,26);cx.save();cx.clip();
+ var bg=cx.createLinearGradient(0,0,0,bh);bg.addColorStop(0,'#3b4a9c');bg.addColorStop(1,'#232c6b');cx.fillStyle=bg;cx.fillRect(0,0,bw,bh);
+ cx.fillStyle='rgba(255,255,255,.05)';for(var yy=18;yy<bh;yy+=26)for(var xx=((yy/26|0)%2?13:26);xx<bw;xx+=26){cx.beginPath();cx.arc(xx,yy,2.2,0,7);cx.fill()}
+ var dz=G?Math.min(1,G.danger/2):0;
+ if(dz>0){cx.fillStyle='rgba(255,92,141,'+(.18+.22*dz*(.6+.4*Math.sin(now/90)))+')';cx.fillRect(0,0,bw,LINE*SC)}
+ cx.setLineDash([8,8]);cx.lineWidth=3;cx.lineCap='round';cx.strokeStyle=dz>0?'#ff7aa5':'rgba(255,255,255,.35)';cx.beginPath();cx.moveTo(12,LINE*SC);cx.lineTo(bw-12,LINE*SC);cx.stroke();cx.setLineDash([]);
+ if(G){
+  if(!G.over){clampAim();var cr=LV[G.cur].r*SC,ax=G.aim*SC;
+   cx.setLineDash([2,10]);cx.lineWidth=3;cx.strokeStyle='rgba(255,255,255,.28)';cx.beginPath();cx.moveTo(ax,DROPY*SC+cr+4);cx.lineTo(ax,bh);cx.stroke();cx.setLineDash([]);
+   cx.save();cx.translate(ax,DROPY*SC+Math.sin(now/260)*2);cx.globalAlpha=G.cool>0?.4:1;ballArt(cx,G.cur,cr,0,false,true);cx.restore()}
+  G.balls.forEach(function(b){
+   var s=b.pop<1?(.55+.45*b.pop)*(1+.22*Math.sin(b.pop*Math.PI)):1,sqx=1+b.sq*.5,sqy=1-b.sq*.5;
+   var mood=b.joy>0?1:(b.hit&&b.y-b.r<LINE+5?2:0),blink=((now/1000+b.seed)%4.2)<.13;
+   cx.save();cx.translate(b.x*SC,b.y*SC+(b.sq*b.r*SC*.5));cx.scale(s*sqx,s*sqy);ballArt(cx,b.l,b.r*SC,mood,blink,true);cx.restore()});
+  G.rings.forEach(function(r){cx.globalAlpha=Math.max(0,1-r.t/.45);cx.lineWidth=5;cx.strokeStyle=r.c;cx.beginPath();cx.arc(r.x*SC,r.y*SC,(r.r+r.t*46)*SC,0,7);cx.stroke()});
+  G.parts.forEach(function(p){cx.globalAlpha=Math.max(0,Math.min(1,p.life*2));cx.fillStyle=p.c;if(p.star)star(p.x*SC,p.y*SC,p.s*SC*1.5,p.rot);else{cx.beginPath();cx.arc(p.x*SC,p.y*SC,p.s*SC*.7,0,7);cx.fill()}});cx.globalAlpha=1;
+  G.floats.forEach(function(f){var a=Math.max(0,1-f.t/.9),y=f.y*SC-f.t*46,sz=Math.round(Math.max(16,5.6*SC)*(1+.3*Math.max(0,.2-f.t)*5));cx.globalAlpha=a;cx.font='900 '+sz+'px '+FONT;cx.textAlign='center';cx.textBaseline='middle';cx.lineJoin='round';cx.lineWidth=6;cx.strokeStyle='#161d4d';var x=Math.max(46,Math.min(bw-46,f.x*SC));cx.strokeText(f.s,x,y);cx.fillStyle=f.c;cx.fillText(f.s,x,y)});cx.globalAlpha=1;
+  if(G.flash>0){cx.fillStyle='rgba(255,255,255,'+G.flash*1.4+')';cx.fillRect(0,0,bw,bh)}
+ }
+ cx.restore();cx.restore();
+}
+
+/* ---------- 흐름 ---------- */
+var last=performance.now(),acc=0;
+function loop(now){
+ var dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
+ if(G&&!G.over){
+  G.t+=dt;if(G.cool>0)G.cool-=dt;if(G.comboT>0)G.comboT-=dt;
+  if(keys.l)G.aim-=70*dt;if(keys.r)G.aim+=70*dt;
+  acc+=dt;var n=0;while(acc>=1/120&&n<8){step(1/120);acc-=1/120;n++}
+  G.balls.forEach(function(b){if(b.pop<1)b.pop=Math.min(1,b.pop+dt*4.5);if(b.joy>0)b.joy-=dt;if(b.sq>0)b.sq=Math.max(0,b.sq-dt*1.6)});
+  var up=G.balls.some(function(b){return b.hit&&b.y-b.r<LINE&&Math.abs(b.vy)<25});
+  if(up){G.danger+=dt;if(G.danger>.6&&!G.warned){G.warned=1;toast('선을 넘으면 끝나요! 큰 친구끼리 합쳐 자리를 만들어요',0,'bad')}}else{G.danger=Math.max(0,G.danger-dt*2);G.warned=0}
+  if(G.danger>=2)end();
+ }
+ if(G){if(G.shake>0)G.shake-=dt;if(G.flash>0)G.flash-=dt;
+  G.parts.forEach(function(p){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=130*dt;p.rot+=dt*5;p.life-=dt});G.parts=G.parts.filter(function(p){return p.life>0});
+  G.rings.forEach(function(r){r.t+=dt});G.rings=G.rings.filter(function(r){return r.t<.45});
+  G.floats.forEach(function(f){f.t+=dt});G.floats=G.floats.filter(function(f){return f.t<.9})}
+ draw(now,dt);requestAnimationFrame(loop);
+}
+function end(){
+ if(G.over)return;G.over=true;G.shake=.4;sfx.over();if(G.score>best){best=G.score;try{localStorage.setItem('water_merge_best',best)}catch(e){}}
+ var m=G.maxL,st=m>=8?3:m>=7?2:m>=6?1:0;
+ $('eHero').src=iconURL(m,1);$('eTitle').textContent=LV[m].nm+'까지 키웠어요!';
+ var s='';for(var i=0;i<3;i++)s+=i<st?'★':'<span class="off">★</span>';$('eStars').innerHTML=s;
+ $('eScore').textContent=G.score.toLocaleString('ko-KR');$('eMerge').textContent=G.merges;$('eCatch').textContent=G.catches;
+ var L=['<span class="h">오늘 배운 과학</span><p><b>응결</b>: 공기 중의 수증기가 차가워져 물방울로 변하는 현상이에요. 이슬, 안개, 구름이 모두 응결로 생겨요.</p>'];
+ if(m>=6)L.push('<p><b>비</b>: 구름 속 작은 물방울이 합쳐져 커지고 무거워지면 떨어져 비가 돼요.</p>');
+ $('eLearn').innerHTML=L.join('');quizStart();
+ setTimeout(function(){$('sEnd').classList.add('on')},900);
+}
+
+/* ---------- 과학 문제 ---------- */
+var QZ=[
+ {q:'공기 중의 수증기가 차가워져 물방울로 맺히는 현상은?',c:['응결','증발','용해','연소'],e:'차가운 컵 표면에 물방울이 맺히는 것도 응결이에요.'},
+ {q:'구름은 무엇이 모여서 만들어질까요?',c:['작은 물방울이나 얼음 알갱이','연기와 먼지','솜과 같은 털','뜨거운 공기 덩어리'],e:'수증기가 응결해 생긴 작은 물방울이나 얼음 알갱이가 하늘에 떠 있는 것이 구름이에요.'},
+ {q:'비는 어떻게 내릴까요?',c:['구름 속 물방울이 합쳐져 무거워지면 떨어진다','구름이 바람에 찢어져서 떨어진다','수증기가 그대로 떨어진다','햇빛이 구름을 녹여서 떨어진다'],e:'물방울이 합쳐져 커지고 무거워지면 떨어져 비가 돼요.'},
+ {q:'이슬, 안개, 구름의 공통점은?',c:['수증기가 응결해서 생긴다','물이 증발해서 생긴다','땅에서만 볼 수 있다','밤에만 생긴다'],e:'생기는 곳은 달라도 모두 수증기가 응결해 생겨요.'},
+ {q:'습도를 잴 때 쓰는 도구는?',c:['건습구 습도계','풍향계','저울','자석'],e:'건구 온도와 습구 온도의 차이로 습도를 알 수 있어요.'},
+ {q:'바람은 어느 쪽으로 불까요?',c:['고기압에서 저기압으로','저기압에서 고기압으로','항상 북쪽으로','항상 위쪽으로'],e:'공기는 기압이 높은 곳에서 낮은 곳으로 이동해요.'},
+ {q:'맑은 날 낮에 바닷가에서 바람은 어느 쪽으로 불까요?',c:['바다에서 육지로','육지에서 바다로','하늘에서 땅으로','불지 않는다'],e:'낮에는 육지가 빨리 데워져 기압이 낮아지고, 바다에서 육지로 바람이 불어요.'},
+ {q:'우리나라 겨울 날씨가 춥고 건조한 까닭은?',c:['북서쪽의 차갑고 건조한 공기 덩어리의 영향','남쪽 바다의 따뜻한 공기 때문','태양이 더 가까워져서','비가 많이 와서'],e:'겨울에는 북서쪽 대륙에서 오는 차갑고 건조한 공기 덩어리의 영향을 받아요.'}
+];
+var QS=null;
+function quizStart(){var p=QZ.slice().sort(function(){return R()-.5}).slice(0,3);QS={list:p,i:0,ok:0};quizShow()}
+function quizShow(){
+ var box=$('quiz');if(QS.i>=QS.list.length){box.innerHTML='<div class="q"><small>과학 문제 끝!</small>3문제 중 '+QS.ok+'문제를 맞혔어요'+(QS.ok===3?'. 참 잘했어요!':'')+'</div>';return}
+ var it=QS.list[QS.i],opts=it.c.map(function(t,k){return {t:t,ok:k===0}}).sort(function(){return R()-.5});
+ box.innerHTML='<div class="q"><small>과학 문제 '+(QS.i+1)+' / 3</small></div>';box.firstChild.appendChild(document.createTextNode(it.q));
+ var done=false;
+ opts.forEach(function(o){var b=document.createElement('button');b.textContent=o.t;b.onclick=function(){if(done)return;done=true;
+   if(o.ok){b.className='ok';QS.ok++;sfx.merge(6)}else{b.className='no';sfx.bad();[].forEach.call(box.querySelectorAll('button'),function(x){if(x.textContent===it.c[0])x.className='ok'})}
+   var ex=document.createElement('div');ex.className='ex';ex.textContent=(o.ok?'정답! ':'아쉬워요. ')+it.e;box.appendChild(ex);
+   var n=document.createElement('button');n.className='nx2';n.textContent=QS.i<2?'다음 문제':'결과 보기';n.onclick=function(){QS.i++;quizShow()};box.appendChild(n);n.scrollIntoView({block:'nearest'})};
+  box.appendChild(b)});
+}
+
+/* ---------- 조작 ---------- */
+var keys={l:false,r:false},down=false;
+function aimAt(e){if(G&&!G.over)G.aim=(e.clientX-BX)/SC}
+cv.addEventListener('pointerdown',function(e){down=true;aimAt(e);try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+cv.addEventListener('pointermove',function(e){if(down||e.pointerType==='mouse')aimAt(e)});
+cv.addEventListener('pointerup',function(e){if(!down)return;down=false;aimAt(e);drop()});
+cv.addEventListener('pointercancel',function(){down=false});
+addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowLeft'||k==='a'||k==='A')keys.l=true;if(k==='ArrowRight'||k==='d'||k==='D')keys.r=true;
+ if(k===' '||k==='ArrowDown'){e.preventDefault();if(G&&!G.over)drop();else if(!e.repeat)start()}
+ if(k==='Enter'&&(!G||G.over))start();if(k==='z'||k==='Z')hold();if(k==='x'||k==='X')probe()});
+addEventListener('keyup',function(e){var k=e.key;if(k==='ArrowLeft'||k==='a'||k==='A')keys.l=false;if(k==='ArrowRight'||k==='d'||k==='D')keys.r=false});
+$('bHold').onclick=hold;$('bProbe').onclick=probe;$('bStart').onclick=start;$('bAgain').onclick=start;
+$('home').onclick=function(){if(G)G.over=true;G=null;$('sEnd').classList.remove('on');$('sTitle').classList.add('on')};
+
+/* ---------- 처음 화면 ---------- */
+var h='';for(var i=1;i<=8;i++)h+=(i>1?'<i></i>':'')+'<img src="'+iconURL(i)+'" alt="'+LV[i].nm+'" title="'+LV[i].nm+'">';$('ladder').innerHTML=h;
+h='';for(i=1;i<=8;i++)h+='<img src="'+iconURL(i,i===8?1:0)+'" alt="'+LV[i].nm+'" style="animation-delay:'+(i*.12)+'s;width:'+(22+i*3.2)+'px;height:'+(22+i*3.2)+'px">';$('steps').innerHTML=h;
+$('how').innerHTML='<div><img src="'+iconURL(3,1)+'" alt=""><span><b>끌어서 놓기</b> · 같은 친구끼리 합쳐 키워요</span></div><div><img src="'+iconURL(5)+'" alt=""><span><b>저수지</b> · 친구를 모아 뒀다 꺼내요</span></div><div><img src="'+iconURL(0)+'" alt=""><span><b>바람 불기</b> · 방해꾼 미세먼지를 날려요</span></div>';
+$('probeImg').src=iconURL(0);$('nextImg').src=iconURL(1);
+layout();requestAnimationFrame(loop);
+window.__m={quiz:function(){return QS},get G(){return G},start:start,drop:drop,hold:hold,probe:probe,LV:LV,end:function(){end()},add:function(l,x,y){G.balls.push(mk(l,x,y,true))},ui:renderUI};
+})();
+</script>
+</body>
+</html>
