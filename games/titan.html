@@ -29522,8 +29522,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       P.gas -= 11 * dt * (1 - 0.04 * (CORPS.gasLv | 0));
     }
     if (P.grounded && !attached && !boosting) {
-      P.vel.x = lerp2(P.vel.x, mv.x * GSPD(), Math.min(1, dt * (FLY.skid > 0 ? 2 : HORSE.on ? 3.5 : 10)));
-      P.vel.z = lerp2(P.vel.z, mv.z * GSPD(), Math.min(1, dt * (FLY.skid > 0 ? 2 : HORSE.on ? 3.5 : 10)));
+      P.vel.x = lerp2(P.vel.x, mv.x * GSPD(), Math.min(1, dt * (FLY.skid > 0 ? 2 : HORSE.on ? 4.5 : 10)));
+      P.vel.z = lerp2(P.vel.z, mv.z * GSPD(), Math.min(1, dt * (FLY.skid > 0 ? 2 : HORSE.on ? 4.5 : 10)));
     } else acc.addScaledVector(mv, attached ? 27 : 16);
     P.gas = Math.max(0, P.gas);
     P.vel.addScaledVector(acc, dt);
@@ -30361,9 +30361,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       s1 = { waves: C.waves, wave: 0, active: false, breakT: 2.5, k0: kills, total: C.waves.reduce((a, w) => a + w.n + (w.special ? w.special.length : 0), 0) };
     } else if (n === 2) {
       buildCity(78, false);
-      FOE_NAME = C.foe === "armor" ? (HEROKEY === "reiner" ? "진격의 거인" : "갑옷 거인") : HEROKEY === "annie" ? "진격의 거인" : "여성형 거인";
+      FOE_NAME = C.foe === "armor" ? (HEROKEY === "reiner" ? "여성형 거인" : "갑옷 거인") : HEROKEY === "annie" ? "진격의 거인" : "여성형 거인";
       duel.me = addTitan(makeTitan(15, "ally", HEROKEY === "annie" ? "ftitan" : HEROKEY === "reiner" ? "steel" : null), 0, 30, Math.PI);
-      duel.foe = addTitan(C.foe === "armor" ? (HEROKEY === "reiner" ? makeTitan(15, "steel", "ally") : makeTitan(15, "steel")) : HEROKEY === "annie" ? makeTitan(15, "steel", "ally") : makeTitan(14, "steel", "ftitan"), 0, -30, 0);
+      duel.foe = addTitan(C.foe === "armor" ? (HEROKEY === "reiner" ? makeTitan(14, "steel", "ftitan") : makeTitan(15, "steel")) : HEROKEY === "annie" ? makeTitan(15, "steel", "ally") : makeTitan(14, "steel", "ftitan"), 0, -30, 0);
       Object.assign(duel.me, { hp: 150, speed: 12, dodge: -1 });
       Object.assign(duel.foe, { hp: 170, speed: 8.5, side: 1, hardCd: 6 });
       lightningAt(duel.foe.g.position.x, duel.foe.g.position.z);
@@ -30830,6 +30830,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
   }
   function epiCard() {
     if (!EPI.pending) return;
+    if (!FLEE.on && !CH[chapter].train) setTimeout(() => running && notice(`소속: ${CORPS_OF(HEROKEY)} · ${heroName()}`), 2600);
     EPI.pending = false;
     INTRO.on = true;
     INTRO.T = 0;
@@ -32110,6 +32111,16 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     s2.start();
     s2.stop(AC.currentTime + dur);
   }
+  function hoof(i, v) {
+    if (!AC || v < 0.02) return;
+    try {
+      const p = 1 + (i % 2 ? 0.08 : -0.05) + (i < 2 ? 0.1 : 0);
+      nz(0.035, "bandpass", 2400 * p, 1300 * p, 0.55 * v);
+      tone("triangle", 520 * p, 230 * p, 0.05, 0.35 * v);
+      tone("sine", 140, 70, 0.07, 0.4 * v);
+    } catch (e) {
+    }
+  }
   function tone(type, f0, f1, dur, vol, delay = 0) {
     const o = AC.createOscillator();
     o.type = type;
@@ -32546,10 +32557,50 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     S.post[S.post.length - 1] = ["나레이션", "살아남은 아이들은 피난선에 실려 월 로제 안쪽으로 건너갔다. 2년 뒤, 그들은 스스로 훈련병단의 문을 두드린다."];
     CH[1].story = CH[1].story.replace("847년, 제104기", "847년, 시간시나에서 살아남은 아이들이 자라 제104기");
   })();
+  var CORPS_OF = (k) => k === "annie" ? "헌병단" : "조사병단";
+  var MP_NOTE = {
+    1: "훈련병 애니의 목표는 하나. 상위 10등 안에 들어 내지의 헌병단으로 가는 것이다.",
+    2: "— 헌병단 이야기 — 헌병단 입단을 며칠 앞둔 애니도 트로스트 구 방어전에 불려 나왔다.",
+    3: "— 헌병단 이야기 — 헌병단 신병 애니는 감시역으로 제57회 벽외 조사에 함께 나서게 되었다.",
+    5: "— 헌병단 이야기 — 결정에 갇히지 않은 애니는 헌병단 제복을 다시 입었다. 첫 명령은 거인이 나타난 마을의 주민 대피와 성 방어다.",
+    6: "— 헌병단 이야기 — 벽 위의 소동을 진압하라는 헌병단의 긴급 명령. 상대는 함께 벽을 넘어온 옛 동료, 갑옷 거인이다.",
+    7: "— 헌병단 이야기 — 헌병단은 오르부드 구 주민을 지키는 임무를 맡았다. 애니는 벽 위에서 로드 레이스 거인을 기다린다.",
+    8: "— 헌병단 이야기 — 월 마리아 탈환 작전에 헌병단 지원대가 붙었다. 그 맨 앞에 애니가 서 있다.",
+    9: "— 헌병단 이야기 — 바다 건너 마레. 헌병단에서 뽑힌 애니는 조사병단과 함께 고향 땅에 내렸다.",
+    10: "— 헌병단 이야기 — 마레의 보복이 시작됐다. 헌병단은 시간시나 구 주민을 지키라는 명령을 받았다.",
+    11: "— 헌병단 이야기 — 헌병단도 조사병단도 없다. 땅울림을 멈추려는 사람들만 남았다."
+  };
+  (function () {
+    delete IF_NOTE.annie;
+    IF_NOTE.reiner = [[7, 8, 9, 10, 11], "— 조사병단 이야기 — 라이너는 전사의 임무를 내려놓고 조사병단 병사로 남았다."];
+    CHAR_STORY.reiner = { 6: { pre: [
+      ["나레이션", "— 조사병단 이야기 — 우트가르드 성의 밤을 넘기고 104기는 벽 위로 올라왔다. 라이너는 끝내 아무것도 털어놓지 않았다."],
+      ["@", "(나는 전사였다. …하지만 오늘부터는 조사병단 병사다. 그렇게 정했다.)"],
+      ["나레이션", "그때 벽 아래에서 결정이 깨지는 소리가 났다. 스토헤스에서 붙잡힌 여성형 거인이 다시 일어선다."],
+      ["미카사", "애니가 깨어났어! 막지 않으면 벽이 뚫려!"],
+      ["@", "…애니. 미안하다. 이번엔 너를 막는 쪽에 서겠다!"],
+      ["나레이션", "번개가 벽 위를 갈랐다. 조사병단의 갑옷 거인이 일어선다."]
+    ], post: [
+      ["나레이션", "여성형 거인은 다시 쓰러졌다. 갑옷 거인의 등 뒤에서, 동기들이 숨을 몰아쉰다."],
+      ["에렌", "라이너… 너, 그 힘은 대체…"],
+      ["@", "…나중에 전부 말하마. 지금은 함께 싸우는 병사로 있게 해 다오."],
+      ["나레이션", "조사병단은 그를 받아들였다. 의심과 믿음을 함께 짊어진 채로."]
+    ] } };
+    const a4 = CHAR_STORY.annie && CHAR_STORY.annie[4];
+    if (a4) a4.post = [
+      ["나레이션", "싸움이 끝나자, 애니는 거인의 몸에서 스스로 걸어 나왔다. 결정 속으로 숨지 않았다."],
+      ["아르민", "애니… 왜 도망치지 않은 거야?"],
+      ["@", "…지쳤어. 헌병단 제복을 다시 입게 해 줘. 이번엔 이 벽 안 사람들을 지키는 쪽에서."],
+      ["나레이션", "그날부터 헌병단 애니 레온하트는 감시를 받으며, 조사병단과 같은 적을 향해 칼을 들었다."]
+    ];
+    const fix = { "나는 전사다. 그리고… 이 녀석들에게는 믿음직한 형이어야 한다.": "나는 병사가 될 거다. 이 녀석들에게 믿음직한 형이 되어 주고 싶다.", "전사인지 병사인지 이제 나도 모르겠다. 그래도 끝까지 책임은 진다.": "나는 조사병단 병사다. 옛 동료라도, 벽을 노린다면 막는다.", "에렌… 네 말이 맞다. 전부 내가 나빴어.": "에렌, 바다 건너는 내 고향이다. 그래도 지금 나는 조사병단이야.", "결정 속에서 4년. 눈을 떠 보니 세상이 끝나려 하고 있었어.": "고향 사람들 앞에 헌병단 제복을 입고 서다니. …이상한 기분이야." };
+    for (const s of SCRIPT) for (const l of s.pre) if (l[0] === "@" && fix[l[1]]) l[1] = fix[l[1]];
+  })();
   function scriptFor(ci) {
     const o = CHAR_STORY[HEROKEY] && CHAR_STORY[HEROKEY][ci], n = IF_NOTE[HEROKEY];
     let pre = o ? o.pre : SCRIPT[ci].pre;
     if (n && n[0].includes(ci)) pre = [["나레이션", n[1]]].concat(pre);
+    if (HEROKEY === "annie" && MP_NOTE[ci]) pre = [["나레이션", MP_NOTE[ci]]].concat(pre);
     return { pre, post: o ? o.post : SCRIPT[ci].post };
   }
   var STORY = { on: false, k1: false, hp: false };
@@ -33507,7 +33558,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
   var POSE_VIC = { RightArm: QE(0, 0, -72), RightForeArm: QE(0, 0, -12), Spine: QE(-8, 0, 0), Head: QE(-10, 0, 0) };
   var POSE_RIDE = { LeftUpLeg: QE(-40, 0, -50), RightUpLeg: QE(-40, 0, 50), LeftLeg: QE(80, 0, -25), RightLeg: QE(80, 0, 25), LeftArm: QE(0, 28, -58), RightArm: QE(0, -28, 58), LeftForeArm: QE(0, -45, 0), RightForeArm: QE(0, 45, 0), Spine: QE(-6, 0, 0) };
   var HORSE = { g: null, on: false, call: false, legs: [], ph: 0, air: 0, cd: 0 };
-  var GSPD = () => FLEE.on ? 10.5 : HORSE.on ? 42 * (1 + 0.04 * (CORPS.horseLv | 0)) : 12;
+  var GSPD = () => FLEE.on ? 10.5 : HORSE.on ? 62 * (1 + 0.04 * (CORPS.horseLv | 0)) : 12;
   function horseModel() {
     const src = (CORPS.horseLv | 0) >= 1 && MODELS.horseA ? MODELS.horseA : MODELS.horse;
     if (!src) return false;
@@ -33542,21 +33593,45 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     HORSE.rest = true;
     return true;
   }
+  // 다리마다 [시작 시각, 앞뒤로 흔드는 크기, 앞쪽 치우침]: 0 앞다리(한쪽) 1 앞다리(다른 쪽) 2 뒷다리 3 뒷다리
+  var GAIT = [[0.3, 0.72, 0.12], [0.52, 0.72, 0.12], [0, 0.6, -0.12], [0.28, 0.6, -0.12]], GAIT_ST = 0.42;
+  function gaitLeg(i, c) {
+    const g = GAIT[i];
+    let u = c - g[0];
+    u -= Math.floor(u);
+    let hip, knee = 0;
+    if (u < GAIT_ST) {
+      const t = u / GAIT_ST;
+      hip = g[1] * (1 - 2 * t);
+    } else {
+      const t = (u - GAIT_ST) / (1 - GAIT_ST), e = t * t * (3 - 2 * t);
+      hip = g[1] * (-1 + 2 * e) + Math.sin(Math.PI * t) * 0.18;
+      knee = -Math.sin(Math.PI * Math.min(1, t * 1.25)) * (i < 2 ? 1.5 : 1.05);
+    }
+    return [hip + g[2], knee];
+  }
   function horsePose(k) {
-    const ph = HORSE.ph, a = [Math.sin(ph), Math.sin(ph - 1.5708), Math.sin(ph - 3.1416), Math.sin(ph - 4.7124)];
+    const c = HORSE.ph;
     if (HORSE.legs) {
-      for (let i = 0; i < 4; i++) HORSE.legs[i].rotation.x = a[i] * 0.85 * k;
-      HORSE.tail.rotation.x = -0.35 - k * 0.5 + Math.sin(ph * 0.5) * 0.1;
+      for (let i = 0; i < 4; i++) HORSE.legs[i].rotation.x = gaitLeg(i, c)[0] * k;
+      HORSE.tail.rotation.x = -0.35 - k * 0.5 + Math.sin(c * 6.283) * 0.1;
       return;
     }
     if (k < 0.01 && HORSE.rest) return;
     HORSE.rest = k < 0.01;
-    const ex = HORSE.ex, hy = ex.hipY;
+    const ex = HORSE.ex, hy = ex.hipY, ky = hy * 0.5, L = [0, 1, 2, 3].map((i) => gaitLeg(i, c));
     for (const p of HORSE.parts) {
       const { pos, idx, base, grp, wt } = p;
       for (let j = 0; j < idx.length; j++) {
-        const gi = grp[j], ang = a[gi] * 0.62 * k * wt[j], pz = gi < 2 ? ex.fz : ex.hz, y = base[j * 3 + 1] - hy, z = base[j * 3 + 2] - pz, c = Math.cos(ang), s = Math.sin(ang);
-        pos.setXYZ(idx[j], base[j * 3], hy + y * c - z * s, pz + y * s + z * c);
+        const gi = grp[j], pz = gi < 2 ? ex.fz : ex.hz, w = wt[j];
+        let y = base[j * 3 + 1], z = base[j * 3 + 2];
+        if (y < ky) {
+          const kn = L[gi][1] * k * Math.min(1, (ky - y) / 0.12), kc = Math.cos(kn), ks = Math.sin(kn), yy = y - ky, zz = z - pz;
+          y = ky + yy * kc - zz * ks;
+          z = pz + yy * ks + zz * kc;
+        }
+        const ang = L[gi][0] * k * w, co = Math.cos(ang), si = Math.sin(ang), yy = y - hy, zz = z - pz;
+        pos.setXYZ(idx[j], base[j * 3], hy + yy * co - zz * si, pz + yy * si + zz * co);
       }
       pos.needsUpdate = true;
     }
@@ -33698,12 +33773,21 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
         notice("말에 올라탔다 — 달리다가 가스(Space)나 와이어로 뛰어오르자 · N 내리기");
       }
     }
-    HORSE.ph += dt * (4 + sp * 0.36);
-    const k = HORSE.k = lerp2(HORSE.k || 0, clamp2(sp / 12, 0, 1), Math.min(1, dt * 5)), L = HORSE.legs;
+    const k = HORSE.k = lerp2(HORSE.k || 0, clamp2(sp / 12, 0, 1), Math.min(1, dt * 5)), L = HORSE.legs, c0 = HORSE.ph;
+    HORSE.ph = (HORSE.ph + dt * (0.9 + Math.min(sp, 70) * 0.02)) % 1;
+    // 발굽이 땅에 닿는 순간: 따-그-닥
+    if (k > 0.35 && (HORSE.on || HORSE.call) && g.position.y < 0.6) for (let i = 0; i < 4; i++) {
+      const s0 = GAIT[i][0];
+      let a0 = c0 - s0, a1 = HORSE.ph - s0;
+      a0 -= Math.floor(a0);
+      a1 -= Math.floor(a1);
+      if (a1 < a0) hoof(i, (HORSE.on ? 0.5 : 0.3) * k);
+    }
     horsePose(k);
-    HORSE.bob = (0.5 + 0.5 * Math.sin(HORSE.ph * 2)) * 0.12 * k;
+    const cyc = HORSE.ph * 6.283;
+    HORSE.bob = (0.5 + 0.5 * Math.cos(cyc - 4.7)) * 0.2 * k;
     g.position.y += HORSE.bob;
-    g.rotation.x = Math.sin(HORSE.ph * 2 + 0.6) * 0.045 * k;
+    g.rotation.x = Math.sin(cyc + 0.3) * 0.075 * k;
     if (k > 0.5 && P.grounded && frame % 5 === 0) puff(tmpV.set(g.position.x + rand(-0.4, 0.4), g.position.y + 0.2, g.position.z + rand(-0.4, 0.4)), 1.1, 0.4, 0.8, 14209960, 0.4, 0.4);
   }
   var POSE_GUN = { RightArm: QE(0, 72, 18), RightForeArm: QE(0, 8, 0), Spine: QE(0, -14, 0) };
@@ -34064,6 +34148,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       if (d) d();
     }
   }
+  var PART = 1;
+  var partUrl = (f) => location.protocol === "file:" ? "https://game.iux.kr/games/" + f : f;
+  var partPromo = () => PART === 1 ? `<a href="${partUrl("titan2.html")}" style="display:block;margin:10px auto 4px;max-width:460px;padding:10px 14px;border-radius:12px;background:linear-gradient(90deg,#7a1f12,#b4522a);border:1px solid #ffd870;color:#fff;text-decoration:none;font-weight:800"><span style="background:#ffd870;color:#3a1a0a;border-radius:6px;padding:1px 6px;font-size:11px;margin-right:6px">NEW</span>2부 공개 — 바다 건너의 전쟁 ▶<div style="font-size:11px;font-weight:600;opacity:.85;margin-top:2px">854년 슬라바 요새부터 천지전까지 · 새 맵과 새 임무 · 장비 강화는 그대로 이어진다</div></a>` : `<a href="${partUrl("titan.html")}" style="display:inline-block;margin:8px auto 2px;padding:6px 12px;border-radius:10px;border:1px solid #d9b77a;color:#ffe9c4;text-decoration:none;font-size:12px;font-weight:700">◀ 1부 하러 가기 (845년 ~ 땅울림)</a>`;
   var SAVE_KEY = "titan_story";
   function storySaveGet() {
     try {
@@ -34459,7 +34546,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
   }
   var storyBtn = () => {
     const s = storySaveGet(), d = s ? new Date(s.at) : null;
-    return `<div class="btns storyb">${s ? `<button data-cont="1">▶ 이어하기 <small>${esc(canon(CH[s.ci].name))} · ${esc(CHARS[s.ch] || "")} · ${d.getMonth() + 1}/${d.getDate()} 저장</small></button>` : ""}<button data-story="1">${s ? "처음부터" : "▶ 스토리 모드"} <small>대화와 함께 처음부터</small></button></div><div class="sub" style="margin:10px 0 4px;font-size:12px">— 챕터 자유 선택 —</div>`;
+    return `${partPromo()}<div class="btns storyb">${s ? `<button data-cont="1">▶ 이어하기 <small>${esc(canon(CH[s.ci].name))} · ${esc(CHARS[s.ch] || "")} · ${d.getMonth() + 1}/${d.getDate()} 저장</small></button>` : ""}<button data-story="1">${s ? "처음부터" : "▶ 스토리 모드"} <small>대화와 함께 처음부터</small></button></div><div class="sub" style="margin:10px 0 4px;font-size:12px">— 챕터 자유 선택 —</div>`;
   };
   var storyBtnOld = () => `<div class="btns storyb"><button data-story="1">▶ 스토리 모드 <small>대화와 함께 처음부터</small></button></div><div class="sub" style="margin:10px 0 4px;font-size:12px">— 챕터 자유 선택 —</div>`;
   var charBtns = () => `<div class="btns chars">${Object.keys(CHARS).map((k) => `<button data-char="${k}" class="${k === HEROKEY ? "sel" : ""}">${PORTRAIT[k] ? `<img src="${PORTRAIT[k]}" alt="">` : ""}<span>${CHARS[k]}</span></button>`).join("")}</div>`;
@@ -34535,7 +34622,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       const L = (t, d, s) => `<div style="opacity:0;animation:tzA 1.2s ${d}s forwards;${s || ""}">${t}</div>`;
       roll.style.transform = "none";
       roll.style.top = "50%";
-      roll.innerHTML = `<style>@keyframes tzA{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}</style><div style="transform:translateY(-50%);padding:0 24px">${L("— 다음 이야기 예고 —", 0.2, "font-size:13px;letter-spacing:.35em;color:#b9a98a;margin-bottom:5vh")}${L("거인이 사라진 세계.", 1.2, "font-size:clamp(17px,2.6vw,26px);margin-bottom:2.2vh")}${L("그러나 바다 건너에서, 새로운 불씨가 타오른다.", 3, "font-size:clamp(17px,2.6vw,26px);margin-bottom:2.2vh")}${L("벽이 없는 시대. 칼을 내려놓은 병사들에게, 다시 선택의 날이 온다.", 4.8, "font-size:clamp(17px,2.6vw,26px);margin-bottom:6vh")}${L("진격의 거인 · 토벌전 2", 6.8, "font-size:clamp(30px,6.4vw,64px);font-weight:900;letter-spacing:.06em;color:#fff")}${L("벽 없는 세계", 7.6, "font-size:clamp(18px,3vw,30px);font-weight:800;color:#ffd870;margin-top:1.2vh")}${L("만드는 중 — 기대해 주세요", 8.8, "font-size:14px;color:#b9a98a;margin-top:4vh")}</div>`;
+      roll.innerHTML = `<style>@keyframes tzA{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}</style><div style="transform:translateY(-50%);padding:0 24px">${L("— 다음 이야기 예고 —", 0.2, "font-size:13px;letter-spacing:.35em;color:#b9a98a;margin-bottom:5vh")}${L("거인이 사라진 세계.", 1.2, "font-size:clamp(17px,2.6vw,26px);margin-bottom:2.2vh")}${L("그러나 바다 건너에서, 새로운 불씨가 타오른다.", 3, "font-size:clamp(17px,2.6vw,26px);margin-bottom:2.2vh")}${L("854년. 이번엔 우리가 바다를 건넌다.", 4.8, "font-size:clamp(17px,2.6vw,26px);margin-bottom:6vh")}${L("진격의 거인 · 토벌전 2부", 6.8, "font-size:clamp(30px,6.4vw,64px);font-weight:900;letter-spacing:.06em;color:#fff")}${L("바다 건너의 전쟁", 7.6, "font-size:clamp(18px,3vw,30px);font-weight:800;color:#ffd870;margin-top:1.2vh")}${L("지금 플레이할 수 있다 — 시작 화면의 2부 버튼", 8.8, "font-size:14px;color:#b9a98a;margin-top:4vh")}</div>`;
       el.querySelector("#endSkip").textContent = "다음 ▶";
       setTimeout(finish, 13500);
     };

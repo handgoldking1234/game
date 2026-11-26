@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+<title>민왕게임월드 새 소식</title>
+<link>https://game.iux.kr/</link>
+<atom:link href="https://game.iux.kr/feed.xml" rel="self" type="application/rss+xml"/>
+<description>설치·로그인 없이 브라우저에서 하는 무료 웹게임 모음, 민왕게임월드의 신규 게임과 업데이트 소식</description>
+<language>ko</language>
+<lastBuildDate>Thu, 26 Nov 2026 20:00:00 +0900</lastBuildDate>
+<item>
+<title>진격의 거인 · 토벌전 2부 공개 — 바다 건너의 전쟁</title>
+<link>https://game.iux.kr/games/titan2.html</link>
+<guid isPermaLink="false">https://game.iux.kr/games/titan2.html#26Nov2026</guid>
+<pubDate>Thu, 26 Nov 2026 20:00:00 +0900</pubDate>
+<description><![CDATA[<p><img src="https://game.iux.kr/hero/titan2-ad.jpg" alt="게임 화면"></p><p>854년, 바다 건너의 전쟁. 애니메이션 The Final Season 흐름을 따라 슬라바 요새, 전퇴 거인과의 결투, 레벨리오 습격, 거목의 숲, 오디하 항구, 시조의 거인 등 위의 천지전까지 9개 챕터. 장갑 열차 파괴·비행정 지키기·포격 피하기 같은 새 임무와 새 맵이 생겼어요. 예고편 영상도 공개! 설치·로그인 없이 브라우저에서 무료.</p><p><a href="https://game.iux.kr/games/titan2.html">지금 플레이 ▶</a></p>]]></description>
+<enclosure url="https://game.iux.kr/hero/titan2-ad.jpg" type="image/jpeg" length="26685"/>
+<media:content url="https://game.iux.kr/hero/titan2-ad.mp4" type="video/mp4" medium="video"/>
+</item>
+<item>
+<title>거인 토벌전 업데이트 — 크롬북 지원, 말 타기, 캐릭터별 무기</title>
+<link>https://game.iux.kr/games/titan.html</link>
+<guid isPermaLink="false">https://game.iux.kr/games/titan.html#24Nov2026</guid>
+<pubDate>Tue, 24 Nov 2026 18:00:00 +0900</pubDate>
+<description><![CDATA[<p><img src="https://game.iux.kr/hero/titan2-ad.jpg" alt="게임 화면"></p><p>학교 크롬북(터치스크린)에서도 마우스·와이어가 되도록 고치고, 저사양 모드를 넣었습니다. 1장 도망치기, 말 타기, 사샤의 활·리바이의 투척 칼날·아르민의 섬광탄, 캐릭터별 구출 미션, 스토리 저장이 추가됐어요.</p><p><a href="https://game.iux.kr/games/titan.html">지금 플레이 ▶</a></p>]]></description>
+<enclosure url="https://game.iux.kr/hero/titan2-ad.jpg" type="image/jpeg" length="26685"/>
+<media:content url="https://game.iux.kr/hero/titan2-ad.mp4" type="video/mp4" medium="video"/>
+</item>
+</channel>
+</rss>
