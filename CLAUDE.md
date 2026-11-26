@@ -18,7 +18,9 @@
 ```
 index.html                원페이지 (GAMES 목록, 썸네일 내장)
 games/*.html              게임 29종 (+ backrooms-pc 고화질판)
-games/titan-data/*.glb    거인 토벌전 3D 모델 · games/titan-music/ 배경 음악
+games/titan-data/*.glb    거인 토벌전 1부·2부가 함께 쓰는 3D 모델 · games/titan-music/ 배경 음악
+feed.xml                  새 소식 RSS 피드(피드 수집 사이트용). 새 게임·큰 업데이트 때 <item>을 맨 위에 추가
+hero/titan2-bg.mp4        원페이지 첫 슬라이드 배경 영상(자막 없음) · hero/titan2-ad.mp4 자막 있는 광고 영상(피드·공유용)
 star/index.html           잿빛 전선(실시간 전략) → https://game.iux.kr/star · 원페이지 목록에는 없음
                           웹판은 <html data-noasset="1">: 원작 그림·소리 폴더를 찾지 않고 자체 그래픽으로 실행
 thumbs/, hero/            썸네일·배경 원본
@@ -30,7 +32,7 @@ supabase/*.sql            통계·기기·관리 함수 SQL
 ```
 
 ## 게임 목록 (index.html `GAMES`의 id → 파일)
-water-merge 물방울 키우기(날씨 단원 합치기) · titan 거인 토벌전(진격의 거인 팬 게임, 3D 와이어 액션, 단원 연계 없음) · fest 무궁화 운동회(최대 24명) · egg 에그 대작전 · cham 카멜레온 숨바꼭질 · op38 새벽 작전 38 · halmae 할매 특공대 · halmae2 할매 특공대 2 · halmae3 할매 특공대 3 · halmae4 할매 특공대 4 · halmae5 할매 특공대 5 · pangpang 웨더팡팡 · garden 날씨 정원 · kart 날씨 카트 레이스 · wrivals 날씨 라이벌즈 · wisland 날씨 생존 섬 · dad 엄격한 에너지 아빠 · hospital 한밤의 동물병원 · brawl 에너지 브롤 · blocks 에너지 블록 마을 · park 한밤의 에너지 공원 · keycap 키캡 타워 · forest 에너지 숲의 밤 · backrooms 백룸 방탈출 · rivals 에너지 라이벌즈 · spy 탄소 스파이를 찾아라 · hero 에너지 히어로 · front 에너지 전선 · jump 에너지 점프 · town 에너지 마을 시장 · wing 탄소 제로 비행단 · world 에너지 월드
+water-merge 물방울 키우기(날씨 단원 합치기) · titan2 거인 토벌전 2부(바다 건너의 전쟁, 9챕터) · titan 거인 토벌전(진격의 거인 팬 게임, 3D 와이어 액션, 단원 연계 없음) · fest 무궁화 운동회(최대 24명) · egg 에그 대작전 · cham 카멜레온 숨바꼭질 · op38 새벽 작전 38 · halmae 할매 특공대 · halmae2 할매 특공대 2 · halmae3 할매 특공대 3 · halmae4 할매 특공대 4 · halmae5 할매 특공대 5 · pangpang 웨더팡팡 · garden 날씨 정원 · kart 날씨 카트 레이스 · wrivals 날씨 라이벌즈 · wisland 날씨 생존 섬 · dad 엄격한 에너지 아빠 · hospital 한밤의 동물병원 · brawl 에너지 브롤 · blocks 에너지 블록 마을 · park 한밤의 에너지 공원 · keycap 키캡 타워 · forest 에너지 숲의 밤 · backrooms 백룸 방탈출 · rivals 에너지 라이벌즈 · spy 탄소 스파이를 찾아라 · hero 에너지 히어로 · front 에너지 전선 · jump 에너지 점프 · town 에너지 마을 시장 · wing 탄소 제로 비행단 · world 에너지 월드
 
 ## 거인 토벌전(titan.html) — 2026-11-21 다시 추가
 - 게임 파일 `games/titan.html`(약 1.6MB, three.js 포함) + 3D 모델 25개 `games/titan-data/*.glb`(합계 약 40MB, 시작할 때 받아 옴). 2026-11-23 크롬북 대응으로 모델을 파일 밖으로 뺐다. 캐릭터 7명 선택(사샤 추가), 스토리 모드 12개 챕터(훈련병단 입대 ~ 땅울림)와 엔딩, 캐릭터별 대사, 난이도(쉬움 기본/보통), 아이템, 과학 퀴즈 60문제, 동료 거인화.
@@ -54,6 +56,14 @@ water-merge 물방울 키우기(날씨 단원 합치기) · titan 거인 토벌�
 - 저수지 버튼(친구 하나 맡기기/바꾸기), 미세먼지(합쳐지지 않음)와 바람 불기(8번 합칠 때마다 1개, 최대 3개).
 - 끝나면 '오늘 배운 과학'과 과학 문제 3개(8문제 중 무작위, `QZ` 배열). 단계 설명·문제 문구는 교과서 표현과 맞는지 선생님 확인이 필요하다.
 - 조달청 공모전 출품작 「혁신 키우기」(`claude/jodal-hero` 브랜치의 jodal-merge.html)와 같은 틀이다. 한쪽을 고치면 다른 쪽도 같이 본다.
+
+## 거인 토벌전 2부(titan2.html) — 2026-11-26 추가
+- 1부와 같은 빌드에 빌드 옵션 part2로 챕터·맵·임무를 바꾼 판. 애니 The Final Season 흐름(나무위키는 열리지 않아 영어 위키 회차 요약을 참고). 대사는 새로 쓴 것.
+- 9챕터: 바다 건너편(슬라바 요새, 장갑 열차·해안포 파괴) · 선전포고(전퇴 거인 결투, 결정 가시 피하기) · 레벨리오 습격(턱 거인, 비행선 사다리로 탈출) · 거목의 숲(나무 맵, 짐승 거인) · 시간시나 기습(포격 붉은 원) · 해빙(땅울림) · 오디하 항구(비행정 내구도 지키기, 예거파) · 천지전(시조의 등뼈 맵, 폭약 3곳 설치) · 기나긴 꿈(시조의 거인 110m 보스).
+- 스토리 시작 때 '다시 칼을 든 이유' 화면(캐릭터별 한 문단). 사람 적 이름은 챕터마다 중동연합군·마레군·예거파.
+- 저장 키 `titan2_story`(1부와 따로), 장비 강화 `titan_corps`는 1부와 같이 씀. 같이 하기 채널은 `titan2_<방 코드>`. 뇌창은 1장부터.
+- 1부 시작 화면에 '2부 공개' 버튼, 2부에는 '1부 하러 가기' 버튼. 1부 엔딩 예고 문구도 2부에 맞춤.
+- 원페이지 첫 슬라이드는 2부 광고(배경 영상 hero/titan2-bg.mp4 + '신규 업데이트' 표시). hero/titan2-ad.mp4는 음악·자막·레터박스를 넣은 38초 예고편(음악은 games/titan-music/final.mp3). 영상은 게임을 한 장면씩 찍어 만든 것.
 
 ## 자주 하는 수정
 - **게임 추가:** `games/`에 파일 → `thumbs/`에 썸네일 → `index.html`의 `GAMES`에 한 줄 → `sitemap.xml`
