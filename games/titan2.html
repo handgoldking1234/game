@@ -27745,7 +27745,18 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
         const wing = new Mesh(new BoxGeometry(6, 0.5, 34), new MeshStandardMaterial({ color: 12303291 }));
         wing.position.y = 6.5;
         g.add(body, wing);
-        objItem(g, 0, 5, -36, "비행정", 100);
+        if (CH[chapter].obj === "destroy") for (const x of [-95, 0, 95]) {
+          const w = new Group(), hull = new Mesh(new BoxGeometry(9, 6, 34), metalMat), house = new Mesh(new BoxGeometry(6, 5, 9), metalMat), fun = new Mesh(new CylinderGeometry(1.4, 1.6, 7, 8), new MeshStandardMaterial({ color: 2763306 }));
+          hull.position.y = 2.4;
+          house.position.set(0, 7.5, 3);
+          fun.position.set(0, 12, -3);
+          w.add(hull, house, fun);
+          w.rotation.y = Math.PI / 2;
+          objItem(w, x, 8, -100, "마레 군함", 4);
+          addBox(x, -100, 34, 9, 6, metalMat).visible = false;
+          targets.push(house, fun);
+        }
+        else objItem(g, 0, 5, -36, "비행정", 100);
       }
       addSupply(0, 0, 6);
       addSupply(-110, 80, 14);
@@ -30685,7 +30696,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
   function objClean() {
     for (const o of OBJ.deco) scene.remove(o);
     for (const a of ARTY.list) scene.remove(a.m);
-    Object.assign(OBJ, { on: false, kind: "", done: false, site: null, deco: [], plant: [], T: 0 });
+    Object.assign(OBJ, { on: false, kind: "", done: false, site: null, deco: [], plant: [], T: 0, items: [] });
     ARTY.list = [];
     ARTY.t = 6;
   }
@@ -32965,40 +32976,40 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     const N = [
       cp(3, { name: "CHAPTER 1 · 바다 건너편", desc: "슬라바 요새 — 장갑 열차와 해안포를 부숴라", map: "fort", obj: "destroy", humans: "중동연합군", marley: 14, scouts: 3, rush: 1, sky: DUST, intro: "목표: 장갑 열차 4량 · 해안포 2문 파괴 (칼로 여러 번, 뇌창 F 한 방이면 크게) · 적: 마레가 떨어뜨린 거인 · 중동연합군 병사(소총)", story: "854년, 바다 건너편. 마레는 4년째 <b>중동연합</b>과 전쟁 중이다.<br>슬라바 요새 앞바다, 비행선에서 떨어진 거인들과 장갑 열차의 포성이 뒤엉킨다.<br><i>— 벽 밖의 세계는, 거인이 없어도 싸우고 있었다.</i>", waves: [{ n: 3, pool: PA, ab: 0.3 }, { n: 4, pool: PA, ab: 0.4 }] }),
       cp(6, { name: "CHAPTER 2 · 선전포고", desc: "레벨리오 광장 — 전퇴 거인을 쓰러뜨려라", foe: "hammer", sky: NIGHT, intro: "전퇴 거인: 땅에서 결정 가시를 솟게 한다 — 하얀 원이 보이면 옆으로 피하라", story: "레벨리오 축제의 밤. 타이버 가문의 연설이 <b>파라디 섬에 대한 선전포고</b>로 끝나는 순간,<br>무대 아래에서 진격의 거인이 일어섰다. 그 앞을 막아선 것은 결정의 무기를 다루는 <b>전퇴 거인</b>." }),
-      cp(9, { name: "CHAPTER 3 · 레벨리오 습격", desc: "전사대를 막고 비행선으로 탈출하라", humans: "마레군", marley: 16, cityModel: true, scouts: 4, rush: 0.8, sky: NIGHT, obj: "extract", elites: [{ wave: 1, kind: "runner", name: "턱 거인", hp: 6, s: 1.15, tip: "빠르고 턱이 단단하다 — 다리부터 베어라" }], intro: "등장: 턱 거인(정예) · 마레군 병사 — 다 정리하면 비행선 사다리가 내려온다", story: "선전포고의 밤은 습격의 밤이 되었다. 조사병단은 하늘에서 내려와 <b>레벨리오</b>를 덮친다.<br>마레의 전사들이 하나둘 거인으로 변한다. 임무를 마치면, 비행선으로 돌아가야 한다." , waves: [{ n: 3, pool: PA, ab: 0.4 }, { n: 3, pool: PA, ab: 0.45, special: ["thrower"] }] }),
-      cp(5, { name: "CHAPTER 4 · 거목의 숲", desc: "짐승 거인과 척수액 거인 무리를 쓰러뜨려라", map: "forest", scouts: 3, rush: 0.9, sky: [8952190, 50, 300, 13421704, 1.1], elites: [{ wave: 2, kind: "thrower", name: "짐승 거인", hp: 7, s: 1.1, tip: "바위를 던진다 — 나무 뒤에 숨으며 다가가라" }], intro: "맵: 거목의 숲(나무에 와이어를 걸기 좋다) · 등장: 외침에 거인이 된 병사들 · 짐승 거인(정예)", story: "파라디 섬, <b>거목의 숲</b>. 붙잡아 둔 짐승 거인의 주인이 외친 순간,<br>숲을 지키던 병사들이 번개와 함께 거인으로 변했다.<br><i>리바이: \"…약속은 지킨다. 놈을 놓치지 마라.\"</i>", waves: [{ n: 6, pool: PA, ab: 0.55 }, { n: 6, pool: PA, ab: 0.6 }, { n: 4, pool: PA, ab: 0.6 }] }),
-      cp(10, { name: "CHAPTER 5 · 시간시나 기습", desc: "비행선 폭격과 차력 거인의 포격 속에서 버텨라", humans: "마레군", marley: 22, cityModel: true, scouts: 4, rush: 0.9, arty: 7, elites: [{ wave: 1, kind: "armor", name: "갑옷 거인", hp: 2.5, tip: "칼이 튕긴다 — 뇌창(F)으로 갑옷을 벗겨라" }, { wave: 2, kind: "runner", name: "턱 거인", hp: 5, s: 1.15 }], intro: "위험: 비행선 폭격 · 차력 거인 포격(붉은 원) · 등장: 갑옷 거인 · 턱 거인 · 마레군 병사", story: "마레의 반격. 비행선이 <b>시간시나 구</b> 하늘을 덮고, 지붕 위의 <b>차력 거인</b>이 포를 쏜다.<br>붉은 원이 보이면 곧 포탄이 떨어진다. 멈추지 말고 날아라.", waves: [{ n: 3, pool: PA, ab: 0.4 }, { n: 3, pool: PA, ab: 0.45 }, { n: 3, pool: PA, ab: 0.5, special: ["thrower"] }] }),
-      cp(11, { name: "CHAPTER 6 · 해빙", desc: "벽에서 깨어나 행진하는 거인을 막아라", sky: DUST, intro: "등장: 벽 속에 잠들어 있던 초대형 거인 무리 (증기 방출)", story: "벽이 녹아내리듯 무너지고, 그 안에 잠들어 있던 수많은 <b>초대형 거인</b>이 걷기 시작했다.<br>세상을 짓밟을 행진, <b>땅울림</b>이 시작되었다." }),
-      cp(10, { name: "CHAPTER 7 · 오디하 항구", desc: "비행정이 뜰 때까지 지켜라", map: "port", obj: "defend", humans: "예거파", marley: 20, scouts: 4, rush: 0.8, sky: [13156532, 90, 460, 16769720, 1.5], elites: [{ wave: 1, kind: "runner", name: "턱 거인 (팔코)", hp: 4, s: 1.1, tip: "다치게 하지 말고 지쳐서 멈출 때까지 막아라" }], intro: "목표: 비행정 내구도를 지켜라 — 비행정 가까이 오는 거인과 예거파 병사부터 막는다", story: "바다를 건널 마지막 희망은 <b>오디하 항구</b>에 묶인 비행정 한 척.<br>어제까지 적이었던 마레의 전사들과 조사병단이 처음으로 같은 편에 섰다.<br><i>한지: \"정비가 끝날 때까지, 아무도 이 항구에 들이지 마!\"</i>", waves: [{ n: 3, pool: PA, ab: 0.4 }, { n: 3, pool: PA, ab: 0.5 }, { n: 3, pool: PA, ab: 0.5 }] }),
-      cp(9, { name: "CHAPTER 8 · 천지전", desc: "시조의 거인 등 위 — 목덜미에 폭약을 설치하라", map: "bone", obj: "plant", scouts: 4, rush: 0.8, sky: RED, arty: 9, elites: [{ wave: 1, kind: "armor", name: "역대 갑옷 거인", hp: 2 }, { wave: 2, kind: "thrower", name: "역대 짐승 거인", hp: 3 }], intro: "맵: 시조의 거인 등뼈 위 · 목표: 높은 뼈 기둥 위 빨간 상자 3곳에 폭약 설치 · 위험: 역대 거인의 공격(붉은 원)", story: "하늘과 땅이 맞닿은 곳. 세상을 짓밟는 행진의 한가운데,<br>남은 사람들이 거대한 <b>시조의 거인</b>의 등에 내려앉았다. 되살아난 역대 거인들이 길을 막는다.<br><i>장: \"폭약만 꽂으면 된다. 가자!\"</i>", waves: [{ n: 4, pool: PA, ab: 0.5 }, { n: 4, pool: PA, ab: 0.55 }] }),
-      cp(7, { name: "CHAPTER 9 · 기나긴 꿈", desc: "시조의 거인을 쓰러뜨려 행진을 멈춰라", map: "bone", scouts: 4, rush: 0.8, col60: true, bossH: 110, bossHp: 9000, bossName: "시조의 거인", sky: RED, arty: 11, intro: "등장: 시조의 거인(110m) — 발목을 베어 넘어뜨리고 목덜미를 노려라 · 역대 거인", story: "폭약이 터지고 거대한 등이 무너진다. 마지막 남은 것은 행진의 중심, <b>시조의 거인</b>.<br>이 꿈을 끝내러 간다.<br><i>미카사: \"…끝내자. 다 같이.\"</i>", waves: [{ n: 4, pool: PA, ab: 0.55, special: ["armor"] }, { n: 4, pool: PA, ab: 0.6, special: ["thrower", "runner"] }] })
+      cp(10, { name: "CHAPTER 3 · 항구 습격", desc: "레벨리오 항구 — 마레 군함 3척을 부숴라", map: "port", obj: "destroy", humans: "마레군", marley: 18, scouts: 4, rush: 0.8, sky: NIGHT, elites: [{ wave: 1, kind: "runner", name: "턱 거인", hp: 6, s: 1.15, tip: "빠르고 턱이 단단하다 — 다리부터 베어라" }], intro: "목표: 바다에 뜬 마레 군함 3척 파괴 (뇌창 F가 세다) · 등장: 턱 거인(정예) · 마레군 병사(소총)", story: "전퇴 거인이 쓰러진 뒤, 조사병단은 <b>레벨리오 항구</b>로 날아갔다.<br>파라디 섬으로 향할 <b>마레 군함</b>을 오늘 밤 모두 가라앉혀야 한다.<br><i>아르민: \"배가 떠나면 섬이 불바다가 돼. 지금 여기서 막아야 해!\"</i>", waves: [{ n: 3, pool: PA, ab: 0.4 }, { n: 3, pool: PA, ab: 0.45 }] }),
+      cp(9, { name: "CHAPTER 4 · 비행선으로", desc: "거리를 지키다 비행선 사다리로 탈출하라", humans: "마레군", marley: 16, cityModel: true, scouts: 4, rush: 0.8, sky: NIGHT, obj: "extract", elites: [{ wave: 1, kind: "runner", name: "턱 거인", hp: 6, s: 1.15, tip: "빠르고 턱이 단단하다 — 다리부터 베어라" }], intro: "등장: 턱 거인(정예) · 마레군 병사 — 다 정리하면 비행선 사다리가 내려온다", story: "항구는 불탔다. 이제 살아서 돌아갈 차례다.<br>비행선이 <b>밧줄 사다리</b>를 내릴 때까지 거리를 지키고, 한 명도 남기지 말고 탈출하라.<br><i>사샤: \"다 같이 타야 해요! 하나라도 빠지면 안 돼요!\"</i>" , waves: [{ n: 3, pool: PA, ab: 0.4 }, { n: 3, pool: PA, ab: 0.45, special: ["thrower"] }] }),
+      cp(5, { name: "CHAPTER 5 · 거목의 숲", desc: "짐승 거인과 척수액 거인 무리를 쓰러뜨려라", map: "forest", scouts: 3, rush: 0.9, sky: [8952190, 50, 300, 13421704, 1.1], elites: [{ wave: 2, kind: "thrower", name: "짐승 거인", hp: 7, s: 1.1, tip: "바위를 던진다 — 나무 뒤에 숨으며 다가가라" }], intro: "맵: 거목의 숲(나무에 와이어를 걸기 좋다) · 등장: 외침에 거인이 된 병사들 · 짐승 거인(정예)", story: "파라디 섬, <b>거목의 숲</b>. 붙잡아 둔 짐승 거인의 주인이 외친 순간,<br>숲을 지키던 병사들이 번개와 함께 거인으로 변했다.<br><i>리바이: \"…약속은 지킨다. 놈을 놓치지 마라.\"</i>", waves: [{ n: 6, pool: PA, ab: 0.55 }, { n: 6, pool: PA, ab: 0.6 }, { n: 4, pool: PA, ab: 0.6 }] }),
+      cp(10, { name: "CHAPTER 6 · 시간시나 기습", desc: "비행선 폭격과 차력 거인의 포격 속에서 버텨라", humans: "마레군", marley: 22, cityModel: true, scouts: 4, rush: 0.9, arty: 7, elites: [{ wave: 1, kind: "armor", name: "갑옷 거인", hp: 2.5, tip: "칼이 튕긴다 — 뇌창(F)으로 갑옷을 벗겨라" }, { wave: 2, kind: "runner", name: "턱 거인", hp: 5, s: 1.15 }], intro: "위험: 비행선 폭격 · 차력 거인 포격(붉은 원) · 등장: 갑옷 거인 · 턱 거인 · 마레군 병사", story: "마레의 반격. 비행선이 <b>시간시나 구</b> 하늘을 덮고, 지붕 위의 <b>차력 거인</b>이 포를 쏜다.<br>붉은 원이 보이면 곧 포탄이 떨어진다. 멈추지 말고 날아라.", waves: [{ n: 3, pool: PA, ab: 0.4 }, { n: 3, pool: PA, ab: 0.45 }, { n: 3, pool: PA, ab: 0.5, special: ["thrower"] }] }),
+      cp(9, { name: "CHAPTER 7 · 두 형제", desc: "외침에 거인이 된 병사들과 짐승 거인을 막아라", humans: "마레군", marley: 10, cityModel: true, scouts: 4, rush: 0.75, sky: [13674636, 100, 520, 16763024, 1.4], elites: [{ wave: 1, kind: "runner", name: "턱 거인", hp: 4, s: 1.1, tip: "외침에 거인이 된 소년 — 지쳐서 멈출 때까지 막아라" }, { wave: 2, kind: "thrower", name: "짐승 거인", hp: 6, s: 1.1, tip: "바위를 던진다 — 건물 뒤에 숨으며 다가가라" }], intro: "등장: 외침에 갑자기 거인이 된 병사들(기행종 많음) · 턱 거인(정예) · 짐승 거인(정예)", story: "벽 위에서 <b>짐승 거인</b>이 다시 외쳤다. 그 소리를 들은 병사들의 몸에서 번개가 일었다.<br>방금까지 동료였던 사람들이 거인이 되어 거리를 덮친다.<br><i>한지: \"외침에 휘말린 사람을 탓하지 마. 우리가 막으면 돼!\"</i>", waves: [{ n: 5, pool: PA, ab: 0.6 }, { n: 5, pool: PA, ab: 0.65 }, { n: 4, pool: PA, ab: 0.65 }] }),
+      cp(11, { name: "CHAPTER 8 · 해빙", desc: "벽에서 깨어나 행진하는 거인을 막아라", sky: DUST, intro: "등장: 벽 속에 잠들어 있던 초대형 거인 무리 (증기 방출)", story: "벽이 녹아내리듯 무너지고, 그 안에 잠들어 있던 수많은 <b>초대형 거인</b>이 다시 걷기 시작했다.<br>4년 전 멈췄던 행진, <b>땅울림</b>이 다시 시작되었다." }),
+      cp(10, { name: "CHAPTER 9 · 오디하 항구", desc: "비행정이 뜰 때까지 지켜라", map: "port", obj: "defend", humans: "예거파", marley: 20, scouts: 4, rush: 0.8, sky: [13156532, 90, 460, 16769720, 1.5], elites: [{ wave: 1, kind: "runner", name: "턱 거인 (팔코)", hp: 4, s: 1.1, tip: "다치게 하지 말고 지쳐서 멈출 때까지 막아라" }], intro: "목표: 비행정 내구도를 지켜라 — 비행정 가까이 오는 거인과 예거파 병사부터 막는다", story: "바다를 건널 마지막 희망은 <b>오디하 항구</b>에 묶인 비행정 한 척.<br>어제까지 적이었던 마레의 전사들과 조사병단이 처음으로 같은 편에 섰다.<br><i>한지: \"정비가 끝날 때까지, 아무도 이 항구에 들이지 마!\"</i>", waves: [{ n: 3, pool: PA, ab: 0.4 }, { n: 3, pool: PA, ab: 0.5 }, { n: 3, pool: PA, ab: 0.5 }] }),
     ];
     const S = [
       { pre: [["나레이션", "854년. 슬라바 요새 앞바다. 마레와 중동연합의 전쟁은 4년째 이어지고 있었다."], ["한지", "저게 바다 건너의 전쟁이야. 거인 없이도 서로를 이만큼 죽인다고."], ["&", "장갑 열차가 포를 돌리고 있어!"], ["@", "열차와 해안포부터 멈춘다. 뇌창 준비!"]], post: [["나레이션", "포성이 멎고, 요새 위로 연기가 피어올랐다."], ["아르민", "…세상은 우리를 '악마'라고 불러. 그런데 이 싸움은 누가 악마인 거지?"]] },
-      { pre: [["나레이션", "레벨리오 축제의 밤. 무대 위의 연설이 끝을 향해 간다."], ["나레이션", "\"파라디 섬에 선전포고를 한다.\" 그 말과 함께, 무대 아래에서 땅이 갈라졌다."], ["&", "전퇴 거인이야! 땅에서 결정이 솟아!"], ["@", "하얀 원을 보고 피한다. 그리고 본체를 찾는다!"]], post: [["나레이션", "결정의 성채가 부서지고, 전퇴 거인이 무너졌다."], ["@", "…이제 돌아갈 길만 남았다."]] },
-      { pre: [["나레이션", "조사병단이 레벨리오의 밤하늘에서 내려온다."], ["리바이", "짧게 끝낸다. 병사는 쏘고, 거인은 벤다. 그리고 비행선으로."], ["미카사", "턱 거인이 빨라. 다리부터 노려."], ["&", "사다리가 내려오면 망설이지 말고 날아가!"]], post: [["나레이션", "비행선이 구름 위로 떠올랐다. 아래에서는 레벨리오가 불타고 있다."], ["코니", "…이게 우리가 원한 거였나."], ["사샤", "그래도 다 같이 살아 돌아가요. 그게 먼저예요."]] },
+      { pre: [["나레이션", "레벨리오 축제의 밤. 무대 위의 연설이 끝을 향해 간다."], ["나레이션", "\"파라디 섬에 선전포고를 한다.\" 그 말과 함께, 무대 아래에서 땅이 갈라졌다."], ["&", "전퇴 거인이야! 땅에서 결정이 솟아!"], ["@", "하얀 원을 보고 피한다. 그리고 본체를 찾는다!"]], post: [["나레이션", "결정의 성채가 부서지고, 전퇴 거인이 무너졌다."], ["@", "…아직이야. 항구에 군함이 남아 있어."]] },
+      { pre: [["나레이션", "레벨리오 항구. 파라디 섬으로 향할 군함들이 불을 밝히고 있다."], ["아르민", "배가 떠나면 섬이 불바다가 돼. 지금 여기서 막아야 해!"], ["미카사", "턱 거인이 빨라. 다리부터 노려."], ["@", "뇌창을 군함에 꽂는다. 엄호해 줘!"]], post: [["나레이션", "마지막 군함이 불길 속에 기울었다. 항구의 하늘이 붉게 물들었다."], ["@", "…이제 돌아갈 길만 남았다."]] },
+      { pre: [["나레이션", "레벨리오 시가지. 항구의 불길이 밤하늘을 붉게 물들였다."], ["리바이", "임무는 끝났다. 남은 건 살아서 돌아가는 것뿐이다."], ["사샤", "다 같이 타야 해요! 하나라도 빠지면 안 돼요!"], ["&", "사다리가 내려오면 망설이지 말고 날아가!"]], post: [["나레이션", "비행선이 구름 위로 떠올랐다. 이번에는 아무도 떨어지지 않았다."], ["코니", "…이게 우리가 원한 거였나."], ["사샤", "그래도 다 같이 살아 돌아가요. 그게 먼저예요."]] },
       { pre: [["나레이션", "거목의 숲. 리바이 반은 짐승 거인의 주인을 붙잡아 두고 있었다."], ["리바이", "놈이 한 번만 소리 지르면 끝이다. 눈을 떼지 마라."], ["나레이션", "그 순간, 숲 전체를 울리는 외침. 병사들의 몸에서 번개가 일었다."], ["&", "동료들이… 거인이 됐어!"], ["@", "나무를 타! 숲은 우리 편이야!"]], post: [["나레이션", "숲의 거인들이 쓰러지고, 연기 속에서 짐승 거인이 무릎을 꿇었다."], ["리바이", "…빚은 반드시 받아 낸다. 반드시."]] },
-      { pre: [["나레이션", "레벨리오의 보복. 마레의 비행선이 시간시나 하늘을 덮었다."], ["아르민", "지붕 위에 차력 거인이 있어. 붉은 원이 보이면 곧 포탄이야!"], ["미카사", "멈추면 맞는다. 계속 날아."], ["@", "4년 전에도 여기서 싸웠다. 이번에도 지킨다!"]], post: [["나레이션", "마레의 첫 공격은 막아 냈다. 그러나 그날, 벽 전체가 울리기 시작했다."], ["&", "벽이… 움직여?"]] },
-      { pre: [["나레이션", "벽이 녹아내리고, 그 안에 잠들어 있던 거인들이 일어섰다."], ["한지", "저걸 그냥 두면 바다 건너 세상이 전부 짓밟혀!"], ["&", "막을 수 있을까…?"], ["@", "막을 수 있는 만큼 막는다. 한 체라도!"]], post: [["나레이션", "행진은 멈추지 않았다. 조사병단은 마지막 희망을 찾아 항구로 향한다."], ["라이너", "…같이 가자. 이번엔 같은 걸 지키는 거다."]] },
-      { pre: [["나레이션", "오디하 항구. 바다를 건널 비행정은 아직 정비 중이다."], ["한지", "정비가 끝날 때까지 아무도 이 항구에 들이지 마!"], ["애니", "…어제의 적과 같은 편이라니. 이상한 기분이야."], ["라이너", "지금은 같은 걸 지키는 거다. 그거면 충분해."], ["@", "비행정 근처로 오는 놈부터 막는다!"]], post: [["나레이션", "비행정이 하늘로 떠올랐다. 항구에 남은 한 사람의 손이 오래도록 흔들렸다."], ["한지", "…다녀와. 너희라면 할 수 있어."]] },
-      { pre: [["나레이션", "하늘과 땅이 맞닿은 곳. 비행정이 거대한 등뼈 위로 내려앉았다."], ["장", "목덜미 쪽 뼈 기둥에 폭약을 꽂는다. 세 군데다!"], ["피크", "역대 거인들이 깨어나고 있어. 서둘러!"], ["@", "빨간 상자까지 날아간다. 엄호해 줘!"]], post: [["나레이션", "폭약이 터지고, 산처럼 거대한 등이 크게 흔들렸다."], ["아르민", "아직이야. 본체가 남았어!"]] },
-      { pre: [["나레이션", "무너지는 등뼈 너머, 행진의 중심이 모습을 드러냈다."], ["미카사", "…끝내자. 다 같이."], ["리바이", "발목부터 벤다. 쓰러뜨리고, 끝낸다."], ["@", "이게 마지막 출격이다!"]], post: [["나레이션", "거대한 몸이 무너지고, 세상을 짓밟던 발소리가 멎었다."], ["나레이션", "증기가 걷힌 하늘에, 처음 보는 맑은 아침이 찾아왔다."], ["@", "…끝났어. 정말로."]] }
+      { pre: [["나레이션", "레벨리오의 보복. 마레의 비행선이 시간시나 하늘을 덮었다."], ["아르민", "지붕 위에 차력 거인이 있어. 붉은 원이 보이면 곧 포탄이야!"], ["미카사", "멈추면 맞는다. 계속 날아."], ["@", "4년 전에도 여기서 싸웠다. 이번에도 지킨다!"]], post: [["나레이션", "마레의 첫 공격은 막아 냈다. 그러나 벽 위에서, 귀를 찢는 외침이 울려 퍼졌다."], ["&", "저 소리… 짐승 거인이야!"]] },
+      { pre: [["나레이션", "시간시나의 지붕 위. 벽 위의 짐승 거인이 다시 입을 열었다."], ["나레이션", "외침이 거리를 덮는 순간, 병사들의 몸에서 번개가 일었다."], ["한지", "외침에 휘말린 사람을 탓하지 마. 우리가 막으면 돼!"], ["&", "턱 거인까지 나왔어… 저건 아직 어린아이야."], ["@", "다치게 하지 말고 멈춘다. 짐승 거인부터 노린다!"]], post: [["나레이션", "거리의 거인들이 하나둘 쓰러지고, 짐승 거인이 벽 아래로 떨어졌다."], ["나레이션", "그리고 그날, 벽 전체가 울리기 시작했다."], ["&", "벽이… 움직여?"]] },
+      { pre: [["나레이션", "벽이 녹아내리고, 그 안에 잠들어 있던 거인들이 다시 일어섰다. 4년 전 멈췄던 행진이다."], ["한지", "저걸 그냥 두면 바다 건너 세상이 전부 짓밟혀!"], ["&", "막을 수 있을까…?"], ["@", "막을 수 있는 만큼 막는다. 한 체라도!"]], post: [["나레이션", "행진은 멈추지 않았다. 조사병단은 마지막 희망을 찾아 항구로 향한다."], ["라이너", "…같이 가자. 이번엔 같은 걸 지키는 거다."]] },
+      { pre: [["나레이션", "오디하 항구. 바다를 건널 비행정은 아직 정비 중이다."], ["한지", "정비가 끝날 때까지 아무도 이 항구에 들이지 마!"], ["애니", "…어제의 적과 같은 편이라니. 이상한 기분이야."], ["라이너", "지금은 같은 걸 지키는 거다. 그거면 충분해."], ["@", "비행정 근처로 오는 놈부터 막는다!"]], post: [["나레이션", "비행정이 하늘로 떠올랐다. 항구에 남은 한 사람의 손이 오래도록 흔들렸다."], ["한지", "…다녀와. 너희라면 할 수 있어."], ["나레이션", "구름 아래, 땅을 뒤덮은 거인의 행진이 보인다. 그 한가운데에, 산처럼 거대한 등이 솟아 있다."], ["@", "저기가 마지막 전장이야. …가자."]] },
     ];
     CH.length = 0;
     N.forEach((c) => CH.push(c));
     SCRIPT.length = 0;
     S.forEach((s) => SCRIPT.push(s));
-    BGM.byCh = ["feuer", "void", "feuer", "void", "feuer", "final", "march", "final", "final"];
+    BGM.byCh = ["feuer", "void", "feuer", "feuer", "void", "feuer", "void", "final", "march"];
     for (const k in CHAR_STORY) delete CHAR_STORY[k];
     for (const k in IF_NOTE) delete IF_NOTE[k];
     for (const k in MP_NOTE) delete MP_NOTE[k];
     IF_NOTE.eren = [[0, 1, 2, 3, 4, 5, 6, 7, 8], "— 만약의 이야기 — 에렌이 혼자 떠나지 않고 조사병단과 함께 바다를 건넜다면."];
-    IF_NOTE.sasha = [[3, 4, 5, 6, 7, 8], "— 만약의 이야기 — 사샤가 그날 비행선에서 무사히 돌아왔다면."];
+    IF_NOTE.sasha = [[4, 5, 6, 7, 8], "— 만약의 이야기 — 사샤가 그날 비행선에서 무사히 돌아왔다면."];
     IF_NOTE.reiner = [[0, 1, 2, 3, 4, 5, 6, 7, 8], "— 조사병단 이야기 — 라이너는 4년 동안 조사병단 병사로 싸워 왔다."];
     for (let i = 0; i < 9; i++) MP_NOTE[i] = "— 헌병단 이야기 — 헌병단 애니 레온하트는 이번에도 조사병단과 함께 출동했다.";
     MP_NOTE[1] = "— 헌병단 이야기 — 고향 마레의 광장에, 헌병단 제복을 입은 애니가 서 있다.";
-    MP_NOTE[6] = "— 헌병단 이야기 — 항구를 지키는 일은 헌병단의 몫이다. 애니는 칼을 뽑았다.";
-    const MC = { sasha: 4, eren: 3, scout: 4, hero: 3, levi: 3, annie: 4, reiner: 3 };
+    MP_NOTE[8] = "— 헌병단 이야기 — 항구를 지키는 일은 헌병단의 몫이다. 애니는 칼을 뽑았다.";
+    const MC = { sasha: 3, eren: 6, scout: 5, hero: 2, levi: 4, annie: 6, reiner: 2 };
     for (const k in MISSIONS) if (MC[k] !== void 0) MISSIONS[k].ch = MC[k];
   })();
   function scriptFor(ci) {
@@ -33795,7 +33806,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       const e = document.createElement("div");
       e.id = "theEnd";
       e.style.cssText = "position:fixed;left:0;right:0;top:9%;z-index:60;text-align:center;color:#fff;pointer-events:none;opacity:0;transition:opacity 1.6s;text-shadow:0 4px 14px rgba(0,0,0,.75);font-family:Georgia,serif";
-      e.innerHTML = `<div style="font-size:clamp(44px,10vw,110px);font-weight:900;letter-spacing:.12em">THE END</div><div style="font-size:clamp(15px,2.4vw,24px);margin-top:8px;font-family:inherit">끝까지 함께 싸워 줘서 고마워요!</div>`;
+      e.innerHTML = `<div style="font-size:clamp(44px,10vw,110px);font-weight:900;letter-spacing:.08em">TO BE CONTINUED</div><div style="font-size:clamp(15px,2.4vw,24px);margin-top:8px;font-family:inherit">3부 「천지전」에서 다시 만나요!</div>`;
       document.body.appendChild(e);
       return { e };
     },
@@ -34556,7 +34567,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
   }
   var PART = 2;
   var partUrl = (f) => location.protocol === "file:" ? "https://game.iux.kr/games/" + f : f;
-  var partPromo = () => PART === 1 ? `<a href="${partUrl("titan2.html")}" style="display:block;margin:10px auto 4px;max-width:460px;padding:10px 14px;border-radius:12px;background:linear-gradient(90deg,#7a1f12,#b4522a);border:1px solid #ffd870;color:#fff;text-decoration:none;font-weight:800"><span style="background:#ffd870;color:#3a1a0a;border-radius:6px;padding:1px 6px;font-size:11px;margin-right:6px">NEW</span>2부 공개 — 바다 건너의 전쟁 ▶<div style="font-size:11px;font-weight:600;opacity:.85;margin-top:2px">854년 레벨리오 급습부터 천지전까지 · 장비 강화는 그대로 이어진다</div></a>` : `<a href="${partUrl("titan.html")}" style="display:inline-block;margin:8px auto 2px;padding:6px 12px;border-radius:10px;border:1px solid #d9b77a;color:#ffe9c4;text-decoration:none;font-size:12px;font-weight:700">◀ 1부 하러 가기 (845년 ~ 땅울림)</a>`;
+  var partPromo = () => PART === 1 ? `<a href="${partUrl("titan2.html")}" style="display:block;margin:10px auto 4px;max-width:460px;padding:10px 14px;border-radius:12px;background:linear-gradient(90deg,#7a1f12,#b4522a);border:1px solid #ffd870;color:#fff;text-decoration:none;font-weight:800"><span style="background:#ffd870;color:#3a1a0a;border-radius:6px;padding:1px 6px;font-size:11px;margin-right:6px">NEW</span>2부 공개 — 바다 건너의 전쟁 ▶<div style="font-size:11px;font-weight:600;opacity:.85;margin-top:2px">854년 슬라바 요새부터 오디하 항구까지 · 새 맵과 새 임무 · 3부 「천지전」 예고</div></a>` : `<a href="${partUrl("titan.html")}" style="display:inline-block;margin:8px auto 2px;padding:6px 12px;border-radius:10px;border:1px solid #d9b77a;color:#ffe9c4;text-decoration:none;font-size:12px;font-weight:700">◀ 1부 하러 가기 (845년 ~ 땅울림)</a>`;
   var SAVE_KEY = "titan2_story";
   function storySaveGet() {
     try {
@@ -34983,7 +34994,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
         }
         running = false;
         unlock();
-        showOverlay(`<h1 class="sm">스토리 완결</h1><div class="sub story">기나긴 꿈은 끝났다. 리온과 동료들은 거인이 없는 세계의 첫 아침을 맞았다. — 그 언덕의 나무를 향해.<br>토벌 ${kills} · 최종 점수 ${score}</div>${storyBtn()}${stageBtns()}`);
+        showOverlay(`<h1 class="sm">스토리 완결</h1><div class="sub story">비행정은 땅울림을 향해 날아올랐다. 이야기는 3부 「천지전」으로 이어진다.<br>토벌 ${kills} · 최종 점수 ${score}</div>${storyBtn()}${stageBtns()}`);
       }
     });
   }
@@ -35065,7 +35076,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
       const L = (t, d, s) => `<div style="opacity:0;animation:tzA 1.2s ${d}s forwards;${s || ""}">${t}</div>`;
       roll.style.transform = "none";
       roll.style.top = "50%";
-      roll.innerHTML = `<style>@keyframes tzA{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}</style><div style="transform:translateY(-50%);padding:0 24px">${L("— 이야기의 끝 —", 0.2, "font-size:13px;letter-spacing:.35em;color:#b9a98a;margin-bottom:5vh")}${L("거인이 사라진 세계.", 1.2, "font-size:clamp(17px,2.6vw,26px);margin-bottom:2.2vh")}${L("벽도 거인도 없는 땅에서, 사람들은 다시 살아가기 시작했다.", 3, "font-size:clamp(17px,2.6vw,26px);margin-bottom:2.2vh")}${L("칼을 내려놓은 병사들의 이야기는, 여기서 끝난다.", 4.8, "font-size:clamp(17px,2.6vw,26px);margin-bottom:6vh")}${L("진격의 거인 · 토벌전", 6.8, "font-size:clamp(30px,6.4vw,64px);font-weight:900;letter-spacing:.06em;color:#fff")}${L("1부 · 2부 완결", 7.6, "font-size:clamp(18px,3vw,30px);font-weight:800;color:#ffd870;margin-top:1.2vh")}${L("끝까지 함께 날아 줘서 고마워", 8.8, "font-size:14px;color:#b9a98a;margin-top:4vh")}</div>`;
+      roll.innerHTML = `<style>@keyframes tzA{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}</style><div style="transform:translateY(-50%);padding:0 24px">${L("— 다음 이야기 예고 —", 0.2, "font-size:13px;letter-spacing:.35em;color:#b9a98a;margin-bottom:5vh")}${L("바다 건너에서, 마지막 전쟁이 시작되었다.", 1.2, "font-size:clamp(17px,2.6vw,26px);margin-bottom:2.2vh")}${L("비행정은 땅울림의 한가운데를 향해 날아오른다.", 3, "font-size:clamp(17px,2.6vw,26px);margin-bottom:2.2vh")}${L("하늘과 땅이 맞닿는 곳에서, 마지막 싸움이 기다린다.", 4.8, "font-size:clamp(17px,2.6vw,26px);margin-bottom:6vh")}${L("진격의 거인 · 토벌전 3부", 6.8, "font-size:clamp(30px,6.4vw,64px);font-weight:900;letter-spacing:.06em;color:#fff")}${L("천지전", 7.6, "font-size:clamp(18px,3vw,30px);font-weight:800;color:#ffd870;margin-top:1.2vh")}${L("곧 공개 — 기대해 주세요", 8.8, "font-size:14px;color:#b9a98a;margin-top:4vh")}</div>`;
       el.querySelector("#endSkip").textContent = "다음 ▶";
       setTimeout(finish, 13500);
     };
@@ -35085,10 +35096,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
   function showOverlay(html) {
     if (!ENDING.busy && !ENDING.shown && /스토리 완결|땅울림 저지 성공/.test(html)) {
       ENDING.shown = true;
-      endscStart(() => epiRun(EPI_VIG, () => playEnding(() => epiRun(EPI_CURTAIN, () => {
+      playEnding(() => epiRun(EPI_CURTAIN, () => {
         showOverlay(html);
         ENDING.shown = false;
-      }))));
+      }));
       return;
     }
     if (typeof RANK !== "undefined" && RANK.note && /<h1/.test(html)) {
@@ -36598,7 +36609,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Malg
     buildCity(20, true);
     setTimeout(titleStart, 0);
     sun.position.set(90, 170, 70);
-    showOverlay(`<h1>\uAC70\uC778 \uD1A0\uBC8C\uC804 <span style="color:#ffd870">2부</span></h1><div class="sub" style="color:#ffd870;font-weight:800;letter-spacing:.08em">바다 건너의 전쟁</div><div class="sub">854년, 4년 뒤. 새벽 조사대의 리온이 되어 바다를 건너라. 애니메이션 The Final Season의 흐름을 따라 9개 챕터 · 새 맵(요새·거목의 숲·항구·시조의 등) · 1부의 장비 강화는 그대로 이어진다.<br>\uC785\uCCB4\uAE30\uB3D9 \uC640\uC774\uC5B4\uC640 \uCE7C\uB0A0, \uD3ED\uB8B0\uCC3D, \uADF8\uB9AC\uACE0 \uB3D9\uB8CC\uB4E4\uACFC \uD568\uAED8 \uC778\uB958\uC758 \uC131\uBCBD\uC744 \uC9C0\uCF1C\uB77C.</div><div class="tcols"><div class="tl"><h3>캐릭터 선택</h3>${charBtns()}<h3>게임 시작</h3>${storyBtn()}<div class="stages">${stageBtns()}</div><h3>멀티플레이</h3>${netPanel()}</div><div class="tr"><h3>조작법</h3>${CONTROLS}${CONTROLS2}${TIP}</div></div><div class="credit">3D 모델 (Sketchfab · CC BY 4.0, 게임용으로 뼈대·동작 추가 및 텍스처 축소): “PUBG X AOT - Armin” by swag3dmotionff · “3d manuever Gear” by 1user · “Attack On Titan: Gear Sword - Low Poly” by Cem Alagozlu · “Fanny (Mikasa Skin) - MLBB” by Kenny3D89 · “Colossal Titan” by Sidaivan · “Levi Ackerman rig” · “Aotwa eren yeager” · “Aotwa annie leonhart” · “Aotwa reiner braun” · “AOTWA Fat Titan” · “Aot sasha braus rig” by Prime Slayer3D · “Aot City 3” by damr.optimus2008 · “Medieval House 4” by Olosta · “low poly building” by GreyHorn102 · “Western Horse Saddle” by Nicole Gueli · “Armored Horse” by naminoff · “Horse textured (low poly)” by Leoskateman (CC BY-SA 4.0)</div>`);
+    showOverlay(`<h1>\uAC70\uC778 \uD1A0\uBC8C\uC804 <span style="color:#ffd870">2부</span></h1><div class="sub" style="color:#ffd870;font-weight:800;letter-spacing:.08em">바다 건너의 전쟁</div><div class="sub">854년, 4년 뒤. 새벽 조사대의 리온이 되어 바다를 건너라. 애니메이션 The Final Season의 흐름을 따라 9개 챕터 · 새 맵(요새·거목의 숲·항구) · 3부 「천지전」으로 이어진다 · 1부의 장비 강화는 그대로 이어진다.<br>\uC785\uCCB4\uAE30\uB3D9 \uC640\uC774\uC5B4\uC640 \uCE7C\uB0A0, \uD3ED\uB8B0\uCC3D, \uADF8\uB9AC\uACE0 \uB3D9\uB8CC\uB4E4\uACFC \uD568\uAED8 \uC778\uB958\uC758 \uC131\uBCBD\uC744 \uC9C0\uCF1C\uB77C.</div><div class="tcols"><div class="tl"><h3>캐릭터 선택</h3>${charBtns()}<h3>게임 시작</h3>${storyBtn()}<div class="stages">${stageBtns()}</div><h3>멀티플레이</h3>${netPanel()}</div><div class="tr"><h3>조작법</h3>${CONTROLS}${CONTROLS2}${TIP}</div></div><div class="credit">3D 모델 (Sketchfab · CC BY 4.0, 게임용으로 뼈대·동작 추가 및 텍스처 축소): “PUBG X AOT - Armin” by swag3dmotionff · “3d manuever Gear” by 1user · “Attack On Titan: Gear Sword - Low Poly” by Cem Alagozlu · “Fanny (Mikasa Skin) - MLBB” by Kenny3D89 · “Colossal Titan” by Sidaivan · “Levi Ackerman rig” · “Aotwa eren yeager” · “Aotwa annie leonhart” · “Aotwa reiner braun” · “AOTWA Fat Titan” · “Aot sasha braus rig” by Prime Slayer3D · “Aot City 3” by damr.optimus2008 · “Medieval House 4” by Olosta · “low poly building” by GreyHorn102 · “Western Horse Saddle” by Nicole Gueli · “Armored Horse” by naminoff · “Horse textured (low poly)” by Leoskateman (CC BY-SA 4.0)</div>`);
   }).catch((e) => fatal("3D 모델을 불러오지 못했어요", "인터넷 연결을 확인하고 다시 불러오세요.<br><small style=\"opacity:.7\">" + esc(String(e && e.message || e)) + "</small>"));
   window.addEventListener("error", (e) => {
     if (!MODELS.hero) fatal("게임을 시작하지 못했어요", "다시 불러오거나, 시작 화면에서 저사양 모드를 켜 보세요.<br><small style=\"opacity:.7\">" + esc(String(e.message || "")) + "</small>");
